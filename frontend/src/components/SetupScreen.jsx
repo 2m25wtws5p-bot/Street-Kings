@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { AVATARS } from "../game/constants";
 import { HERO_BG } from "../game/assets";
 import { Avatar } from "./Avatar";
-import { Sparkles, Users, Play } from "lucide-react";
+import { Sparkles, Users, Play, Bot, User } from "lucide-react";
 import { sfx } from "../game/sound";
 
 const PRESETS = [
@@ -16,6 +16,7 @@ export function SetupScreen({ onStart }) {
   const [count, setCount] = useState(4);
   const [names, setNames] = useState(() => AVATARS.map((a) => ""));
   const [avatars, setAvatars] = useState(() => AVATARS.map((_, i) => i));
+  const [bots, setBots] = useState(() => AVATARS.map(() => false));
 
   const setCountSafe = (c) => {
     setCount(c);
@@ -35,6 +36,7 @@ export function SetupScreen({ onStart }) {
     const players = Array.from({ length: count }, (_, i) => ({
       name: (names[i] || "").trim() || `${AVATARS[avatars[i]].label} ${i + 1}`,
       avatar: AVATARS[avatars[i]],
+      isBot: i === 0 ? false : bots[i],
     }));
     sfx.fanfare();
     onStart(players);
@@ -79,6 +81,28 @@ export function SetupScreen({ onStart }) {
             ))}
           </div>
 
+          <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+            <div className="flex items-center gap-2 text-purple-200/80 font-serif-fancy text-sm">
+              <Bot size={16} className="text-amber-300" /> Play solo? Fill seats with AI witches.
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => { setBots(AVATARS.map((_, i) => i !== 0)); sfx.select(); }}
+                data-testid="btn-preset-solo"
+                className="text-xs font-display rounded-lg px-3 py-1.5 bg-amber-500/15 border border-amber-400/50 text-amber-200 hover:bg-amber-500/25 transition-colors"
+              >
+                Solo vs AI
+              </button>
+              <button
+                onClick={() => { setBots(AVATARS.map(() => false)); sfx.select(); }}
+                data-testid="btn-preset-all-human"
+                className="text-xs font-display rounded-lg px-3 py-1.5 bg-black/30 border border-purple-500/25 text-purple-200 hover:border-purple-400/50 transition-colors"
+              >
+                All Human
+              </button>
+            </div>
+          </div>
+
           <div className="space-y-2.5">
             {Array.from({ length: count }, (_, i) => (
               <div key={i} className="flex items-center gap-3 rise-in" style={{ animationDelay: `${0.05 * i}s` }}>
@@ -88,7 +112,7 @@ export function SetupScreen({ onStart }) {
                   data-testid={`btn-avatar-${i}`}
                   className="shrink-0"
                 >
-                  <Avatar avatar={AVATARS[avatars[i]]} size={44} />
+                  <Avatar avatar={AVATARS[avatars[i]]} size={44} active={i > 0 && bots[i]} />
                 </button>
                 <input
                   value={names[i]}
@@ -102,6 +126,25 @@ export function SetupScreen({ onStart }) {
                   data-testid={`input-player-name-${i}`}
                   className="flex-1 bg-black/40 border border-purple-500/25 focus:border-amber-400/60 rounded-lg px-3 py-2.5 text-purple-50 placeholder:text-purple-300/40 outline-none transition-colors font-serif-fancy text-lg"
                 />
+                {i === 0 ? (
+                  <span className="shrink-0 w-16 text-center text-[11px] font-display uppercase tracking-wider text-amber-300/80">
+                    You
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => { const nx = [...bots]; nx[i] = !nx[i]; setBots(nx); sfx.select(); }}
+                    data-testid={`btn-toggle-bot-${i}`}
+                    className={`shrink-0 w-16 flex flex-col items-center gap-0.5 rounded-lg py-1.5 border text-[10px] font-display transition-all ${
+                      bots[i]
+                        ? "bg-purple-500/20 border-purple-400/60 text-purple-100"
+                        : "bg-black/30 border-purple-500/25 text-purple-300/70 hover:border-purple-400/40"
+                    }`}
+                  >
+                    {bots[i] ? <Bot size={16} /> : <User size={16} />}
+                    {bots[i] ? "AI" : "Human"}
+                  </button>
+                )}
               </div>
             ))}
           </div>

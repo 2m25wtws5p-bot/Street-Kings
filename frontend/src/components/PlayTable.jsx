@@ -8,7 +8,7 @@ import { sfx } from "../game/sound";
 
 const SUIT_ICON = { RED: Flame, YELLOW: Sun, BLUE: MountainSnow, GREEN: Leaf };
 
-export function PlayTable({ state, onPlay, onContinueTrick }) {
+export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) {
   const { n, players, hands, scores, trick, trickNumber, currentSeat, phase, lastWinner } = state;
   const [armed, setArmed] = useState(null);
   const totalTricks = dealCount(n);
@@ -120,6 +120,19 @@ export function PlayTable({ state, onPlay, onContinueTrick }) {
             >
               Gather & Continue
             </button>
+          </div>
+        </div>
+      ) : hideHand ? (
+        <div className="px-4 pb-10 text-center rise-in" data-testid="bot-thinking">
+          <div className="font-serif-fancy text-purple-200/70 italic text-lg mb-3">
+            <span className="font-display text-amber-200 not-italic">{active.name}</span> is conjuring a card…
+          </div>
+          <div className="flex justify-center -space-x-6">
+            {hand.slice(0, 8).map((c, i) => (
+              <div key={i} className="candle-flicker" style={{ animationDelay: `${i * 0.15}s` }}>
+                <CardView faceDown size="sm" />
+              </div>
+            ))}
           </div>
         </div>
       ) : (

@@ -187,3 +187,69 @@ export function lowestSeats(scores) {
   const min = Math.min(...scores);
   return scores.map((s, i) => (s === min ? i : -1)).filter((i) => i >= 0);
 }
+
+/* ---------------- AI opponents ---------------- */
+
+// How badly a bot wants to get rid of a card (higher = dump it).
+export function cardDanger(card) {
+  if (card.special === "wizard") return -5; // safe, keep for escapes
+  if (card.special === "earth") return -25; // blessing, keep
+  if (card.special === "air") return -15; // neutralizer, keep
+  if (card.special === "pygmy") return 45; // +10, dump
+  if (card.special === "water") return 32; // +5, dump
+  if (card.special === "fire") return 27; // fire witch, dangerous to hold
+  if (card.suit === "RED") return 12 + card.value; // fire cards
+  return card.value * 0.4; // non-fire, mild
+}
+
+// Choose `count` cards for a bot to pass away.
+export function botPass(hand, count) {
+  return [...hand]
+    .sort((a, b) => cardDanger(b) - cardDanger(a))
+    .slice(0, count)
+    .map((c) => c.id);
+}
+
+function leadPref(card) {
+  if (card.special === "wizard") return 3; // leading a wizard is safe (can't win)
+  if (card.special === "pygmy") return 95;
+  if (card.special === "water") return 85;
+  if (card.special === "fire") return 55;
+  if (card.suit === "RED") return 40 + card.value;
+  return card.value; // low non-fire preferred
+}
+
+// Choose a legal card for a bot to play.
+export function botPlay(hand, trick) {
+  const legalSet = new Set(legalCardIds(hand, trick));
+  const legal = hand.filter((c) => legalSet.has(c.id));
+  if (legal.length === 0) return hand[0].id;
+
+  if (trick.length === 0) {
+    return [...legal].sort((a, b) => leadPref(a) - leadPref(b))[0].id;
+  }
+
+  const lead = leadSuit(trick);
+  const hasLead = hand.some((c) => c.suit === lead);
+  const trickHasPenalty = trick.some(
+    (t) => t.card.suit === "RED" || t.card.special === "water" || t.card.special === "pygmy"
+  );
+
+  if (!hasLead) {
+    // void of the led colour — off-suit can never win, so dump the worst card
+    const nonWizard = legal.filter((c) => c.special !== "wizard");
+    const pool = nonWizard.length ? nonWizard : legal;
+    return [...pool].sort((a, b) => cardDanger(b) - cardDanger(a))[0].id;
+  }
+
+  const leadCards = legal.filter((c) => c.suit === lead);
+  const curMax = Math.max(...trick.filter((t) => t.card.suit === lead).map((t) => t.card.value));
+  const safe = leadCards.filter((c) => c.value < curMax);
+  if (safe.length) {
+    return safe.sort((a, b) => b.value - a.value)[0].id; // duck with highest safe card
+  }
+  // any lead card would currently win
+  const wizard = legal.find((c) => c.special === "wizard");
+  if (trickHasPenalty && wizard) return wizard.id; // escape a penalty trick
+  return leadCards.sort((a, b) => a.value - b.value)[0].id;
+}
