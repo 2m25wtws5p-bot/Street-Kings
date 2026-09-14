@@ -33,6 +33,18 @@
 - Full game loop: Setup → Pass gates → Passing → Trick play → Round scoring → Game over.
 - Rules grimoire dialog, local stats grimoire, sound FX toggle.
 - Backend persistence of finished games + recent chronicles feed.
+- AI opponents (bots) for solo/mixed play (engine `botPass`/`botPlay`).
+- Icon-based special-card design (no photos) with framer-motion arc-in + sweep animations.
+- Online multiplayer (server-authoritative, short polling ~1.3s):
+  - Python engine port `backend/witches_engine.py`; room orchestration + REST in `server.py`.
+  - Endpoints: POST /api/rooms, /rooms/{code}/join, /rooms/{code}/bots, /rooms/{code}/start,
+    GET /rooms/{code} (redacted per-token view — hides other hands), POST /rooms/{code}/action.
+  - Frontend: HomeScreen mode picker, OnlineFlow (create/join/lobby + session resume via localStorage),
+    OnlineTable, useOnlineGame hook, api.js. Deep-link ?room=CODE. Bots fill seats; host starts (3-6).
+
+## Architecture note
+- App.js is now an orchestrator: home | local (LocalGame.jsx) | online (OnlineFlow.jsx).
+- Local pass-and-play uses `useGame.js` reducer; online is server-authoritative via rooms.
 
 ## Backlog / Next
 - P1: Optional single-player AI opponents.
