@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { CardView } from "./CardView";
+import { CardView, SUIT_ICON } from "./CardView";
 import { Avatar } from "./Avatar";
 import { legalCardIds, leadSuit, dealCount } from "../game/engine";
 import { SUITS } from "../game/constants";
-import { Flame, Sun, MountainSnow, Leaf, Trophy } from "lucide-react";
+import { Trophy } from "lucide-react";
 import { sfx } from "../game/sound";
-
-const SUIT_ICON = { RED: Flame, YELLOW: Sun, BLUE: MountainSnow, GREEN: Leaf };
 
 export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) {
   const { n, players, hands, scores, trick, trickNumber, currentSeat, phase, lastWinner } = state;
@@ -54,7 +52,7 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) 
     <div className="min-h-screen coven-bg flex flex-col">
       {/* header row */}
       <div className="flex items-center justify-between px-4 pt-3 pb-2">
-        <div className="font-mono-stat text-xs text-purple-200/70">
+        <div className="font-mono-stat text-xs text-slate-300/70">
           Runde {state.roundIndex + 1} · Stich {trickNumber}/{totalTricks}
         </div>
         {lead && (
@@ -74,18 +72,18 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) 
           <div
             key={i}
             data-testid={`opponent-seat-player-${i}`}
-            className={`flex items-center gap-2 rounded-xl px-2.5 py-1.5 border transition-all ${
+            className={`flex items-center gap-2 rounded-md px-2.5 py-1.5 border transition-all ${
               !isTrickEnd && i === currentSeat
                 ? "bg-amber-500/15 border-amber-400/70"
                 : isTrickEnd && i === lastWinner
                 ? "bg-emerald-500/15 border-emerald-400/60"
-                : "bg-black/30 border-purple-500/20"
+                : "bg-black/30 border-white/10"
             }`}
           >
             <Avatar avatar={p.avatar} size={30} active={!isTrickEnd && i === currentSeat} />
             <div className="leading-tight">
-              <div className="font-display text-xs text-purple-100 max-w-[90px] truncate">{p.name}</div>
-              <div className="font-mono-stat text-[10px] text-purple-300/70">
+              <div className="font-display text-xs text-slate-100 max-w-[90px] truncate">{p.name}</div>
+              <div className="font-mono-stat text-[10px] text-slate-400/70">
                 <span className="text-red-300">{scores[i]} Hitze</span> · {hands[i].length}K
               </div>
             </div>
@@ -97,11 +95,11 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) 
       <div className="flex-1 grid place-items-center px-4 py-2">
         <div
           className="relative w-full max-w-2xl min-h-[220px] rounded-[40%] grid place-items-center"
-          style={{ background: "radial-gradient(ellipse at center, rgba(80,40,130,0.35), rgba(11,7,19,0) 70%)" }}
+          style={{ background: "radial-gradient(ellipse at center, rgba(239,68,68,0.10), rgba(13,15,19,0) 70%)" }}
           data-testid="central-trick-cauldron"
         >
           {trick.length === 0 && !isTrickEnd && (
-            <p className="font-serif-fancy text-purple-300/50 italic text-lg">Die Straße wartet auf den ersten Zug…</p>
+            <p className="font-serif-fancy text-slate-400/50 italic text-lg">Die Straße wartet auf den ersten Zug…</p>
           )}
           <div className="flex flex-wrap gap-3 justify-center items-end">
             {trick.map((t, idx) => {
@@ -122,9 +120,9 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) 
                       : { type: "spring", stiffness: 260, damping: 20, delay: idx * 0.04 }
                   }
                 >
-                  <div className="flex items-center gap-1 rounded-full bg-black/50 px-2 py-0.5 border border-purple-500/20">
+                  <div className="flex items-center gap-1 rounded-full bg-black/50 px-2 py-0.5 border border-white/10">
                     <Avatar avatar={players[t.seat].avatar} size={16} />
-                    <span className="text-[10px] text-purple-200/80 max-w-[70px] truncate">{players[t.seat].name}</span>
+                    <span className="text-[10px] text-slate-300/80 max-w-[70px] truncate">{players[t.seat].name}</span>
                   </div>
                   <CardView card={t.card} size="md" testId={`played-trick-card-${t.seat}`} className={isTrickEnd && t.seat === lastWinner ? "glow-ring" : ""} />
                 </motion.div>
@@ -145,7 +143,7 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) 
               onClick={handleContinue}
               disabled={sweeping}
               data-testid="btn-continue-trick"
-              className="rounded-xl px-8 py-3 font-display font-bold text-purple-950 bg-gradient-to-r from-amber-300 to-amber-500 glow-ring disabled:opacity-60"
+              className="rounded-md px-8 py-3 font-display font-bold text-black bg-gradient-to-r from-yellow-300 to-amber-400 glow-ring disabled:opacity-60"
             >
               Einsammeln & weiter
             </button>
@@ -153,7 +151,7 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) 
         </div>
       ) : hideHand ? (
         <div className="px-4 pb-10 text-center rise-in" data-testid="bot-thinking">
-          <div className="font-serif-fancy text-purple-200/70 italic text-lg mb-3">
+          <div className="font-serif-fancy text-slate-300/70 italic text-lg mb-3">
             <span className="font-display text-amber-200 not-italic">{active.name}</span> überlegt seinen Zug…
           </div>
           <div className="flex justify-center -space-x-6">
@@ -166,7 +164,7 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) 
         </div>
       ) : (
         <div className="px-2 pb-4" data-testid="active-player-hand-container">
-          <div className="text-center mb-2 font-serif-fancy text-purple-200/80">
+          <div className="text-center mb-2 font-serif-fancy text-slate-300/80">
             <span className="text-amber-200 font-semibold font-display">{active.name}</span>, spiel deine Karte
             {armed && <span className="text-amber-400/80 text-sm"> — nochmal tippen, um sie auf den Tisch zu legen</span>}
           </div>

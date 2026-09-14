@@ -48,5 +48,7 @@ export function useOnlineGame(code, token) {
     start: () => roomApi.start(code, tokenRef.current).then(setView).catch(poll),
     addBot: () => roomApi.bots(code, tokenRef.current, "add").then(setView).catch(poll),
     removeBot: () => roomApi.bots(code, tokenRef.current, "remove").then(setView).catch(poll),
+    replaceWithBot: (seat) => roomApi.replace(code, tokenRef.current, seat).then(setView).catch(poll),
+    rematch: () => roomApi.rematch(code, tokenRef.current).then(setView).catch(poll),
   };
 }

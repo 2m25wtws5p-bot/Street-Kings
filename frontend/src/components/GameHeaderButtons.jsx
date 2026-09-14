@@ -7,7 +7,7 @@ export function IconBtn({ children, onClick, testId, title }) {
       onClick={onClick}
       data-testid={testId}
       title={title}
-      className="grid place-items-center w-9 h-9 rounded-lg bg-black/40 border border-purple-500/25 text-amber-200 hover:border-amber-400/60 hover:text-amber-100 transition-colors"
+      className="grid place-items-center w-9 h-9 rounded-lg bg-black/40 border border-white/10 text-amber-200 hover:border-amber-400/60 hover:text-amber-100 transition-colors"
     >
       {children}
     </button>

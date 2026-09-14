@@ -49,12 +49,12 @@ export function SetupScreen({ onStart }) {
             <Siren size={14} /> Ein Stichspiel der Unterwelt <Siren size={14} />
           </div>
           <h1 className="font-display text-5xl sm:text-6xl font-black gold-text candle-flicker">Street Kings</h1>
-          <p className="font-serif-fancy text-purple-200/80 text-lg mt-3 max-w-lg mx-auto">
+          <p className="font-serif-fancy text-slate-300/80 text-lg mt-3 max-w-lg mx-auto">
             Stellt eure Crews zusammen. Vermeidet die Hitze, meidet den Kingpin und reicht das Gerät von Hand zu Hand.
           </p>
         </div>
 
-        <div className="panel rounded-2xl p-5 sm:p-7 rise-in" style={{ animationDelay: "0.1s" }}>
+        <div className="panel rounded-lg p-5 sm:p-7 rise-in" style={{ animationDelay: "0.1s" }}>
           <div className="flex items-center gap-2 mb-3 text-amber-300 font-display">
             <Users size={18} /> Wie viele Gangster?
           </div>
@@ -64,20 +64,20 @@ export function SetupScreen({ onStart }) {
                 key={p.n}
                 onClick={() => setCountSafe(p.n)}
                 data-testid={`btn-player-count-${p.n}`}
-                className={`rounded-xl py-3 px-1 border transition-all ${
+                className={`rounded-md py-3 px-1 border transition-all ${
                   count === p.n
                     ? "bg-amber-500/20 border-amber-400 glow-ring"
-                    : "bg-black/30 border-purple-500/20 hover:border-purple-400/50"
+                    : "bg-black/30 border-white/10 hover:border-slate-400/60"
                 }`}
               >
                 <div className="font-display text-2xl text-amber-100">{p.n}</div>
-                <div className="text-[10px] text-purple-200/70 leading-tight mt-0.5">{p.label}</div>
+                <div className="text-[10px] text-slate-300/70 leading-tight mt-0.5">{p.label}</div>
               </button>
             ))}
           </div>
 
           <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-            <div className="flex items-center gap-2 text-purple-200/80 font-serif-fancy text-sm">
+            <div className="flex items-center gap-2 text-slate-300/80 font-serif-fancy text-sm">
               <Bot size={16} className="text-amber-300" /> Allein unterwegs? Fülle die Plätze mit KI-Gangstern.
             </div>
             <div className="flex gap-2">
@@ -91,7 +91,7 @@ export function SetupScreen({ onStart }) {
               <button
                 onClick={() => { setBots(AVATARS.map(() => false)); sfx.select(); }}
                 data-testid="btn-preset-all-human"
-                className="text-xs font-display rounded-lg px-3 py-1.5 bg-black/30 border border-purple-500/25 text-purple-200 hover:border-purple-400/50 transition-colors"
+                className="text-xs font-display rounded-lg px-3 py-1.5 bg-black/30 border border-white/10 text-slate-300 hover:border-slate-400/60 transition-colors"
               >
                 Nur Menschen
               </button>
@@ -119,7 +119,7 @@ export function SetupScreen({ onStart }) {
                   maxLength={16}
                   placeholder={`${AVATARS[avatars[i]].label} ${i + 1}`}
                   data-testid={`input-player-name-${i}`}
-                  className="flex-1 bg-black/40 border border-purple-500/25 focus:border-amber-400/60 rounded-lg px-3 py-2.5 text-purple-50 placeholder:text-purple-300/40 outline-none transition-colors font-serif-fancy text-lg"
+                  className="flex-1 bg-black/40 border border-white/10 focus:border-amber-400/60 rounded-lg px-3 py-2.5 text-slate-50 placeholder:text-slate-400/40 outline-none transition-colors font-serif-fancy text-lg"
                 />
                 {i === 0 ? (
                   <span className="shrink-0 w-16 text-center text-[11px] font-display uppercase tracking-wider text-amber-300/80">
@@ -132,8 +132,8 @@ export function SetupScreen({ onStart }) {
                     data-testid={`btn-toggle-bot-${i}`}
                     className={`shrink-0 w-16 flex flex-col items-center gap-0.5 rounded-lg py-1.5 border text-[10px] font-display transition-all ${
                       bots[i]
-                        ? "bg-purple-500/20 border-purple-400/60 text-purple-100"
-                        : "bg-black/30 border-purple-500/25 text-purple-300/70 hover:border-purple-400/40"
+                        ? "bg-white/10 border-slate-300/70 text-slate-100"
+                        : "bg-black/30 border-white/10 text-slate-400/70 hover:border-slate-400/50"
                     }`}
                   >
                     {bots[i] ? <Bot size={16} /> : <User size={16} />}
@@ -147,9 +147,9 @@ export function SetupScreen({ onStart }) {
           <button
             onClick={start}
             data-testid="btn-start-coven-game"
-            className="mt-7 w-full rounded-xl py-4 font-display text-lg font-bold text-purple-950 bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500 hover:from-amber-200 hover:to-amber-400 transition-all glow-ring flex items-center justify-center gap-2"
+            className="mt-7 w-full rounded-md py-4 font-display text-lg font-bold text-black bg-gradient-to-r from-yellow-300 to-amber-400 hover:from-yellow-200 hover:to-amber-300 transition-all glow-ring flex items-center justify-center gap-2"
           >
-            <Play size={20} className="fill-purple-950" /> Auf die Straße
+            <Play size={20} className="fill-black" /> Auf die Straße
           </button>
         </div>
       </div>

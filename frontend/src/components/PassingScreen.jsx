@@ -32,7 +32,7 @@ export function PassingScreen({ state, onConfirm }) {
           <Avatar avatar={target.avatar} size={38} />
         </div>
         <h2 className="font-display text-2xl gold-text">Der Deal</h2>
-        <p className="font-serif-fancy text-purple-200/80 text-base" data-testid="passing-phase-instructions">
+        <p className="font-serif-fancy text-slate-300/80 text-base" data-testid="passing-phase-instructions">
           <span className="text-amber-200 font-semibold">{me.name}</span>, wähle{" "}
           <b className="text-amber-300">{passCount}</b> Karte{passCount > 1 ? "n" : ""} zum Weitergeben an{" "}
           <span className="text-amber-200 font-semibold">{target.name}</span>
@@ -66,10 +66,10 @@ export function PassingScreen({ state, onConfirm }) {
             setSelected([]);
           }}
           data-testid="btn-confirm-card-pass"
-          className={`rounded-xl px-8 py-3.5 font-display text-lg font-bold flex items-center gap-2 transition-all ${
+          className={`rounded-md px-8 py-3.5 font-display text-lg font-bold flex items-center gap-2 transition-all ${
             done
-              ? "text-purple-950 bg-gradient-to-r from-amber-300 to-amber-500 glow-ring"
-              : "text-purple-300/40 bg-black/30 border border-purple-500/20 cursor-not-allowed"
+              ? "text-black bg-gradient-to-r from-yellow-300 to-amber-400 glow-ring"
+              : "text-slate-400/40 bg-black/30 border border-white/10 cursor-not-allowed"
           }`}
         >
           <Handshake size={18} /> Deal besiegeln

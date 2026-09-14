@@ -7,9 +7,9 @@ export function makeDeck() {
     for (let v = 1; v <= 14; v++) {
       let special = null;
       if (suit === "RED" && v === 11) special = "fire";
-      else if (suit === "BLUE" && v === 11) special = "water";
-      else if (suit === "GREEN" && v === 11) special = "earth";
-      else if (suit === "YELLOW" && v === 11) special = "air";
+      else if (suit === "GREEN" && v === 11) special = "water"; // Informant (+5)
+      else if (suit === "YELLOW" && v === 11) special = "earth"; // Schmierer (-5)
+      else if (suit === "BLUE" && v === 11) special = "air"; // Fixer (neutralisiert)
       else if (suit === "GREEN" && v === 12) special = "pygmy";
       cards.push({ id: `${suit}-${v}`, suit, value: v, special });
     }
@@ -56,7 +56,7 @@ export function sortCards(a, b) {
 
 // Passing configuration per player count and round.
 export function passInfo(n, roundIndex) {
-  const counts = { 3: 3, 4: 3, 5: 2, 6: 1 };
+  const counts = { 3: 4, 4: 3, 5: 2, 6: 2 };
   const count = counts[n];
   let dirs;
   if (n === 3 || n === 5) dirs = [1, -1];
@@ -114,21 +114,22 @@ export function scoreRound(piles) {
     moon: false,
   }));
 
-  // detect the moon shooter (took all 14 red cards)
+  // Takeover: all 14 Hitze cards AND Informant and/or Patin
   let shooter = -1;
   piles.forEach((pile, seat) => {
-    if (pile.filter((c) => c.suit === "RED").length === 14) shooter = seat;
+    const allRed = pile.filter((c) => c.suit === "RED").length === 14;
+    const greenSpecial = pile.some((c) => c.special === "water" || c.special === "pygmy");
+    if (allRed && greenSpecial) shooter = seat;
   });
 
   if (shooter >= 0) {
     const s = piles[shooter];
     const hasWater = s.some((c) => c.special === "water");
     const hasPygmy = s.some((c) => c.special === "pygmy");
-    const spell = 20 + (hasWater ? 5 : 0) + (hasPygmy ? 5 : 0);
+    const spell = 15 + (hasWater ? 5 : 0) + (hasPygmy ? 10 : 0); // 20 / 25 / 30
     let spellName = "Takeover";
     if (hasWater && hasPygmy) spellName = "Großer Takeover";
     else if (hasPygmy) spellName = "Patin-Takeover";
-    else if (hasWater) spellName = "Fixer-Takeover";
     piles.forEach((pile, seat) => {
       if (seat === shooter) {
         results[seat] = {
@@ -142,17 +143,14 @@ export function scoreRound(piles) {
           moon: true,
         };
       } else {
-        let total = spell;
-        const earth = pile.some((c) => c.special === "earth");
-        if (earth) total = Math.max(total - 5, 0);
         results[seat] = {
           fireCards: 0,
           fireWitch: false,
           water: false,
           pygmy: false,
-          earth,
+          earth: false,
           air: false,
-          total,
+          total: spell,
           moon: false,
           spellVictim: true,
         };

@@ -1,345 +1,218 @@
 {
-  "project_name": "Coven of Witches - Mystical Trick-Taking Card Game",
-  "archetype": "ARCHETYPE 5: LUXURY & MYSTICAL OCCULT",
-  "theme": "Cozy mystical candlelit witch's coven, deep velvet midnight purple, flickering warm amber candlelight, aged parchment cards, and glowing elemental alchemy",
-  "design_philosophy": {
-    "core_aesthetic": "Handcrafted occult grimoire meets cozy candlelit hearth table. Deep midnight obsidian purple surfaces, gold leaf filigree borders, glowing ethereal runes, and tactile playing cards fanned gracefully.",
-    "anti_ai_rules": "Strictly no generic blue SaaS buttons, no sterile flat white cards, no uniform square grids. Every card has botanical/occult corner pips, custom mystical SVG insignias, and an aged parchment cardstock feel with subtle inner vignette. Use rich atmospheric shadows and candle flame flickers.",
-    "emotional_goal": "Tactile tension and hearth-side intimacy. Players huddling around a shared screen passing the device, suspenseful trick reveals into a glowing central cauldron, dread when collecting fire/witches, and euphoric relief when passing penalty cards away."
+  "project_name": "STREET KINGS – Don't take the heat.",
+  "theme": "Concrete Street Gangster / Crime-Noir with Electric Neon Accents & Asphalt Texture",
+  "language": "German",
+  "context_type": "Gaming / Underground Card Game (Web & Mobile Hybrid)",
+  "design_intent": {
+    "emotional_tone": "Gritty, tactile crime-noir, street underworld tension, cinematic command center, neon-lit rainy asphalt",
+    "metaphor": "Wet asphalt streets of Berlin/Hamburg underworld illuminated by flashing police beacons, yellow sodium streetlights, toxic green stash marks, and cyan surveillance monitors.",
+    "anti_slop_commitment": "No generic fantasy purple coven styling. No plain gradients. Distinct tactile concrete grain, industrial stencil typography, stencil cuts, gritty crime dossier panels, sharp neon-edged cards."
   },
-  "typography": {
-    "font_family_heading": "Cinzel, Cormorant Garamond, serif",
-    "font_family_body": "Outfit, Plus Jakarta Sans, sans-serif",
-    "font_family_mono": "JetBrains Mono, monospace",
-    "google_fonts_import": "@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Cormorant+Garamond:ital,wght@0,500;0,700;1,500&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');",
-    "hierarchy": {
-      "h1": "font-['Cinzel',serif] text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-amber-100 drop-shadow-[0_2px_12px_rgba(245,158,11,0.35)]",
-      "h2": "font-['Cinzel',serif] text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-normal text-amber-200",
-      "h3": "font-['Cinzel',serif] text-xl sm:text-2xl font-medium text-purple-100",
-      "h4": "font-['Cinzel',serif] text-lg sm:text-xl font-medium text-amber-300/90",
-      "card_numeral": "font-['Cinzel',serif] text-2xl sm:text-3xl font-black leading-none",
-      "body": "font-['Outfit',sans-serif] text-base text-purple-100/90 leading-relaxed",
-      "body_sm": "font-['Outfit',sans-serif] text-sm text-purple-200/70 leading-normal",
-      "overline": "font-['Cinzel',serif] text-xs uppercase tracking-[0.25em] text-amber-400/80 font-bold",
-      "mono_stats": "font-['JetBrains_Mono',monospace] text-sm font-semibold tracking-wider text-amber-300"
-    }
+  "fonts": {
+    "headline_display": {
+      "name": "Barlow Condensed",
+      "google_import": "Barlow+Condensed:ital,wght@0,700;0,800;0,900;1,800;1,900",
+      "css_class": "font-display",
+      "weights": "800, 900",
+      "style": "Heavyweight industrial condensed sans with aggressive street attitude; tracking-tight to tracking-tighter"
+    },
+    "body_font": {
+      "name": "Chivo",
+      "google_import": "Chivo:ital,wght@0,400;0,600;0,800;1,400",
+      "css_class": "font-sans",
+      "style": "Punchy, authoritative neo-grotesk with bold crime dossier clarity (replaces Cormorant Garamond)"
+    },
+    "secondary_editorial": {
+      "name": "Cinzel Decorative / Anton / Barlow",
+      "fallback": "Barlow Condensed",
+      "css_class": "font-serif-fancy",
+      "note": "Re-map .font-serif-fancy to Chivo or Barlow Condensed (with italic styling) so that all lingering gothic/witch serif text switches cleanly to street gangster voice"
+    },
+    "monospace_data": {
+      "name": "JetBrains Mono",
+      "google_import": "JetBrains+Mono:wght@400;600;800",
+      "css_class": "font-mono-stat",
+      "style": "Police radio dispatch / dossier serial codes / scoring tables"
+    },
+    "font_import_url": "https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;0,900;1,800&family=Chivo:ital,wght@0,400;0,500;0,600;0,800;1,400&family=JetBrains+Mono:wght@400;600;700&display=swap"
   },
-  "colors": {
-    "base": {
-      "canvas_bg": "#0B0713",
-      "table_surface": "#130C20",
-      "table_glow": "#24133B",
-      "panel_bg": "#19102B",
-      "panel_border": "#3B2660",
-      "parchment_light": "#F8F1E5",
-      "parchment_dark": "#EDE0C8"
+  "color_palette": {
+    "asphalt_concrete_neutrals": {
+      "void_black": "#090A0C",
+      "deep_asphalt": "#101216",
+      "wet_tarmac": "#171A21",
+      "cracked_concrete": "#222631",
+      "granite_border": "#313746",
+      "chalk_white": "#F1F5F9",
+      "grime_silver": "#94A3B8",
+      "muted_smoke": "#64748B"
     },
-    "candlelight_accents": {
-      "candle_amber": "#F59E0B",
-      "candle_gold": "#D97706",
-      "candle_glow": "#FEF3C7",
-      "candle_halo": "rgba(245, 158, 11, 0.22)"
-    },
-    "suits": {
-      "red_goblins": {
-        "name": "Fire / Goblins (Volcano)",
-        "color_code": "RED",
-        "bg_gradient": "from-amber-950/40 via-red-950/50 to-stone-950",
-        "primary": "#DC2626",
+    "four_required_suits": {
+      "RED": {
+        "realm": "Hitze (Polizeidruck & Fahndung)",
+        "icon": "Siren",
+        "primary": "#EF4444",
+        "accent": "#F87171",
+        "neon_glow": "#FF2A2A",
         "border": "#7F1D1D",
-        "accent": "#EF4444",
-        "flame_badge": "#EF4444",
-        "flame_glow": "rgba(239, 68, 68, 0.4)",
-        "flavor": "Carries dangerous Fire points! Beware of capturing these tricks."
+        "card_bg_gradient": "linear-gradient(175deg, #240d12 0%, #15090b 60%, #0d0608 100%)",
+        "concrete_tint": "rgba(239, 68, 68, 0.12)"
       },
-      "yellow_mongols": {
-        "name": "Desert / Mongols (Sands)",
-        "color_code": "YELLOW",
-        "bg_gradient": "from-amber-950/30 via-yellow-950/40 to-stone-950",
-        "primary": "#EAB308",
-        "border": "#854D0E",
-        "accent": "#FACC15",
-        "flavor": "Dune magic and sun relics."
+      "BLUE": {
+        "realm": "Cash (Bargeld & Schwarzgeld)",
+        "icon": "Banknote",
+        "primary": "#00A3FF",
+        "accent": "#38BDF8",
+        "neon_glow": "#00E5FF",
+        "border": "#0C4A6E",
+        "card_bg_gradient": "linear-gradient(175deg, #091726 0%, #08101a 60%, #050b12 100%)",
+        "concrete_tint": "rgba(0, 163, 255, 0.12)"
       },
-      "blue_indians": {
-        "name": "Storm / Indians (Mountains)",
-        "color_code": "BLUE",
-        "bg_gradient": "from-sky-950/40 via-blue-950/50 to-stone-950",
-        "primary": "#2563EB",
-        "border": "#1E3A8A",
-        "accent": "#60A5FA",
-        "flavor": "Tempest winds and mountain sorcery."
+      "GREEN": {
+        "realm": "Ware (Schmuggel & illegale Fracht)",
+        "icon": "Package",
+        "primary": "#10B981",
+        "accent": "#34D399",
+        "neon_glow": "#00FF88",
+        "border": "#064E3B",
+        "card_bg_gradient": "linear-gradient(175deg, #091e14 0%, #07150e 60%, #040d08 100%)",
+        "concrete_tint": "rgba(16, 185, 129, 0.12)"
       },
-      "green_pygmies": {
-        "name": "Rainforest / Pygmies (Canopy)",
-        "color_code": "GREEN",
-        "bg_gradient": "from-emerald-950/40 via-green-950/50 to-stone-950",
-        "primary": "#16A34A",
-        "border": "#14532D",
-        "accent": "#4ADE80",
-        "flavor": "Ancient deep forest flora and wild canopy."
+      "YELLOW": {
+        "realm": "Schwarzmarkt (Untergrundhandel)",
+        "icon": "Mask",
+        "lucide_fallback": "VenetianMask",
+        "primary": "#FACC15",
+        "accent": "#FDE047",
+        "neon_glow": "#FFE600",
+        "border": "#713F12",
+        "card_bg_gradient": "linear-gradient(175deg, #241d08 0%, #171306 60%, #0d0a03 100%)",
+        "concrete_tint": "rgba(250, 204, 21, 0.12)"
       }
     },
-    "witches_and_specials": {
-      "fire_witch": {
-        "name": "Fire Witch (Ignis)",
-        "value": 11,
-        "suit": "RED",
-        "card_effect": "Doubles all Fire points taken this round! (Up to max 15)",
-        "points": "x2 Fire (max 15)",
-        "tag_color": "#EF4444",
-        "art_style": "Crimson haired sorceress holding a blazing orb and obsidian dagger"
+    "gangster_specials": {
+      "fire": {
+        "key": "fire",
+        "label": "Kingpin",
+        "short": "HITZE x2",
+        "tag": "#EF4444",
+        "icon": "Crown",
+        "rule_summary": "Verdoppelt Hitze der Runde (max 15)"
       },
-      "water_witch": {
-        "name": "Water Witch (Naiad)",
-        "value": 11,
-        "suit": "BLUE",
-        "card_effect": "Carries +5 Fire penalty points directly to whoever takes her trick",
-        "points": "+5 Fire Pts",
-        "tag_color": "#38BDF8",
-        "art_style": "Siren-witch immersed in twilight ripples with pearls and lunar water lily"
+      "water": {
+        "key": "water",
+        "label": "Fixer",
+        "short": "+5 HITZE",
+        "tag": "#00E5FF",
+        "icon": "Handshake",
+        "rule_summary": "Bringt dem Kassierer +5 Hitze"
       },
-      "earth_witch": {
-        "name": "Earth Witch (Terra)",
-        "value": 11,
-        "suit": "GREEN",
-        "card_effect": "Bountiful blessing: Decreases player's fire points by up to -5!",
-        "points": "-5 Fire Pts",
-        "tag_color": "#4ADE80",
-        "art_style": "Antlered druidess crowned with wild mushrooms, moss, and glowing emerald stones"
+      "earth": {
+        "key": "earth",
+        "label": "Informant",
+        "short": "-5 HITZE",
+        "tag": "#00FF88",
+        "icon": "Eye",
+        "rule_summary": "Lenkt 5 Hitze von dir ab"
       },
-      "air_witch": {
-        "name": "Air Witch (Zephyr)",
-        "value": 11,
-        "suit": "YELLOW",
-        "card_effect": "Purifying storm: Neutralizes penalty points from Water Witch (+5) and Pygmy Queen (+10) to 0!",
-        "points": "Neutralizer",
-        "tag_color": "#FACC15",
-        "art_style": "Feather-mantled mystic conjuring gale-force wisps and golden dust"
+      "air": {
+        "key": "air",
+        "label": "Schmierer",
+        "short": "NEUTRALISIERT",
+        "tag": "#FACC15",
+        "icon": "Coins",
+        "rule_summary": "Hebt Fixer (+5) und Patin (+10) auf"
       },
-      "pygmy_queen": {
-        "name": "Pygmy Queen (Matriarch)",
-        "value": 12,
-        "suit": "GREEN",
-        "card_effect": "The Dread Queen: Inflicts a punishing +10 Fire points upon whoever takes her trick!",
-        "points": "+10 Fire Pts",
-        "tag_color": "#A855F7",
-        "art_style": "Golden-masked Rainforest Queen holding a serpent sceptre with emerald eyes"
+      "pygmy": {
+        "key": "pygmy",
+        "label": "Patin",
+        "short": "+10 HITZE",
+        "tag": "#E11D48",
+        "icon": "Gem",
+        "rule_summary": "Brutale +10 Hitze für den Stich-Gewinner"
       },
       "wizard": {
-        "name": "The Grand Wizard",
-        "value": 0,
-        "suit": "COLORLESS",
-        "count": 4,
-        "card_effect": "Value 0 trump-breaker: Can be played anytime. Follows no suit. Lowest value in trick (never wins unless only wizards played). Safe escape card!",
-        "points": "0 Pts",
-        "tag_color": "#C084FC",
-        "art_style": "Hooded elder archmage with celestial constellations glowing inside robes"
+        "key": "wizard",
+        "label": "Laufjunge",
+        "short": "WERT 0",
+        "tag": "#94A3B8",
+        "icon": "Footprints",
+        "rule_summary": "Wert 0, bedient nie Farbe, gewinnt nie"
       }
     }
   },
-  "sound_and_haptics": {
-    "enabled_by_default": true,
-    "web_audio_synthesizer": "Synthesize mystical bell dings (Pentatonic chimes for card play), low resonant gong on trick win, crackling flame burst on fire card capture, and eerie whisper chord on witch reveals."
-  },
-  "curated_image_assets": {
-    "cauldron_smoke_background": "https://images.unsplash.com/photo-1761518243486-2c5bf5043de2?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1ODh8MHwxfHNlYXJjaHwzfHxtYWdpYyUyMHBvdGlvbiUyMGNhdWxkcm9ufGVufDB8fHx8MTc4OTMzNTExMXww&ixlib=rb-4.1.0&q=85",
-    "candlelit_ambiance": "https://images.unsplash.com/photo-1640085461451-e3dc47415dd1?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1ODh8MHwxfHNlYXJjaHwzfHx3aXRjaCUyMGNhbmRsZSUyMGFlc3RoZXRpY3xlbnwwfHx8fDE3ODkzMzUxMDV8MA&ixlib=rb-4.1.0&q=85",
-    "mystic_tarot_spread": "https://images.unsplash.com/photo-1600429991827-5224817554f8?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzNzl8MHwxfHNlYXJjaHwxfHx0YXJvdCUyMGNhcmRzJTIwbXlzdGljYWx8ZW58MHx8fHwxNzg5MzM1MTA1fDA&ixlib=rb-4.1.0&q=85",
-    "alchemist_cauldron_table": "https://images.unsplash.com/photo-1551269901-5c5e14c25df7?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1ODh8MHwxfHNlYXJjaHwxfHxtYWdpYyUyMHBvdGlvbiUyMGNhdWxkcm9ufGVufDB8fHx8MTc4OTMzNTExMXww&ixlib=rb-4.1.0&q=85"
-  },
-  "core_screens_and_flow": {
-    "screen_1_setup": {
-      "name": "The Summoning Circle (Setup)",
-      "route": "/",
-      "elements": [
-        "Interactive player count selector (3, 4, 5, or 6 witches)",
-        "Player name inputs with witch avatar badge selectors (Sorceress, Alchemist, Necromancer, Oracle, Druidess, Enchanter)",
-        "Passing cards rule toggle / preview (Passing cards to left/right/across based on player count)",
-        "Quick start presets ('Trio Coven', 'Quartet Gathering', 'Grand Sabbat (6)')",
-        "Audio / sound FX toggle switch with candle icon",
-        "Primary CTA button: 'Enter the Coven' (glowing amber flame border, pulse effect)"
-      ]
+  "textures_and_css_surfaces": {
+    "asphalt_concrete_bg": {
+      "css_selector": ".coven-bg",
+      "formula": "background: radial-gradient(1200px 700px at 50% -10%, rgba(239,68,68,0.12), transparent 50%), radial-gradient(900px 600px at 85% 105%, rgba(0,229,255,0.08), transparent 55%), radial-gradient(800px 500px at 15% 95%, rgba(250,204,21,0.06), transparent 50%), #0d0f13; background-image: radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), radial-gradient(rgba(0,0,0,0.6) 1px, transparent 1px); background-size: 100% 100%, 8px 8px, 16px 16px;"
     },
-    "screen_2_pass_gate": {
-      "name": "Veil of Secrecy (Pass-Device Gate)",
-      "purpose": "Hides the previous player's hand completely for authentic pass-and-play local multiplayer.",
-      "visuals": "Full screen ethereal velvet shroud, centered glowing cauldron with animated smoke swirls, wax-sealed grimoire button.",
-      "elements": [
-        "Witch avatar illustration for the upcoming player",
-        "Headline: 'Veil of Secrecy'",
-        "Prompt: 'Pass the device to [Player Name]'",
-        "Warning note: 'Ensure no wandering eyes peer at your cards...'",
-        "CTA button: 'Reveal My Hand (I am [Player Name])' with tactile click and card fan animation"
-      ]
+    "asphalt_noise_overlay": {
+      "css_selector": ".grain::before",
+      "formula": "High-contrast asphalt speckle texture using inline SVG feTurbulence with feColorMatrix creating gritty street aggregate particles (opacity 0.075, mix-blend-mode: overlay, pointer-events: none, fixed inset-0 z-50)"
     },
-    "screen_3_card_passing": {
-      "name": "The Coven Trade (Passing Phase)",
-      "rules": "According to official Amigo rules: 3 players pass 3 cards to left, 4 players pass 3 cards (Round 1 left, Round 2 right, Round 3 across, Round 4 no pass), 5 players pass 2 cards, 6 players pass 1 card. The app dynamically handles this!",
-      "ui_mechanics": [
-        "Prompt banner: 'Select {N} card(s) to curse/bless {Target Player Name}'",
-        "Tap cards in player's fanned hand to toggle selection (cards lift up by 24px with glowing amber border)",
-        "Counter badge: '{selectedCount} / {requiredCount} Selected'",
-        "Confirm pass button: 'Seal and Pass Cards'",
-        "Once all players pass their cards, the hands update secretly and the first trick begins!"
-      ]
+    "crime_dossier_panel": {
+      "css_selector": ".panel",
+      "formula": "background: linear-gradient(180deg, rgba(23, 26, 33, 0.88), rgba(15, 17, 22, 0.94)); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 12px 36px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.06); backdrop-filter: blur(16px);"
     },
-    "screen_4_table_play": {
-      "name": "The Cauldron Table (Trick-Taking Area)",
-      "layout_architecture": {
-        "header_bar": {
-          "top_left": "Round & Trick counters (e.g., 'Round 2 • Trick 5/15') + active lead suit indicator badge",
-          "center": "Current turn alert: '[Player Name] is conjuring...'",
-          "top_right": "Scoreboard drawer toggle, Sound toggle, Rules Grimoire dialog button"
-        },
-        "opponents_roster": {
-          "style": "Avatars arranged along top/sides of table with fire points badge, remaining card count, and active turn highlight halo"
-        },
-        "central_cauldron_felt": {
-          "style": "Oval velvet play area ringed with runic gold border and a mystical cauldron in center. Played cards land in an orbital fanned circle pointing toward the center cauldron.",
-          "trick_cards": "Each played card displays player's avatar chip, card face, and glow.",
-          "trick_winner_banner": "When trick finishes: announcement badge showing '[Winner Name] claims the trick!' with a 1.5s inspection pause and cards swiping toward the winner's corner."
-        },
-        "active_player_hand": {
-          "style": "Bottom docking area with cozy wooden/stone border. Cards fanned with overlap (`-space-x-8 sm:-space-x-12`).",
-          "legal_play_highlights": "Non-playable cards are dimmed (opacity 40%, desaturated), while legal cards (matching lead suit, or any card if void of lead suit) elevate on hover with a magical golden ring.",
-          "one_touch_play": "Tap card once to inspect/raise, second tap or swipe-up to throw card into the cauldron."
-        }
-      }
+    "concrete_card_surface": {
+      "css_selector": ".card-concrete",
+      "formula": "Multi-layer CSS with raw concrete grain (repeating subtle noise), 1px interior chiseled bevel (inset 0 1px 1px rgba(255,255,255,0.15)), dark asphalt gradient body, and ultra-crisp neon contour glow on the outer stroke."
     },
-    "screen_5_round_scores": {
-      "name": "The Reckoning (Round Scoreboard)",
-      "elements": [
-        "Breakdown of cards captured: Fire cards tally, Witch cards captured",
-        "Witch modifiers applied visually: e.g., Fire Witch doubling icon, Water Witch +5, Earth Witch -5 blessing, Air Witch canceling water/pygmy points",
-        "Fire Spell alert! If a player miraculously gathered all 14 fire cards, grand mystical animation triggers with points blasted to all opponents!",
-        "Cumulative Fire Points table with progress toward 70-point threshold bar",
-        "CTA: 'Commence Next Round'"
-      ]
+    "neon_glow_rings": {
+      "red_police": "box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.9), 0 0 24px rgba(239, 68, 68, 0.65), inset 0 0 10px rgba(239,68,68,0.25);",
+      "cyan_fixer": "box-shadow: 0 0 0 2px rgba(0, 229, 255, 0.9), 0 0 24px rgba(0, 229, 255, 0.65);",
+      "gold_king": "box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.9), 0 0 24px rgba(250, 204, 21, 0.65);",
+      "green_contraband": "box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.9), 0 0 24px rgba(16, 185, 129, 0.65);"
     },
-    "screen_6_game_over": {
-      "name": "The Arch-Witch Crowning (Winner Screen)",
-      "trigger": "When any player reaches 70 or more fire points.",
-      "outcome": "Player with the FEWEST fire points is crowned Arch-Witch Supreme!",
-      "elements": [
-        "Grand trophy podium with gold runic laurel",
-        "Winner witch avatar celebrating with shimmering stars",
-        "Full match summary table (Tricks won, witches captured, fire survived)",
-        "Actions: 'Play Again with Same Coven', 'New Players Setup', 'View Grimoire Stats'"
-      ]
-    },
-    "screen_7_stats_and_grimoire": {
-      "name": "The Grimoire of Records (Local Stats)",
-      "saved_in": "localStorage ('witches_coven_stats_v1')",
-      "elements": [
-        "Lifetime games played, rounds survived, lowest score record",
-        "Player leaderboard sorted by win rate and fewest average fire points",
-        "Witch codex: interactive card gallery showing all 4 witches, pygmy queen, and wizards with lore descriptions"
-      ]
+    "gold_text_to_neon_title": {
+      "css_selector": ".gold-text",
+      "formula": "color: #FFF; text-shadow: 0 0 1px #FFF, 0 0 12px rgba(250, 204, 21, 0.7), 0 0 28px rgba(239, 68, 68, 0.45); letter-spacing: -0.03em;"
     }
   },
-  "card_visual_system": {
+  "card_design_specifications": {
     "dimensions": {
-      "mobile": "w-20 h-32 sm:w-24 sm:h-36 lg:w-28 lg:h-40",
-      "aspect_ratio": "aspect-[5/7]"
+      "xs": "w-11 h-[64px]",
+      "sm": "w-16 h-[92px]",
+      "md": "w-20 h-[116px]",
+      "lg": "w-[104px] h-[148px]"
     },
-    "card_anatomy": {
-      "border": "2px solid rgba(217, 119, 6, 0.45) with rounded-xl",
-      "surface": "bg-gradient-to-b from-[#2B1B48] via-[#1E1136] to-[#120824] shadow-[0_8px_20px_rgba(0,0,0,0.65)]",
-      "inner_frame": "1px inset border with floral-occult filigree corner notches",
-      "top_left_pip": "Bold Cinzel numeral + elemental suit icon (Flame, Dune, Storm, Leaf, or Wizard Star)",
-      "bottom_right_pip": "Inverted matching pip for authentic playing card symmetry",
-      "center_illustration": "Unique themed SVG art tailored to card value and suit:",
-      "suit_illustrations": {
-        "RED": "Goblin Shaman, Obsidian Volcano, Blazing Firebrand, Crimson Drake",
-        "YELLOW": "Nomad Mystic, Sun Scythe, Sand Viper, Golden Oasis",
-        "BLUE": "Storm Caller, Tempest Cloud, Frost Leviathan, Mountain Hawk",
-        "GREEN": "Pygmy Hunter, Giant Fern, Forest Panther, Canopy Treant"
-      },
-      "special_badges": {
-        "fire_card_badge": "Subtle flickering flame icon on all red cards indicating 1 fire penalty point",
-        "witch_banner": "Gilded banner across card waist displaying Witch Title & modifier (e.g., 'DOUBLES FIRE', '+5 FIRE', '-5 FIRE', 'NEUTRALIZER', '+10 FIRE')"
-      }
+    "frame_structure": {
+      "outer_border": "2px solid [Suit-Neon-Border]",
+      "corner_radius": "rounded-lg (sharp urban edge, 8px)",
+      "inner_frame": "1px chiseled perimeter line (border-white/10) inset by 3px",
+      "background": "Deep textured asphalt gradient + subtle aggregate noise",
+      "center_visual": "Large semi-transparent suit or gangster icon (strokeWidth 1.4 - 1.8) with neon drop-shadow; NO generic photos",
+      "top_left_pip": "Heavyweight font-display numeral (Barlow Condensed 900) + suit icon stacked vertically",
+      "bottom_right_pip": "Rotated 180° numeral + suit icon (hidden on xs)",
+      "fire_siren_badge": "On plain red cards (Hitze), top-right emergency badge with Siren icon + pulse glow",
+      "bottom_banner": "For special cards: Crime dossier tape / hazard stripe aesthetic with special title (KINGPIN, FIXER, INFORMANT, SCHMIERER, PATIN, LAUFJUNGE) and stat modifier in monospace font-mono-stat"
     }
   },
-  "official_witches_card_rules_reference": {
-    "deck_composition": "60 cards total: 4 suits (Red, Yellow, Blue, Green) each 1-14 (56 cards) + 4 Colorless Wizard cards (value 0).",
-    "card_points": {
-      "red_cards": "Each Red card (1 to 14) is worth 1 Fire penalty point (14 total fire cards).",
-      "fire_witch": "Red 11: Worth 0 base points, but DOUBLES all fire cards collected by player in that round (up to max 15 points).",
-      "water_witch": "Blue 11: Worth +5 Fire points.",
-      "earth_witch": "Green 11: Worth -5 Fire points (deducts up to 5 points, score cannot go below 0 for the round).",
-      "air_witch": "Yellow 11: Neutralizes (cancels) the positive points from Water Witch (+5) and Pygmy Queen (+10) if the player took them.",
-      "pygmy_queen": "Green 12: Worth +10 Fire points.",
-      "wizard_0": "Colorless 0: Worth 0 points. Can be played anytime. Follows no suit. Lowest card.",
-      "all_other_cards": "0 points."
-    },
-    "shooting_the_moon_fire_spell": "If a player collects ALL 14 RED CARDS in a single round, they score 0 points, and all other players receive 20 points! If that player also collected the Water Witch, others get 25 points; if they also collected Pygmy Queen, others get 30 points!",
-    "trick_play_rules": "Lead player plays any card. Subsequent players MUST follow the suit of the lead card if they have one. If a player has no cards of the lead suit, they may play ANY card (slough off fire cards or witches!). The highest card of the led suit wins the trick and collects all cards into their score pile. Wizard (0) can always be played regardless of suit, but never wins unless only wizards were played (first wizard wins).",
-    "end_game_condition": "Game ends at the end of the round where at least one player reaches 70 or more points. The player with the lowest score wins."
+  "micro_animations": {
+    "police_strobe": "@keyframes police-strobe { 0%, 100% { opacity: 0.9; filter: drop-shadow(0 0 10px #EF4444); } 50% { opacity: 0.4; filter: drop-shadow(0 0 2px #EF4444); } }",
+    "asphalt_flicker": "@keyframes neon-buzz { 0%, 100% { opacity: 1; } 92% { opacity: 0.94; } 94% { opacity: 0.75; } 96% { opacity: 1; } 98% { opacity: 0.82; } }",
+    "card_play_arc": "framer-motion spring animation launching from player seat into central trick area with subtle tilt/rotation (-6deg to +6deg) and sweep animation upon trick collection"
   },
-  "interactive_micro_interactions": {
-    "card_hover": "Hovering on a card slides it upward by 16px with an amber halo `shadow-[0_0_24px_rgba(245,158,11,0.5)]`.",
-    "card_play": "Card animates in an arc from player hand to table center with a brief rotation (-15deg to +15deg based on seat position).",
-    "trick_sweep": "After a 1.2s delay, cards gathered into a stack and slide toward winning player's avatar icon with a score notification.",
-    "witch_entrance": "Whenever a special witch (Fire, Water, Earth, Air, Pygmy Queen) is dropped into the trick, a localized elemental flare appears with an evocative sound.",
-    "pass_gate_privacy": "Device passing screen completely blinds hand contents until clicked, preventing accidental glances."
-  },
-  "test_ids_matrix": {
-    "navigation_and_header": {
-      "nav_brand": "nav-brand-title",
-      "btn_how_to_play": "btn-open-how-to-play-dialog",
-      "btn_scores_drawer": "btn-toggle-scores-drawer",
-      "btn_stats_page": "btn-open-stats-modal",
-      "btn_sound_toggle": "btn-toggle-sound",
-      "btn_restart_game": "btn-restart-current-game"
+  "interactive_components": {
+    "buttons": {
+      "primary_action": "Heavyweight Barlow Condensed uppercase, tracking-wider, high-contrast neon trigger (Amber/Red street blaze) with dark void text, concrete beveled border, hover:scale-[1.02] active:scale-[0.98]",
+      "secondary_action": "Matte dark asphalt panel (bg-black/50) with 1px granite border (border-white/15), hover:border-amber-400/60, hover:text-white"
     },
-    "game_setup": {
-      "player_count_btn_prefix": "btn-player-count-",
-      "player_name_input_prefix": "input-player-name-",
-      "avatar_select_prefix": "select-avatar-player-",
-      "btn_start_game": "btn-start-coven-game",
-      "preset_btn_prefix": "btn-setup-preset-"
+    "avatar_badge": {
+      "style": "Concrete coin / steel street badge with glowing colored inner rim, Lucide role icon (Crown, Banknote, Car, Package, Laptop, Briefcase), and active player neon ring"
     },
-    "pass_gate": {
-      "container": "pass-device-gate-screen",
-      "target_player_label": "pass-gate-target-player-name",
-      "btn_reveal_hand": "btn-reveal-player-hand"
-    },
-    "passing_phase": {
-      "instruction_banner": "passing-phase-instructions",
-      "selected_count_indicator": "passing-phase-selected-count",
-      "btn_confirm_pass": "btn-confirm-card-pass",
-      "passable_card_prefix": "pass-card-item-"
-    },
-    "trick_table": {
-      "cauldron_area": "central-trick-cauldron",
-      "lead_suit_badge": "active-lead-suit-indicator",
-      "played_card_prefix": "played-trick-card-",
-      "trick_winner_announcement": "trick-winner-banner",
-      "current_player_hand": "active-player-hand-container",
-      "hand_card_prefix": "hand-card-item-",
-      "opponent_seat_prefix": "opponent-seat-player-"
-    },
-    "round_scores": {
-      "modal_container": "round-score-summary-modal",
-      "player_round_row_prefix": "score-row-player-",
-      "btn_next_round": "btn-start-next-round",
-      "fire_spell_banner": "fire-spell-moon-banner"
-    },
-    "game_over": {
-      "winner_name": "game-over-winner-name",
-      "btn_rematch": "btn-play-rematch",
-      "btn_new_game": "btn-new-coven-setup"
+    "score_trackers": {
+      "heat_gauge": "Progress bar from 0 to 70 Hitze. Graded from Caution Yellow (#FACC15) to Tactical Red (#EF4444) with danger stripes when exceeding 50 Hitze."
     }
   },
-  "implementation_steps_for_main_agent": [
-    "Step 1: Install required icons/audio helper dependencies if needed (@phosphor-icons/react or lucide-react already installed). Add Google fonts (Cinzel, Outfit, JetBrains Mono) to public/index.html or @import in index.css.",
-    "Step 2: Build game state engine (`src/game/witchesEngine.js`): Deck generation (60 cards: 4 colors 1-14 + 4 Wizards), shuffle, deal according to player count (3 players = 20 cards each, 4 players = 15 each, 5 players = 12 each, 6 players = 10 each).",
-    "Step 3: Implement passing logic based on player count: 3 players = pass 3 left; 4 players = pass 3 (left/right/across/none); 5 players = pass 2 left; 6 players = pass 1 left.",
-    "Step 4: Implement trick-taking logic with Amigo rules: must follow suit if able, wizard can be played anytime, highest lead suit wins, trick winner leads next trick.",
-    "Step 5: Implement exact scoring calculator: tally fire cards (1 pt each), Fire Witch x2 (max 15), Water Witch +5, Pygmy Queen +10, Earth Witch -5, Air Witch cancels Water & Pygmy Queen. Implement shooting the moon (all 14 fire cards collected = 0 pts to shooter, 20/25/30 to all others!).",
-    "Step 6: Build the Cozy Cauldron Table UI with gorgeous SVG card components, fanned hand, pass device privacy screen, sounds, and scoreboard drawer.",
-    "Step 7: Build Local Stats persistence and Rules Grimoire dialog with comprehensive illustrations."
-  ]
+  "instructions_to_main_agent": [
+    "1. Replace Google Fonts in index.css with Barlow Condensed, Chivo, and JetBrains Mono. Set font-display to 'Barlow Condensed', sans-serif and font-sans to 'Chivo', sans-serif.",
+    "2. Update index.css variables and classes: redefine .coven-bg to asphalt/street background with concrete aggregate; redefine .panel to crime dossier glass panel; redefine .gold-text and .glow-ring to neon street aesthetic; add .police-flash and .neon-border classes.",
+    "3. Update SUITS in /app/frontend/src/game/constants.js: change RED icon from 'flame' to 'siren' (Hitze), BLUE icon to 'banknote' (Cash), GREEN icon to 'package' (Ware), YELLOW icon to 'mask' (Schwarzmarkt). Keep the four colors red/blue/green/yellow but shift to punchy street neon tones.",
+    "4. Update SPECIAL_ICON and SUIT_ICON in CardView.jsx: use Siren for RED, Banknote for BLUE, Package for GREEN, VenetianMask or ShieldAlert for YELLOW. For specials: fire = Crown (Kingpin), water = Handshake (Fixer), earth = Eye (Informant), air = Coins (Schmierer), pygmy = Gem (Patin), wizard = Footprints (Laufjunge).",
+    "5. Refactor CardView.jsx to render concrete asphalt texture, neon inner border, sharp bevels, street-tape special banner at bottom, and top-right siren badge for Red cards without any AI images.",
+    "6. Clean all remaining coven/witch words from components (replace any witch references in German with Gangster, Crew, Unterwelt, Kodex, Akte).",
+    "7. Ensure every interactive button and score card has valid data-testid attributes."
+  ],
+  "image_urls": []
 }

@@ -12,12 +12,12 @@ def make_deck():
             special = None
             if suit == "RED" and v == 11:
                 special = "fire"
-            elif suit == "BLUE" and v == 11:
-                special = "water"
             elif suit == "GREEN" and v == 11:
-                special = "earth"
+                special = "water"  # Informant (+5)
             elif suit == "YELLOW" and v == 11:
-                special = "air"
+                special = "earth"  # Schmierer (-5)
+            elif suit == "BLUE" and v == 11:
+                special = "air"  # Fixer (neutralisiert)
             elif suit == "GREEN" and v == 12:
                 special = "pygmy"
             cards.append({"id": f"{suit}-{v}", "suit": suit, "value": v, "special": special})
@@ -55,7 +55,7 @@ def deal(deck, n):
 
 
 def pass_info(n, round_index):
-    counts = {3: 3, 4: 3, 5: 2, 6: 1}
+    counts = {3: 4, 4: 3, 5: 2, 6: 2}
     count = counts[n]
     if n in (3, 5):
         dirs = [1, -1]
@@ -109,30 +109,26 @@ def score_round(piles):
     ]
     shooter = -1
     for seat, pile in enumerate(piles):
-        if len([c for c in pile if c["suit"] == "RED"]) == 14:
+        all_red = len([c for c in pile if c["suit"] == "RED"]) == 14
+        green_special = any(c["special"] in ("water", "pygmy") for c in pile)
+        if all_red and green_special:
             shooter = seat
     if shooter >= 0:
         s = piles[shooter]
         has_water = any(c["special"] == "water" for c in s)
         has_pygmy = any(c["special"] == "pygmy" for c in s)
-        spell = 20 + (5 if has_water else 0) + (5 if has_pygmy else 0)
+        spell = 15 + (5 if has_water else 0) + (10 if has_pygmy else 0)  # 20 / 25 / 30
         if has_water and has_pygmy:
             name = "Großer Takeover"
         elif has_pygmy:
             name = "Patin-Takeover"
-        elif has_water:
-            name = "Fixer-Takeover"
         else:
             name = "Takeover"
         for seat, pile in enumerate(piles):
             if seat == shooter:
                 results[seat] = {"fireCards": 13, "fireWitch": True, "water": has_water, "pygmy": has_pygmy, "earth": False, "air": False, "total": 0, "moon": True}
             else:
-                total = spell
-                earth = any(c["special"] == "earth" for c in pile)
-                if earth:
-                    total = max(total - 5, 0)
-                results[seat] = {"fireCards": 0, "fireWitch": False, "water": False, "pygmy": False, "earth": earth, "air": False, "total": total, "moon": False, "spellVictim": True}
+                results[seat] = {"fireCards": 0, "fireWitch": False, "water": False, "pygmy": False, "earth": False, "air": False, "total": spell, "moon": False, "spellVictim": True}
         return {"results": results, "shooter": shooter, "spellName": name}
 
     for seat, pile in enumerate(piles):

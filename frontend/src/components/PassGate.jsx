@@ -20,7 +20,7 @@ export function PassGate({ player, headline = "Streng geheim", note, onReveal, c
         <p className="font-display text-4xl font-black text-amber-200 mb-5" data-testid="pass-gate-target-player-name">
           {player.name}
         </p>
-        <p className="font-serif-fancy text-purple-200/70 text-base mb-8 italic">
+        <p className="font-serif-fancy text-slate-300/70 text-base mb-8 italic">
           {note || "Achte darauf, dass niemand auf deine Karten linst…"}
         </p>
         <button
@@ -29,7 +29,7 @@ export function PassGate({ player, headline = "Streng geheim", note, onReveal, c
             onReveal();
           }}
           data-testid="btn-reveal-player-hand"
-          className="w-full rounded-xl py-4 font-display text-lg font-bold text-purple-950 bg-gradient-to-r from-amber-300 to-amber-500 hover:from-amber-200 hover:to-amber-400 transition-all glow-ring flex items-center justify-center gap-2"
+          className="w-full rounded-md py-4 font-display text-lg font-bold text-black bg-gradient-to-r from-yellow-300 to-amber-400 hover:from-yellow-200 hover:to-amber-300 transition-all glow-ring flex items-center justify-center gap-2"
         >
           <Eye size={20} /> {ctaPrefix} — Ich bin {player.name}
         </button>

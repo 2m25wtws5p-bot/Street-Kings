@@ -1,20 +1,17 @@
 import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { SUITS, SUIT_ORDER, SPECIALS } from "../game/constants";
-import { SPECIAL_ICON } from "./CardView";
-import { Flame, Sun, MountainSnow, Leaf } from "lucide-react";
-
-const SUIT_ICON = { RED: Flame, YELLOW: Sun, BLUE: MountainSnow, GREEN: Leaf };
-const CODEX = ["fire", "water", "earth", "air", "pygmy", "wizard"];
+import { SPECIAL_ICON, SUIT_ICON } from "./CardView";
+const CODEX = ["fire", "water", "pygmy", "earth", "air", "wizard"];
 
 export function RulesDialog({ open, onOpenChange }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="panel max-w-2xl max-h-[85vh] overflow-y-auto border-purple-500/30" data-testid="rules-dialog">
+      <DialogContent className="panel max-w-2xl max-h-[85vh] overflow-y-auto border-white/15" data-testid="rules-dialog">
         <DialogHeader>
           <DialogTitle className="font-display text-2xl gold-text">Der Kodex — So wird gespielt</DialogTitle>
         </DialogHeader>
-        <div className="space-y-5 text-purple-100/90 text-sm leading-relaxed font-serif-fancy">
+        <div className="space-y-5 text-slate-100/90 text-sm leading-relaxed font-serif-fancy">
           <section>
             <h3 className="font-display text-amber-300 text-base mb-1">Das Ziel</h3>
             <p>
@@ -35,7 +32,7 @@ export function RulesDialog({ open, onOpenChange }) {
                     <Icon size={20} color={s.accent} />
                     <div>
                       <div className="font-display text-xs" style={{ color: s.accent }}>{s.people}</div>
-                      <div className="text-[11px] text-purple-200/70">{s.realm} · 1–14</div>
+                      <div className="text-[11px] text-slate-300/70">{s.realm} · 1–14</div>
                     </div>
                   </div>
                 );
@@ -75,7 +72,7 @@ export function RulesDialog({ open, onOpenChange }) {
                       <div className="font-display text-sm" style={{ color: s.tag }}>
                         {s.label} <span className="font-mono-stat text-[10px] text-white/70">· {s.short}</span>
                       </div>
-                      <div className="text-[12px] text-purple-200/80">{s.desc}</div>
+                      <div className="text-[12px] text-slate-300/80">{s.desc}</div>
                     </div>
                   </div>
                 );
@@ -86,17 +83,18 @@ export function RulesDialog({ open, onOpenChange }) {
           <section>
             <h3 className="font-display text-amber-300 text-base mb-1">Der Takeover</h3>
             <p className="text-[13px]">
-              Kassiere <b>alle 14 roten Hitze-Karten</b> in einer Runde und du bekommst <b>0</b> Hitze — stattdessen
-              zieht jede gegnerische Crew <b>20</b> Hitze auf sich (25, wenn du zusätzlich den Fixer hattest, bis zu 30 mit
-              der Patin dazu)! Du übernimmst die Kontrolle über die Stadt.
+              Kassiere <b>alle 14 Hitze-Karten</b> in einer Runde <b>und zusätzlich den Informanten und/oder die Patin</b>,
+              dann übernimmst du die Kontrolle: Du bekommst <b>0</b> Hitze — stattdessen zieht jede gegnerische Crew{" "}
+              <b>20</b> Hitze auf sich (Informant), <b>25</b> (Patin) oder <b>30</b> (beide). Ohne Informant oder Patin gibt
+              es keinen Takeover und die Hitze wird normal gezählt.
             </p>
           </section>
 
           <section>
             <h3 className="font-display text-amber-300 text-base mb-1">Karten weitergeben & Bots</h3>
             <p className="text-[13px]">
-              Zu Beginn jeder Runde geben alle Spieler verdeckt Karten an einen Nachbarn weiter (3 Spieler: 3, 4 Spieler: 3,
-              5 Spieler: 2, 6 Spieler: 1); die Richtung wechselt jede Runde. Jeder freie Platz kann mit einem{" "}
+              Zu Beginn jeder Runde geben alle Spieler verdeckt Karten weiter (3 Spieler: 4 Karten, 4 Spieler: 3,
+              5 Spieler: 2, 6 Spieler: 2); die Richtung wechselt jede Runde (links, rechts, gegenüber). Jeder freie Platz kann mit einem{" "}
               <b>KI-Gangster</b> besetzt werden — nutze „Solo gegen KI“ oder schalte einzelne Plätze im Setup um.
             </p>
           </section>

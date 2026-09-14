@@ -123,6 +123,11 @@ class BotsReq(BaseModel):
     action: str  # 'add' | 'remove'
 
 
+class ReplaceReq(BaseModel):
+    token: str
+    seat: int
+
+
 class ActionReq(BaseModel):
     token: str
     type: str  # 'pass' | 'play' | 'continueTrick' | 'nextRound'
@@ -456,6 +461,60 @@ async def start_room(code: str, payload: TokenReq):
         room["lastTrick"] = None
         room["lastWinner"] = None
         room["roundResult"] = None
+        _setup_passing(room)
+        _advance_bots(room)
+        await _save_room(room)
+        return _redact(room, payload.token)
+
+
+@api_router.post("/rooms/{code}/replace")
+async def replace_with_bot(code: str, payload: ReplaceReq):
+    async with _lock(code):
+        room = await _get_room(code)
+        if room["host_token"] != payload.token:
+            raise HTTPException(status_code=403, detail="Nur der Host kann Spieler ersetzen")
+        if room["status"] != "playing":
+            raise HTTPException(status_code=409, detail="Kein laufendes Spiel")
+        target = next((p for p in room["players"] if p["seat"] == payload.seat), None)
+        if not target or target["isBot"]:
+            raise HTTPException(status_code=400, detail="Ungültiger Sitz")
+        if target["token"] == payload.token:
+            raise HTTPException(status_code=400, detail="Du kannst dich nicht selbst ersetzen")
+        if _connected(target):
+            raise HTTPException(status_code=409, detail="Spieler ist noch verbunden")
+        target["isBot"] = True
+        target["token"] = f"bot-{uuid.uuid4()}"
+        target["name"] = f"{target['name'][:12]} (KI)"
+        seat = target["seat"]
+        if room["phase"] == "passing" and str(seat) not in room["pendingSelections"]:
+            room["pendingSelections"][str(seat)] = eng.bot_pass(room["hands"][seat], room["passCount"])
+        _advance_bots(room)
+        await _maybe_record(room)
+        await _save_room(room)
+        return _redact(room, payload.token)
+
+
+@api_router.post("/rooms/{code}/rematch")
+async def rematch_room(code: str, payload: TokenReq):
+    async with _lock(code):
+        room = await _get_room(code)
+        if room["host_token"] != payload.token:
+            raise HTTPException(status_code=403, detail="Nur der Host kann eine Revanche starten")
+        if room["status"] != "gameOver":
+            raise HTTPException(status_code=409, detail="Das Spiel ist noch nicht vorbei")
+        n = room["n"]
+        room["status"] = "playing"
+        room["recorded"] = False
+        room["roundIndex"] = 0
+        room["totalRounds"] = 0
+        room["scores"] = [0] * n
+        room["hands"] = eng.deal(eng.shuffle(eng.make_deck()), n)
+        room["piles"] = [[] for _ in range(n)]
+        room["trick"] = []
+        room["lastTrick"] = None
+        room["lastWinner"] = None
+        room["roundResult"] = None
+        room["rematches"] = room.get("rematches", 0) + 1
         _setup_passing(room)
         _advance_bots(room)
         await _save_room(room)

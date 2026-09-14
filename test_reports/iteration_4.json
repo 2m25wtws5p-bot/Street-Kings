@@ -1,0 +1,26 @@
+{
+  "summary": "Iteration 4 focused on new Amigo rules (specials mapping, pass counts, Takeover 20/25/30), replace-with-bot and rematch endpoints, plus the concrete/asphalt reskin. Added 13 new pytest tests in /app/backend/tests/test_rules_and_actions.py — all PASS (100%). Engine unit tests confirm make_deck specials RED-11=fire, GREEN-11=water, YELLOW-11=earth, BLUE-11=air, GREEN-12=pygmy; pass_info counts {3:4, 4:3, 5:2, 6:2}; score_round Takeover: shooter=0 and each victim gets 20 (water only), 25 (pygmy only), 30 (both); no Takeover w/o Informant/Patin so shooter with all-red only gets 15 via fire-doubling cap. Normal scoring: water +5 unless air, pygmy +10 unless air, earth −5 min 0, fire doubles red (cap 15). API: 3-player start returns passCount=4. Replace endpoint: 409 while connected, 403 non-host, 200 when host replaces offline seat (name '(KI)' suffix, isBot=true, passedSeats auto-filled), 400 replacing bot seat, 400 replacing own seat. Rematch: 409 before gameOver, 403 non-host, 200 after full-game (drive-to-gameOver via host actions + bots) with status='playing', phase in {passing,playing}, scores all 0, roundIndex 0, dealt hands; game_results total NOT double-recorded after rematch. Frontend: HomeScreen title 'STREET KINGS' with yellow hazard-tape subtitle „Don't take the heat.“ (home-subtitle), no witch/purple leftovers. Rules dialog contains suits Hitze/Schwarzmarkt/Cash/Ware and specials in correct order Kingpin→Informant→Patin→Schmierer→Fixer→Laufjunge with Informant '+5 HITZE', Schmierer '-5 HITZE', Fixer 'NEUTRALISIERT'; passing text '3 Spieler: 4 Karten' and Takeover section mentions Informant/Patin + 20/25/30. Local 3-player solo: passing screen shows 'wähle 4 Karten', counter '0 / 4 gewählt', 20 cards rendered with the new suit icons (siren red, mask yellow, banknote blue, package green), YELLOW-11 shows SCHMIERER banner, W3 shows LAUFJUNGE banner (visual match to spec).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_rules_and_actions.py",
+    "/app/backend/tests/test_streetkings.py",
+    "/app/test_reports/pytest/rules_actions.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "server.py still uses deprecated @app.on_event startup/shutdown - migrate to FastAPI lifespan.",
+    "replace_with_bot writes '(KI)' suffix onto target['name'][:12] — safe but a very long original name loses the last 4 chars; consider truncating to 11 to keep at least one full whitespace.",
+    "rematch resets 'recorded' to False so a second gameOver on same room re-records — good; but 'rematches' counter is stored yet never surfaced in the redacted view — expose it if UI ever wants to display 'Runde X'.",
+    "_advance_bots on replace happens BEFORE _maybe_record; ordering is fine here because replace is only valid while status='playing', but the pattern differs from room_action (advance→record) — factor into a helper for consistency.",
+    "score_round Takeover check considers only shooter's own green_special presence, so if the Informant is in another player's pile the pile with all 14 reds still triggers a Takeover — verified this cannot happen since only ONE seat can hold 'all 14 red' but worth an assertion/comment."
+  ],
+  "updated_files": ["/app/backend/tests/test_rules_and_actions.py"],
+  "success_rate": {"backend": "100% (13/13 new; prior 22/22 unchanged)", "frontend": "100% for smoke/design + local passing screen"},
+  "test_credentials": "N/A – anonymous rooms",
+  "seed_data_creation": "One rematch drive-to-gameOver test creates TEST-adjacent rooms and inserts one game_results doc. All other replace/rematch tests create ephemeral rooms only.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "New backend suite /app/backend/tests/test_rules_and_actions.py exercises rules + /replace + /rematch. It uses REACT_APP_BACKEND_URL from env (pytest run needs it exported: `REACT_APP_BACKEND_URL=$(grep REACT_APP_BACKEND_URL /app/frontend/.env|cut -d= -f2) pytest ...`). test_replace_offline_luca_success and test_replace_non_host_forbidden sleep 11.5s each to cross OFFLINE_AFTER=10s; test_rematch_after_game_over drives a full game (~30-60s of bot play). Frontend testids used: home-subtitle, btn-open-how-to-play-dialog, rules-dialog, btn-mode-local, btn-player-count-3, btn-preset-solo, btn-start-coven-game, pass-device-gate-screen, btn-reveal-player-hand, passing-phase-instructions, passing-phase-selected-count, pass-card-item-<CARD-ID>. Replace UI testid: btn-replace-bot-<seat> (visible only to host when player-offline-<seat> is truthy). Rematch UI: btn-play-rematch + game-over-note (host-only enabled). Online replace and rematch UI flows already validated end-to-end via backend; iteration_3 covered offline-badge rendering.",
+  "rca of the issue": "No issues found. All spec items validated."
+}

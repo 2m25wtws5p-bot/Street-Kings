@@ -71,7 +71,7 @@ export function LocalGame({ onExit, sound, setSound }) {
   return (
     <div className="grain min-h-screen">
       {(showHeader || state.phase === "setup") && (
-        <div className="fixed top-0 inset-x-0 z-40 flex items-center justify-between px-4 py-2 bg-gradient-to-b from-[#0b0713]/95 to-transparent">
+        <div className="fixed top-0 inset-x-0 z-40 flex items-center justify-between px-4 py-2 bg-gradient-to-b from-[#0d0f13]/98 to-transparent">
           <button
             onClick={() => {
               if (window.confirm("Spiel verlassen und zum Hauptmenü zurückkehren?")) onExit();
@@ -133,7 +133,7 @@ function BotWaiting({ player, text }) {
           <Avatar avatar={player.avatar} size={96} active />
         </div>
         <h2 className="font-display text-2xl gold-text">{player.name}</h2>
-        <p className="font-serif-fancy text-purple-200/70 text-lg italic mt-1">{text}</p>
+        <p className="font-serif-fancy text-slate-300/70 text-lg italic mt-1">{text}</p>
         <div className="mt-4 flex justify-center gap-1.5">
           {[0, 1, 2].map((i) => (
             <span key={i} className="w-2 h-2 rounded-full bg-amber-400 candle-flicker" style={{ animationDelay: `${i * 0.25}s` }} />

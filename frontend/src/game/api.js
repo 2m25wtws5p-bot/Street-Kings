@@ -9,5 +9,7 @@ export const roomApi = {
   get: (code, token) => axios.get(`${API}/rooms/${code}`, { params: { token } }).then((r) => r.data),
   start: (code, token) => axios.post(`${API}/rooms/${code}/start`, { token }).then((r) => r.data),
   bots: (code, token, action) => axios.post(`${API}/rooms/${code}/bots`, { token, action }).then((r) => r.data),
+  replace: (code, token, seat) => axios.post(`${API}/rooms/${code}/replace`, { token, seat }).then((r) => r.data),
+  rematch: (code, token) => axios.post(`${API}/rooms/${code}/rematch`, { token }).then((r) => r.data),
   action: (code, token, payload) => axios.post(`${API}/rooms/${code}/action`, { token, ...payload }).then((r) => r.data),
 };
