@@ -1,17 +1,17 @@
 import React from "react";
-import { Eye, Sparkles, Skull, Sprout, FlaskConical, WandSparkles } from "lucide-react";
+import { Crown, Banknote, Car, Package, Laptop, Briefcase, User } from "lucide-react";
 
 const MAP = {
-  oracle: Eye,
-  sorceress: Sparkles,
-  necromancer: Skull,
-  druidess: Sprout,
-  alchemist: FlaskConical,
-  enchanter: WandSparkles,
+  boss: Crown,
+  dealer: Banknote,
+  driver: Car,
+  smuggler: Package,
+  hacker: Laptop,
+  lawyer: Briefcase,
 };
 
 export function Avatar({ avatar, size = 40, active = false, className = "" }) {
-  const Icon = MAP[avatar?.key] || Sparkles;
+  const Icon = MAP[avatar?.key] || User;
   const color = avatar?.color || "#C084FC";
   return (
     <div

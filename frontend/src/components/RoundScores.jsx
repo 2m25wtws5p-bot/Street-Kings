@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { Avatar } from "./Avatar";
 import { WIN_THRESHOLD } from "../game/constants";
 import { isGameOver } from "../game/engine";
-import { Flame, X, Sparkles, Shield, Minus, Crown, ChevronRight } from "lucide-react";
+import { Flame, X, Siren, Shield, Minus, Crown, ChevronRight } from "lucide-react";
 import { sfx } from "../game/sound";
 
 function Chip({ color, icon, label }) {
@@ -27,16 +27,16 @@ export function RoundScores({ state, onNext }) {
   return (
     <div className="min-h-screen coven-bg px-4 py-8 overflow-y-auto">
       <div className="max-w-xl mx-auto">
-        <h2 className="font-display text-3xl gold-text text-center mb-1">The Reckoning</h2>
-        <p className="text-center text-purple-200/70 font-serif-fancy mb-6">Round {state.roundIndex + 1} tallied</p>
+        <h2 className="font-display text-3xl gold-text text-center mb-1">Die Abrechnung</h2>
+        <p className="text-center text-purple-200/70 font-serif-fancy mb-6">Runde {state.roundIndex + 1} abgerechnet</p>
 
         {shooter >= 0 && (
           <div className="pop-in rounded-2xl p-4 mb-5 text-center bg-gradient-to-r from-red-900/50 to-orange-900/40 border border-amber-400/50" data-testid="fire-spell-moon-banner">
             <div className="font-display text-xl text-amber-200 flex items-center justify-center gap-2">
-              <Flame className="text-red-400" /> {spellName}!
+              <Siren className="text-red-400" /> {spellName}!
             </div>
             <p className="text-sm text-amber-100/80 mt-1">
-              {players[shooter].name} gathered every fire card and unleashed it upon the coven!
+              {players[shooter].name} hat die gesamte Hitze auf sich gezogen und die Kontrolle übernommen – alle anderen Crews zahlen!
             </p>
           </div>
         )}
@@ -56,14 +56,14 @@ export function RoundScores({ state, onNext }) {
                       </span>
                     </div>
                     <div className="flex flex-wrap gap-1 mt-1">
-                      {r.moon && <Chip color="#FBBF24" icon={<Sparkles size={10} />} label="FIRE SPELL · 0" />}
-                      {r.spellVictim && <Chip color="#EF4444" icon={<Flame size={10} />} label="cursed by spell" />}
-                      {!r.moon && !r.spellVictim && r.fireCards > 0 && <Chip color="#EF4444" icon={<Flame size={10} />} label={`${r.fireCards} fire`} />}
-                      {r.fireWitch && !r.moon && <Chip color="#EF4444" icon={<X size={10} />} label="x2 Fire Witch" />}
-                      {r.water && <Chip color="#38BDF8" icon={<span>+5</span>} label="Water" />}
-                      {r.pygmy && <Chip color="#A855F7" icon={<span>+10</span>} label="Pygmy Queen" />}
-                      {r.air && <Chip color="#FACC15" icon={<Shield size={10} />} label="Air neutralized" />}
-                      {r.earth && <Chip color="#4ADE80" icon={<Minus size={10} />} label="Earth blessing" />}
+                      {r.moon && <Chip color="#FBBF24" icon={<Siren size={10} />} label="TAKEOVER · 0" />}
+                      {r.spellVictim && <Chip color="#EF4444" icon={<Flame size={10} />} label="Takeover kassiert" />}
+                      {!r.moon && !r.spellVictim && r.fireCards > 0 && <Chip color="#EF4444" icon={<Flame size={10} />} label={`${r.fireCards} Hitze`} />}
+                      {r.fireWitch && !r.moon && <Chip color="#EF4444" icon={<X size={10} />} label="x2 Kingpin" />}
+                      {r.water && <Chip color="#38BDF8" icon={<span>+5</span>} label="Fixer" />}
+                      {r.pygmy && <Chip color="#A855F7" icon={<span>+10</span>} label="Patin" />}
+                      {r.air && <Chip color="#FACC15" icon={<Shield size={10} />} label="Schmierer neutralisiert" />}
+                      {r.earth && <Chip color="#4ADE80" icon={<Minus size={10} />} label="Informant −5" />}
                     </div>
                   </div>
                 </div>
@@ -85,16 +85,22 @@ export function RoundScores({ state, onNext }) {
           })}
         </div>
 
-        <button
-          onClick={() => {
-            sfx.reveal();
-            onNext();
-          }}
-          data-testid="btn-start-next-round"
-          className="mt-6 w-full rounded-xl py-4 font-display text-lg font-bold text-purple-950 bg-gradient-to-r from-amber-300 to-amber-500 glow-ring flex items-center justify-center gap-2"
-        >
-          {over ? <><Crown size={20} /> Crown the Arch-Witch</> : <>Commence Next Round <ChevronRight size={20} /></>}
-        </button>
+        {onNext ? (
+          <button
+            onClick={() => {
+              sfx.reveal();
+              onNext();
+            }}
+            data-testid="btn-start-next-round"
+            className="mt-6 w-full rounded-xl py-4 font-display text-lg font-bold text-purple-950 bg-gradient-to-r from-amber-300 to-amber-500 glow-ring flex items-center justify-center gap-2"
+          >
+            {over ? <><Crown size={20} /> Street King krönen</> : <>Nächste Runde <ChevronRight size={20} /></>}
+          </button>
+        ) : (
+          <p className="mt-6 text-center font-serif-fancy text-purple-200/60 italic" data-testid="spectator-waiting-next-round">
+            Warten, bis die Crews die nächste Runde starten…
+          </p>
+        )}
       </div>
     </div>
   );

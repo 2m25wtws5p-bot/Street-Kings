@@ -74,12 +74,12 @@ export function LocalGame({ onExit, sound, setSound }) {
         <div className="fixed top-0 inset-x-0 z-40 flex items-center justify-between px-4 py-2 bg-gradient-to-b from-[#0b0713]/95 to-transparent">
           <button
             onClick={() => {
-              if (window.confirm("Leave this game and return to the main menu?")) onExit();
+              if (window.confirm("Spiel verlassen und zum Hauptmenü zurückkehren?")) onExit();
             }}
             data-testid="nav-brand-title"
             className="font-display text-sm gold-text flex items-center gap-1.5 hover:opacity-80"
           >
-            <Home size={15} /> Coven
+            <Home size={15} /> Street Kings
           </button>
           <GameHeaderButtons sound={sound} setSound={setSound} onRules={() => setRulesOpen(true)} onStats={() => setStatsOpen(true)} />
         </div>
@@ -89,9 +89,9 @@ export function LocalGame({ onExit, sound, setSound }) {
 
       {state.phase === "passGate" &&
         (state.players[state.passSeat]?.isBot ? (
-          <BotWaiting player={state.players[state.passSeat]} text="is choosing cards to pass…" />
+          <BotWaiting player={state.players[state.passSeat]} text="wählt Karten zum Weitergeben…" />
         ) : (
-          <PassGate player={state.players[state.passSeat]} onReveal={actions.reveal} ctaPrefix="Reveal My Hand" note="Time to trade curses. Ensure no wandering eyes peer at your cards…" />
+          <PassGate player={state.players[state.passSeat]} onReveal={actions.reveal} ctaPrefix="Karten zeigen" note="Zeit für den Deal. Achte darauf, dass niemand auf deine Karten linst…" />
         ))}
       {state.phase === "passing" && <PassingScreen state={state} onConfirm={actions.confirmPass} />}
 
@@ -101,7 +101,7 @@ export function LocalGame({ onExit, sound, setSound }) {
             <PlayTable state={state} onPlay={() => {}} onContinueTrick={() => {}} hideHand />
           </div>
         ) : (
-          <PassGate player={state.players[state.currentSeat]} headline="Your Turn" onReveal={actions.reveal} ctaPrefix="Reveal My Hand" note="The cauldron calls. Take the device and play in secret…" />
+          <PassGate player={state.players[state.currentSeat]} headline="Dein Zug" onReveal={actions.reveal} ctaPrefix="Karten zeigen" note="Die Straße ruft. Nimm das Gerät und spiel im Geheimen…" />
         ))}
       {(state.phase === "playing" || state.phase === "trickEnd") && (
         <div className="pt-10">

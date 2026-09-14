@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { CardView } from "./CardView";
 import { Avatar } from "./Avatar";
 import { targetSeat } from "../game/engine";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Handshake } from "lucide-react";
 import { sfx } from "../game/sound";
 
 export function PassingScreen({ state, onConfirm }) {
@@ -31,10 +31,10 @@ export function PassingScreen({ state, onConfirm }) {
           <ArrowRight className="text-amber-400" />
           <Avatar avatar={target.avatar} size={38} />
         </div>
-        <h2 className="font-display text-2xl gold-text">The Coven Trade</h2>
+        <h2 className="font-display text-2xl gold-text">Der Deal</h2>
         <p className="font-serif-fancy text-purple-200/80 text-base" data-testid="passing-phase-instructions">
-          <span className="text-amber-200 font-semibold">{me.name}</span>, choose{" "}
-          <b className="text-amber-300">{passCount}</b> card{passCount > 1 ? "s" : ""} to pass to{" "}
+          <span className="text-amber-200 font-semibold">{me.name}</span>, wähle{" "}
+          <b className="text-amber-300">{passCount}</b> Karte{passCount > 1 ? "n" : ""} zum Weitergeben an{" "}
           <span className="text-amber-200 font-semibold">{target.name}</span>
         </p>
       </div>
@@ -56,7 +56,7 @@ export function PassingScreen({ state, onConfirm }) {
 
       <div className="flex flex-col items-center gap-3 mt-4">
         <div className="font-mono-stat text-sm text-amber-300" data-testid="passing-phase-selected-count">
-          {selected.length} / {passCount} selected
+          {selected.length} / {passCount} gewählt
         </div>
         <button
           disabled={!done}
@@ -72,7 +72,7 @@ export function PassingScreen({ state, onConfirm }) {
               : "text-purple-300/40 bg-black/30 border border-purple-500/20 cursor-not-allowed"
           }`}
         >
-          <Sparkles size={18} /> Seal & Pass
+          <Handshake size={18} /> Deal besiegeln
         </button>
       </div>
     </div>

@@ -1,0 +1,25 @@
+{
+  "summary": "Full backend + frontend verification of Street Kings reskin, spectator mode and reconnect-by-name. Added 8 new pytest tests in /app/backend/tests/test_streetkings.py -- all PASS (API root 'Street Kings API', /watch returns spec- token, spectator view hides hand & lists in spectators, spectator POST /action -> 403, duplicate name while connected -> 409 with German 'vergeben' message, rejoin after >10s offline restores seat/hand & old token becomes spectator, join-with-new-name after start -> 409, bots use German gangster names {Vito/Ronny/Kalle/Shorty/Dragan/Nadja/Ivo/Mischa} and avatar keys {boss/dealer/driver/smuggler/hacker/lawyer}). Frontend Playwright: HomeScreen shows title 'Street Kings' + subtitle „Don't take the heat.“, both mode buttons present, no witch/hero background. Rules dialog shows Der Kodex, Hitze/Schwarzmarkt/Cash/Ware and specials Kingpin/Fixer/Informant/Schmierer/Patin/Laufjunge and 'Der Takeover'. Stats dialog title 'Die Akte'. Local mode: setup 'Wie viele Gangster?' + Solo preset + start ('Auf die Straße') -> pass gate 'Gerät weitergeben an' rendered in German. Online: create room -> lobby 'Die Crew sammelt sich' with room code; invite link /?room=CODE in second context shows 'Einladung in die Unterwelt' with Mitspielen + Zuschauen; spectator sees spectator-lobby-note 'Du schaust zu' and host lobby-spectators '1 Zuschauer: Spy'; after start spectator gets spectator-bar 'DU SCHAUST ZU', host header spectator-count '1'; scores shown as '0 Hitze · 20K'; bot names Ronny/Kalle. Reconnect flow: Luca joins, dropping context and waiting 13s -> host roster shows player-offline-1; fresh context with name 'luca' via btn-join-room lands directly on table with hand (KINGPIN/FIXER/LAUFJUNGE specials visible) — not a spectator. Duplicate 'LUCA' while connected shows online-error 'Dieser Name ist vergeben – der Spieler ist noch verbunden'. No English/witch leftovers seen in visible UI in any tested screen.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_streetkings.py",
+    "/app/test_reports/pytest/pytest_streetkings.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "server.py still uses deprecated @app.on_event('startup'/'shutdown') — migrate to FastAPI lifespan.",
+    "GET /api/rooms/{code} refreshes only the caller's last_seen; if a spectator polls but the human doesn't, the host still correctly sees the human offline — but note the current design means one player can appear offline while others in the same tab window (different token) do not. Acceptable.",
+    "Reconnect issues a brand-new token and orphans the old token silently — no explicit invalidation record. If the original client is still alive it will start seeing isSpectator=true which is by design but could benefit from an explicit 'kicked' banner on the client.",
+    "spec-<uuid> tokens never expire and specatators list has no TTL — over long sessions specs array grows; MAX_SPECTATORS=20 caps it but no cleanup for stale watchers.",
+    "manage_bots avatar reuse only checks 'key' collision, not 'label'; safe with current BOT_AVATARS list but fragile if labels are added dynamically."
+  ],
+  "updated_files": ["/app/backend/tests/test_streetkings.py"],
+  "success_rate": {"backend": "100% (8/8 new; prior 14/14 unchanged)", "frontend": "100%"},
+  "test_credentials": "N/A - anonymous rooms",
+  "seed_data_creation": "Multiple TEST_ prefixed rooms and one full-game record from prior iteration test still applies; new tests create rooms but do not persist game results.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "New backend suite at /app/backend/tests/test_streetkings.py (8 tests) covers spectator + reconnect-by-name + German bot naming + API root string. Reconnect test intentionally sleeps 11.5s to cross OFFLINE_AFTER=10s threshold. Frontend spectator flow uses data-testid: btn-watch-room, spectator-lobby-note, lobby-spectators, spectator-bar, spectator-status-text, spectator-count, player-offline-<seat>, online-error. localStorage key is 'witches_room' (unchanged despite reskin).",
+  "rca of the issue": "No issues found."
+}

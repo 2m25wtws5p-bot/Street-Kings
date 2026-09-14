@@ -117,13 +117,13 @@ def score_round(piles):
         has_pygmy = any(c["special"] == "pygmy" for c in s)
         spell = 20 + (5 if has_water else 0) + (5 if has_pygmy else 0)
         if has_water and has_pygmy:
-            name = "Great Fire Spell"
+            name = "Großer Takeover"
         elif has_pygmy:
-            name = "Pygmy Spell"
+            name = "Patin-Takeover"
         elif has_water:
-            name = "Water Spell"
+            name = "Fixer-Takeover"
         else:
-            name = "Fire Spell"
+            name = "Takeover"
         for seat, pile in enumerate(piles):
             if seat == shooter:
                 results[seat] = {"fireCards": 13, "fireWitch": True, "water": has_water, "pygmy": has_pygmy, "earth": False, "air": False, "total": 0, "moon": True}

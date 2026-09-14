@@ -125,10 +125,10 @@ export function scoreRound(piles) {
     const hasWater = s.some((c) => c.special === "water");
     const hasPygmy = s.some((c) => c.special === "pygmy");
     const spell = 20 + (hasWater ? 5 : 0) + (hasPygmy ? 5 : 0);
-    let spellName = "Fire Spell";
-    if (hasWater && hasPygmy) spellName = "Great Fire Spell";
-    else if (hasPygmy) spellName = "Pygmy Spell";
-    else if (hasWater) spellName = "Water Spell";
+    let spellName = "Takeover";
+    if (hasWater && hasPygmy) spellName = "Großer Takeover";
+    else if (hasPygmy) spellName = "Patin-Takeover";
+    else if (hasWater) spellName = "Fixer-Takeover";
     piles.forEach((pile, seat) => {
       if (seat === shooter) {
         results[seat] = {

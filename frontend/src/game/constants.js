@@ -1,10 +1,10 @@
-// Static game constants for the Witches (Amigo) card game.
+// Statische Spielkonstanten für STREET KINGS (Regelmechanik identisch mit dem Original).
 
 export const SUITS = {
   RED: {
     key: "RED",
-    people: "Goblins",
-    realm: "Volcano Country",
+    people: "Hitze",
+    realm: "Polizeidruck & Fahndung",
     icon: "flame",
     primary: "#DC2626",
     accent: "#EF4444",
@@ -14,8 +14,8 @@ export const SUITS = {
   },
   YELLOW: {
     key: "YELLOW",
-    people: "Mongols",
-    realm: "The Desert",
+    people: "Schwarzmarkt",
+    realm: "Untergrundhandel",
     icon: "sun",
     primary: "#EAB308",
     accent: "#FACC15",
@@ -25,8 +25,8 @@ export const SUITS = {
   },
   BLUE: {
     key: "BLUE",
-    people: "Indians",
-    realm: "Stormy Mountains",
+    people: "Cash",
+    realm: "Geld & Bargeld",
     icon: "mountain-snow",
     primary: "#2563EB",
     accent: "#60A5FA",
@@ -36,8 +36,8 @@ export const SUITS = {
   },
   GREEN: {
     key: "GREEN",
-    people: "Pygmies",
-    realm: "The Rainforest",
+    people: "Ware",
+    realm: "Schmuggel & illegale Geschäfte",
     icon: "leaf",
     primary: "#16A34A",
     accent: "#4ADE80",
@@ -61,55 +61,55 @@ export const SPECIAL_MAP = {
 export const SPECIALS = {
   fire: {
     key: "fire",
-    label: "Fire Witch",
-    short: "DOUBLES FIRE",
+    label: "Kingpin",
+    short: "HITZE x2",
     tag: "#EF4444",
-    desc: "Doubles all the fire points you collect this round (up to a maximum of 15). She carries no points of her own.",
+    desc: "Der mächtigste Gangster der Stadt. Verdoppelt die gesamte Hitze, die du in dieser Runde kassierst (maximal 15). Er selbst bringt keine Hitze.",
   },
   water: {
     key: "water",
-    label: "Water Witch",
-    short: "+5 FIRE",
+    label: "Fixer",
+    short: "+5 HITZE",
     tag: "#38BDF8",
-    desc: "Carries a penalty of +5 fire points to whoever takes her in a trick.",
+    desc: "Ein mächtiger Problemlöser mit hervorragenden Kontakten. Wer ihn im Stich kassiert, zieht +5 Hitze auf sich.",
   },
   earth: {
     key: "earth",
-    label: "Earth Witch",
-    short: "-5 FIRE",
+    label: "Informant",
+    short: "-5 HITZE",
     tag: "#4ADE80",
-    desc: "A bountiful blessing — reduces your fire points by up to 5 this round.",
+    desc: "Ein zwielichtiger Informant, der Informationen verkauft. Lenkt in dieser Runde bis zu 5 Hitze von dir ab.",
   },
   air: {
     key: "air",
-    label: "Air Witch",
-    short: "NEUTRALIZER",
+    label: "Schmierer",
+    short: "NEUTRALISIERT",
     tag: "#FACC15",
-    desc: "A purifying storm — cancels the penalty points of the Water Witch (+5) and Pygmy Queen (+10) if you hold her.",
+    desc: "Ein korrupter Kontakt, der mit Geld und Beziehungen Probleme aus der Welt schafft. Hebt die Hitze von Fixer (+5) und Patin (+10) auf, wenn du ihn hältst.",
   },
   pygmy: {
     key: "pygmy",
-    label: "Pygmy Queen",
-    short: "+10 FIRE",
+    label: "Patin",
+    short: "+10 HITZE",
     tag: "#A855F7",
-    desc: "The dread queen — inflicts a punishing +10 fire points upon whoever takes her.",
+    desc: "Die mächtigste Figur der Unterwelt, über allen Crews. Wer sie kassiert, zieht brutale +10 Hitze auf sich.",
   },
   wizard: {
     key: "wizard",
-    label: "Wizard",
-    short: "VALUE 0",
+    label: "Laufjunge",
+    short: "WERT 0",
     tag: "#C084FC",
-    desc: "Play him anytime, he follows no suit. He never wins a trick (unless only wizards are played). Your safe escape card.",
+    desc: "Junger Bote der Crews. Jederzeit spielbar, muss keine Farbe bedienen. Gewinnt nie einen Stich (außer es liegen nur Laufjungen). Dein sicherer Ausweg.",
   },
 };
 
 export const AVATARS = [
-  { key: "oracle", label: "Oracle", icon: "eye", color: "#C084FC" },
-  { key: "sorceress", label: "Sorceress", icon: "sparkles", color: "#F472B6" },
-  { key: "necromancer", label: "Necromancer", icon: "skull", color: "#94A3B8" },
-  { key: "druidess", label: "Druidess", icon: "sprout", color: "#4ADE80" },
-  { key: "alchemist", label: "Alchemist", icon: "flask-conical", color: "#38BDF8" },
-  { key: "enchanter", label: "Enchanter", icon: "wand-sparkles", color: "#FBBF24" },
+  { key: "boss", label: "Boss", icon: "crown", color: "#C084FC" },
+  { key: "dealer", label: "Dealer", icon: "banknote", color: "#F472B6" },
+  { key: "driver", label: "Fahrer", icon: "car", color: "#94A3B8" },
+  { key: "smuggler", label: "Schmuggler", icon: "package", color: "#4ADE80" },
+  { key: "hacker", label: "Hacker", icon: "laptop", color: "#38BDF8" },
+  { key: "lawyer", label: "Anwalt", icon: "briefcase", color: "#FBBF24" },
 ];
 
 export const WIN_THRESHOLD = 70;

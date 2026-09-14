@@ -11,6 +11,7 @@ from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional, Dict, Any
 import uuid
+import time
 from datetime import datetime, timezone
 
 import witches_engine as eng
@@ -54,7 +55,7 @@ class GameResult(BaseModel):
 
 @api_router.get("/")
 async def root():
-    return {"message": "Coven of Witches API"}
+    return {"message": "Street Kings API"}
 
 
 @api_router.post("/games", response_model=GameResult)
@@ -79,14 +80,16 @@ async def games_summary():
 # ---------------- Online multiplayer rooms ----------------
 
 BOT_AVATARS = [
-    {"key": "necromancer", "label": "Necromancer", "icon": "skull", "color": "#94A3B8"},
-    {"key": "druidess", "label": "Druidess", "icon": "sprout", "color": "#4ADE80"},
-    {"key": "alchemist", "label": "Alchemist", "icon": "flask-conical", "color": "#38BDF8"},
-    {"key": "enchanter", "label": "Enchanter", "icon": "wand-sparkles", "color": "#FBBF24"},
-    {"key": "oracle", "label": "Oracle", "icon": "eye", "color": "#C084FC"},
-    {"key": "sorceress", "label": "Sorceress", "icon": "sparkles", "color": "#F472B6"},
+    {"key": "driver", "label": "Fahrer", "icon": "car", "color": "#94A3B8"},
+    {"key": "smuggler", "label": "Schmuggler", "icon": "package", "color": "#4ADE80"},
+    {"key": "hacker", "label": "Hacker", "icon": "laptop", "color": "#38BDF8"},
+    {"key": "lawyer", "label": "Anwalt", "icon": "briefcase", "color": "#FBBF24"},
+    {"key": "boss", "label": "Boss", "icon": "crown", "color": "#C084FC"},
+    {"key": "dealer", "label": "Dealer", "icon": "banknote", "color": "#F472B6"},
 ]
-BOT_NAMES = ["Morgana", "Circe", "Baba Yaga", "Hazel", "Nimue", "Griselda", "Ursula", "Winifred"]
+BOT_NAMES = ["Vito", "Ronny", "Kalle", "Shorty", "Dragan", "Nadja", "Ivo", "Mischa"]
+OFFLINE_AFTER = 10.0  # seconds without a poll -> player counts as disconnected
+MAX_SPECTATORS = 20
 
 _locks: Dict[str, asyncio.Lock] = {}
 
@@ -105,6 +108,10 @@ class CreateRoom(BaseModel):
 class JoinRoom(BaseModel):
     name: str
     avatar: Dict[str, Any]
+
+
+class WatchRoom(BaseModel):
+    name: Optional[str] = None
 
 
 class TokenReq(BaseModel):
@@ -131,7 +138,7 @@ def _gen_code() -> str:
 async def _get_room(code: str):
     room = await db.rooms.find_one({"_id": code})
     if not room:
-        raise HTTPException(status_code=404, detail="Room not found")
+        raise HTTPException(status_code=404, detail="Raum nicht gefunden")
     return room
 
 
@@ -144,6 +151,12 @@ async def _save_room(room):
 
 def _player_by_token(room, token):
     return next((p for p in room["players"] if p["token"] == token), None)
+
+
+def _connected(p):
+    if p["isBot"]:
+        return True
+    return (time.time() - p.get("last_seen", 0)) < OFFLINE_AFTER
 
 
 # ----- game flow helpers (operate on room dict in place) -----
@@ -274,7 +287,7 @@ def _redact(room, token):
     me = _player_by_token(room, token)
     your_seat = me["seat"] if me else None
     players_pub = sorted(
-        [{"name": p["name"], "avatar": p["avatar"], "isBot": p["isBot"], "seat": p["seat"]} for p in room["players"]],
+        [{"name": p["name"], "avatar": p["avatar"], "isBot": p["isBot"], "seat": p["seat"], "connected": _connected(p)} for p in room["players"]],
         key=lambda x: x["seat"],
     )
     view = {
@@ -285,6 +298,8 @@ def _redact(room, token):
         "players": players_pub,
         "yourSeat": your_seat,
         "isHost": bool(me and room["host_token"] == token),
+        "isSpectator": me is None,
+        "spectators": [s["name"] for s in room.get("spectators", [])],
         "threshold": eng.WIN_THRESHOLD,
         "version": room.get("version", 0),
     }
@@ -337,7 +352,8 @@ async def create_room(payload: CreateRoom):
         "host_token": token,
         "status": "lobby",
         "phase": "lobby",
-        "players": [{"token": token, "name": payload.name[:16] or "Host", "avatar": payload.avatar, "isBot": False, "seat": 0}],
+        "players": [{"token": token, "name": payload.name[:16].strip() or "Boss", "avatar": payload.avatar, "isBot": False, "seat": 0, "last_seen": time.time()}],
+        "spectators": [],
         "created_at": datetime.now(timezone.utc).isoformat(),
         "version": 0,
     }
@@ -349,15 +365,44 @@ async def create_room(payload: CreateRoom):
 async def join_room(code: str, payload: JoinRoom):
     async with _lock(code):
         room = await _get_room(code)
+        if room["status"] == "gameOver":
+            raise HTTPException(status_code=409, detail="Diese Runde ist bereits vorbei")
+        name = payload.name[:16].strip()
+        existing = next((p for p in room["players"] if not p["isBot"] and name and p["name"].lower() == name.lower()), None)
+        if existing:
+            if _connected(existing):
+                raise HTTPException(status_code=409, detail="Dieser Name ist vergeben – der Spieler ist noch verbunden")
+            # reconnect: take over the abandoned seat with a fresh token
+            token = str(uuid.uuid4())
+            if room["host_token"] == existing["token"]:
+                room["host_token"] = token
+            existing["token"] = token
+            existing["last_seen"] = time.time()
+            await _save_room(room)
+            return {"code": code, "token": token, "seat": existing["seat"], "rejoined": True}
         if room["status"] != "lobby":
-            raise HTTPException(status_code=409, detail="Game already started")
+            raise HTTPException(status_code=409, detail="Das Spiel läuft bereits – schau zu oder kehre mit deinem alten Namen zurück")
         if len(room["players"]) >= 6:
-            raise HTTPException(status_code=409, detail="Room is full")
+            raise HTTPException(status_code=409, detail="Die Crew ist voll")
         token = str(uuid.uuid4())
         seat = len(room["players"])
-        room["players"].append({"token": token, "name": payload.name[:16] or f"Witch {seat + 1}", "avatar": payload.avatar, "isBot": False, "seat": seat})
+        room["players"].append({"token": token, "name": name or f"Gangster {seat + 1}", "avatar": payload.avatar, "isBot": False, "seat": seat, "last_seen": time.time()})
         await _save_room(room)
         return {"code": code, "token": token, "seat": seat}
+
+
+@api_router.post("/rooms/{code}/watch")
+async def watch_room(code: str, payload: WatchRoom):
+    async with _lock(code):
+        room = await _get_room(code)
+        specs = room.setdefault("spectators", [])
+        if len(specs) >= MAX_SPECTATORS:
+            raise HTTPException(status_code=409, detail="Zu viele Zuschauer")
+        token = f"spec-{uuid.uuid4()}"
+        name = (payload.name or "")[:16].strip() or f"Zuschauer {len(specs) + 1}"
+        specs.append({"token": token, "name": name})
+        await _save_room(room)
+        return {"code": code, "token": token, "seat": None, "spectator": True}
 
 
 @api_router.post("/rooms/{code}/bots")
@@ -365,14 +410,14 @@ async def manage_bots(code: str, payload: BotsReq):
     async with _lock(code):
         room = await _get_room(code)
         if room["host_token"] != payload.token:
-            raise HTTPException(status_code=403, detail="Only the host can manage bots")
+            raise HTTPException(status_code=403, detail="Nur der Host kann Bots verwalten")
         if room["status"] != "lobby":
-            raise HTTPException(status_code=409, detail="Game already started")
+            raise HTTPException(status_code=409, detail="Das Spiel läuft bereits")
         if payload.action not in ("add", "remove"):
-            raise HTTPException(status_code=400, detail="Unknown bot action")
+            raise HTTPException(status_code=400, detail="Unbekannte Bot-Aktion")
         if payload.action == "add":
             if len(room["players"]) >= 6:
-                raise HTTPException(status_code=409, detail="Room is full")
+                raise HTTPException(status_code=409, detail="Die Crew ist voll")
             used = {p["avatar"].get("key") for p in room["players"]}
             avatar = next((a for a in BOT_AVATARS if a["key"] not in used), BOT_AVATARS[0])
             seat = len(room["players"])
@@ -392,12 +437,12 @@ async def start_room(code: str, payload: TokenReq):
     async with _lock(code):
         room = await _get_room(code)
         if room["host_token"] != payload.token:
-            raise HTTPException(status_code=403, detail="Only the host can start")
+            raise HTTPException(status_code=403, detail="Nur der Host kann starten")
         if room["status"] != "lobby":
-            raise HTTPException(status_code=409, detail="Already started")
+            raise HTTPException(status_code=409, detail="Bereits gestartet")
         n = len(room["players"])
         if n < 3 or n > 6:
-            raise HTTPException(status_code=400, detail="Need 3 to 6 players (add bots to fill)")
+            raise HTTPException(status_code=400, detail="3 bis 6 Spieler nötig (Bots auffüllen)")
         for i, p in enumerate(room["players"]):
             p["seat"] = i
         room["n"] = n
@@ -420,6 +465,11 @@ async def start_room(code: str, payload: TokenReq):
 @api_router.get("/rooms/{code}")
 async def get_room(code: str, token: str = ""):
     room = await _get_room(code)
+    me = _player_by_token(room, token)
+    if me and not me["isBot"]:
+        now = time.time()
+        me["last_seen"] = now
+        await db.rooms.update_one({"_id": code, "players.token": token}, {"$set": {"players.$.last_seen": now}})
     return _redact(room, token)
 
 
@@ -428,45 +478,45 @@ async def room_action(code: str, payload: ActionReq):
     async with _lock(code):
         room = await _get_room(code)
         if room["status"] not in ("playing",):
-            raise HTTPException(status_code=409, detail="Game not in progress")
+            raise HTTPException(status_code=409, detail="Kein laufendes Spiel")
         me = _player_by_token(room, payload.token)
         if not me:
-            raise HTTPException(status_code=403, detail="Not a player in this room")
+            raise HTTPException(status_code=403, detail="Du sitzt nicht an diesem Tisch")
         seat = me["seat"]
         phase = room["phase"]
         t = payload.type
 
         if t == "pass":
             if phase != "passing":
-                raise HTTPException(status_code=409, detail="Not the passing phase")
+                raise HTTPException(status_code=409, detail="Gerade keine Tauschphase")
             if str(seat) in room["pendingSelections"]:
-                raise HTTPException(status_code=409, detail="Already passed")
+                raise HTTPException(status_code=409, detail="Bereits getauscht")
             hand_ids = {c["id"] for c in room["hands"][seat]}
             cards = payload.cards or []
             if len(cards) != room["passCount"] or not set(cards).issubset(hand_ids):
-                raise HTTPException(status_code=400, detail="Invalid card selection")
+                raise HTTPException(status_code=400, detail="Ungültige Kartenauswahl")
             room["pendingSelections"][str(seat)] = cards
         elif t == "play":
             if phase != "playing":
-                raise HTTPException(status_code=409, detail="Not the playing phase")
+                raise HTTPException(status_code=409, detail="Gerade keine Spielphase")
             if room["currentSeat"] != seat:
-                raise HTTPException(status_code=409, detail="Not your turn")
+                raise HTTPException(status_code=409, detail="Nicht dein Zug")
             legal = set(eng.legal_card_ids(room["hands"][seat], room["trick"]))
             if payload.cardId not in legal:
-                raise HTTPException(status_code=400, detail="Illegal card")
+                raise HTTPException(status_code=400, detail="Karte nicht erlaubt")
             _apply_play(room, payload.cardId)
         elif t == "continueTrick":
             if phase != "trickEnd":
-                raise HTTPException(status_code=409, detail="No trick to gather")
+                raise HTTPException(status_code=409, detail="Kein Stich zum Einsammeln")
             if seat != room["lastWinner"] and room["host_token"] != payload.token:
-                raise HTTPException(status_code=403, detail="Only the trick winner can continue")
+                raise HTTPException(status_code=403, detail="Nur der Stichgewinner kann weitermachen")
             _do_continue_trick(room)
         elif t == "nextRound":
             if phase != "roundScores":
-                raise HTTPException(status_code=409, detail="Not the scoring phase")
+                raise HTTPException(status_code=409, detail="Gerade keine Abrechnung")
             _do_next_round(room)
         else:
-            raise HTTPException(status_code=400, detail="Unknown action")
+            raise HTTPException(status_code=400, detail="Unbekannte Aktion")
 
         _advance_bots(room)
         await _maybe_record(room)

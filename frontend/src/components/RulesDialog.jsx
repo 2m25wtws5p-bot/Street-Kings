@@ -12,20 +12,20 @@ export function RulesDialog({ open, onOpenChange }) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="panel max-w-2xl max-h-[85vh] overflow-y-auto border-purple-500/30" data-testid="rules-dialog">
         <DialogHeader>
-          <DialogTitle className="font-display text-2xl gold-text">The Grimoire — How to Play</DialogTitle>
+          <DialogTitle className="font-display text-2xl gold-text">Der Kodex — So wird gespielt</DialogTitle>
         </DialogHeader>
         <div className="space-y-5 text-purple-100/90 text-sm leading-relaxed font-serif-fancy">
           <section>
-            <h3 className="font-display text-amber-300 text-base mb-1">The Goal</h3>
+            <h3 className="font-display text-amber-300 text-base mb-1">Das Ziel</h3>
             <p>
-              Witches is a trick-taking game of avoidance. You want the <b className="text-red-300">fewest</b> fire
-              points. The game ends when someone reaches <b>70</b> — and the witch with the lowest score is crowned
-              Arch-Witch.
+              Street Kings ist ein Stichspiel, bei dem du Stiche <b>vermeiden</b> willst. Du willst so{" "}
+              <b className="text-red-300">wenig Hitze</b> wie möglich kassieren. Das Spiel endet, sobald jemand{" "}
+              <b>70</b> Hitze erreicht — die Crew mit der niedrigsten Hitze wird zum Street King gekrönt.
             </p>
           </section>
 
           <section>
-            <h3 className="font-display text-amber-300 text-base mb-1">The Four Realms (Suits)</h3>
+            <h3 className="font-display text-amber-300 text-base mb-1">Die vier Bereiche (Farben)</h3>
             <div className="grid grid-cols-2 gap-2">
               {SUIT_ORDER.map((k) => {
                 const s = SUITS[k];
@@ -42,23 +42,23 @@ export function RulesDialog({ open, onOpenChange }) {
               })}
             </div>
             <p className="mt-2 text-[13px]">
-              Every <b className="text-red-300">Red (Goblin)</b> card is a fire card worth <b>1 fire point</b>. Try not
-              to win tricks that contain them!
+              Jede <b className="text-red-300">rote Karte (Hitze)</b> ist eine Hitze-Karte und bringt <b>1 Hitze</b>.
+              Versuche, keine Stiche mit Hitze-Karten zu kassieren!
             </p>
           </section>
 
           <section>
-            <h3 className="font-display text-amber-300 text-base mb-1">Playing a Trick</h3>
+            <h3 className="font-display text-amber-300 text-base mb-1">Ein Stich</h3>
             <ul className="list-disc pl-5 space-y-1 text-[13px]">
-              <li>The leader plays any card. Everyone else must <b>follow the led colour</b> if they can.</li>
-              <li>No card of the led colour? Play anything — a great chance to dump fire cards or witches!</li>
-              <li>The <b>highest card of the led colour</b> wins the trick and takes all its cards.</li>
-              <li>The winner leads the next trick.</li>
+              <li>Wer anspielt, legt eine beliebige Karte. Alle anderen müssen die <b>angespielte Farbe bedienen</b>, wenn sie können.</li>
+              <li>Keine Karte der angespielten Farbe? Spiel irgendetwas — die perfekte Gelegenheit, Hitze-Karten oder Gangsterfiguren abzuladen!</li>
+              <li>Die <b>höchste Karte der angespielten Farbe</b> gewinnt den Stich und kassiert alle Karten darin.</li>
+              <li>Der Stichgewinner spielt als Nächster an.</li>
             </ul>
           </section>
 
           <section>
-            <h3 className="font-display text-amber-300 text-base mb-1">The Witches & Wizards</h3>
+            <h3 className="font-display text-amber-300 text-base mb-1">Die Gangsterfiguren & Laufjungen</h3>
             <div className="grid gap-2">
               {CODEX.map((key) => {
                 const s = SPECIALS[key];
@@ -84,19 +84,29 @@ export function RulesDialog({ open, onOpenChange }) {
           </section>
 
           <section>
-            <h3 className="font-display text-amber-300 text-base mb-1">The Fire Spell (Shooting the Moon)</h3>
+            <h3 className="font-display text-amber-300 text-base mb-1">Der Takeover</h3>
             <p className="text-[13px]">
-              Collect <b>all 14 red fire cards</b> in one round and you score <b>0</b> — instead every opponent takes{" "}
-              <b>20</b> fire points (25 if you also grabbed the Water Witch, up to 30 with the Pygmy Queen too)!
+              Kassiere <b>alle 14 roten Hitze-Karten</b> in einer Runde und du bekommst <b>0</b> Hitze — stattdessen
+              zieht jede gegnerische Crew <b>20</b> Hitze auf sich (25, wenn du zusätzlich den Fixer hattest, bis zu 30 mit
+              der Patin dazu)! Du übernimmst die Kontrolle über die Stadt.
             </p>
           </section>
 
           <section>
-            <h3 className="font-display text-amber-300 text-base mb-1">Passing Cards & Bots</h3>
+            <h3 className="font-display text-amber-300 text-base mb-1">Karten weitergeben & Bots</h3>
             <p className="text-[13px]">
-              At the start of each round players secretly pass cards to a neighbour (3p pass 3, 4p pass 3, 5p pass 2,
-              6p pass 1), rotating direction each round. Any empty seat can be filled with an <b>AI witch</b> — use the
-              "Solo vs AI" preset or toggle individual seats on the setup screen.
+              Zu Beginn jeder Runde geben alle Spieler verdeckt Karten an einen Nachbarn weiter (3 Spieler: 3, 4 Spieler: 3,
+              5 Spieler: 2, 6 Spieler: 1); die Richtung wechselt jede Runde. Jeder freie Platz kann mit einem{" "}
+              <b>KI-Gangster</b> besetzt werden — nutze „Solo gegen KI“ oder schalte einzelne Plätze im Setup um.
+            </p>
+          </section>
+
+          <section>
+            <h3 className="font-display text-amber-300 text-base mb-1">Online: Zuschauen & Zurückkehren</h3>
+            <p className="text-[13px]">
+              Über den Raum-Link kannst du <b>mitspielen</b> oder <b>zuschauen</b>. Zuschauer sehen Tisch, Stiche und Hitze
+              live, aber keine Handkarten. Fliegst du aus dem Spiel, bleibt dein Platz reserviert — tritt einfach mit{" "}
+              <b>demselben Namen</b> wieder bei und du übernimmst deinen Sitz.
             </p>
           </section>
         </div>

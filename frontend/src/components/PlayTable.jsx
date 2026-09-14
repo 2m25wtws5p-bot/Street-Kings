@@ -55,7 +55,7 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) 
       {/* header row */}
       <div className="flex items-center justify-between px-4 pt-3 pb-2">
         <div className="font-mono-stat text-xs text-purple-200/70">
-          Round {state.roundIndex + 1} · Trick {trickNumber}/{totalTricks}
+          Runde {state.roundIndex + 1} · Stich {trickNumber}/{totalTricks}
         </div>
         {lead && (
           <div
@@ -63,7 +63,7 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) 
             style={{ background: `${SUITS[lead].primary}22`, border: `1px solid ${SUITS[lead].primary}66`, color: SUITS[lead].accent }}
             data-testid="active-lead-suit-indicator"
           >
-            {React.createElement(SUIT_ICON[lead], { size: 14 })} Lead: {SUITS[lead].people}
+            {React.createElement(SUIT_ICON[lead], { size: 14 })} Angespielt: {SUITS[lead].people}
           </div>
         )}
       </div>
@@ -86,14 +86,14 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) 
             <div className="leading-tight">
               <div className="font-display text-xs text-purple-100 max-w-[90px] truncate">{p.name}</div>
               <div className="font-mono-stat text-[10px] text-purple-300/70">
-                <span className="text-red-300">{scores[i]} fire</span> · {hands[i].length}c
+                <span className="text-red-300">{scores[i]} Hitze</span> · {hands[i].length}K
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* cauldron center */}
+      {/* table center */}
       <div className="flex-1 grid place-items-center px-4 py-2">
         <div
           className="relative w-full max-w-2xl min-h-[220px] rounded-[40%] grid place-items-center"
@@ -101,7 +101,7 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) 
           data-testid="central-trick-cauldron"
         >
           {trick.length === 0 && !isTrickEnd && (
-            <p className="font-serif-fancy text-purple-300/50 italic text-lg">The cauldron awaits an offering…</p>
+            <p className="font-serif-fancy text-purple-300/50 italic text-lg">Die Straße wartet auf den ersten Zug…</p>
           )}
           <div className="flex flex-wrap gap-3 justify-center items-end">
             {trick.map((t, idx) => {
@@ -138,7 +138,7 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) 
       {isTrickEnd ? (
         <div className="px-4 pb-6 text-center rise-in">
           <div className="inline-flex items-center gap-2 font-display text-xl text-emerald-300 mb-3" data-testid="trick-winner-banner">
-            <Trophy size={20} /> {players[lastWinner].name} claims the trick!
+            <Trophy size={20} /> {players[lastWinner].name} kassiert den Stich!
           </div>
           <div>
             <button
@@ -147,14 +147,14 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) 
               data-testid="btn-continue-trick"
               className="rounded-xl px-8 py-3 font-display font-bold text-purple-950 bg-gradient-to-r from-amber-300 to-amber-500 glow-ring disabled:opacity-60"
             >
-              Gather & Continue
+              Einsammeln & weiter
             </button>
           </div>
         </div>
       ) : hideHand ? (
         <div className="px-4 pb-10 text-center rise-in" data-testid="bot-thinking">
           <div className="font-serif-fancy text-purple-200/70 italic text-lg mb-3">
-            <span className="font-display text-amber-200 not-italic">{active.name}</span> is conjuring a card…
+            <span className="font-display text-amber-200 not-italic">{active.name}</span> überlegt seinen Zug…
           </div>
           <div className="flex justify-center -space-x-6">
             {hand.slice(0, 8).map((c, i) => (
@@ -167,8 +167,8 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) 
       ) : (
         <div className="px-2 pb-4" data-testid="active-player-hand-container">
           <div className="text-center mb-2 font-serif-fancy text-purple-200/80">
-            <span className="text-amber-200 font-semibold font-display">{active.name}</span>, cast your card
-            {armed && <span className="text-amber-400/80 text-sm"> — tap again to release it into the cauldron</span>}
+            <span className="text-amber-200 font-semibold font-display">{active.name}</span>, spiel deine Karte
+            {armed && <span className="text-amber-400/80 text-sm"> — nochmal tippen, um sie auf den Tisch zu legen</span>}
           </div>
           <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2 max-w-5xl mx-auto">
             {hand.map((card) => (

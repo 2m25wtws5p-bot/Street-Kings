@@ -1,15 +1,14 @@
 import React, { useState } from "react";
 import { AVATARS } from "../game/constants";
-import { HERO_BG } from "../game/assets";
 import { Avatar } from "./Avatar";
-import { Sparkles, Users, Play, Bot, User } from "lucide-react";
+import { Siren, Users, Play, Bot, User } from "lucide-react";
 import { sfx } from "../game/sound";
 
 const PRESETS = [
-  { n: 3, label: "Trio Coven" },
-  { n: 4, label: "Quartet Gathering" },
-  { n: 5, label: "Grand Circle" },
-  { n: 6, label: "Grand Sabbat" },
+  { n: 3, label: "Kleine Crew" },
+  { n: 4, label: "Viererbande" },
+  { n: 5, label: "Großer Deal" },
+  { n: 6, label: "Ganze Stadt" },
 ];
 
 export function SetupScreen({ onStart }) {
@@ -44,24 +43,20 @@ export function SetupScreen({ onStart }) {
 
   return (
     <div className="min-h-screen coven-bg relative">
-      <div
-        className="absolute inset-0 opacity-25"
-        style={{ backgroundImage: `url(${HERO_BG})`, backgroundSize: "cover", backgroundPosition: "center", maskImage: "linear-gradient(to bottom, black, transparent 75%)" }}
-      />
       <div className="relative max-w-3xl mx-auto px-4 py-10 sm:py-16">
         <div className="text-center mb-10 rise-in">
           <div className="inline-flex items-center gap-2 text-amber-400/80 font-display text-xs uppercase tracking-[0.3em] mb-3">
-            <Sparkles size={14} /> A Trick-Taking Ritual <Sparkles size={14} />
+            <Siren size={14} /> Ein Stichspiel der Unterwelt <Siren size={14} />
           </div>
-          <h1 className="font-display text-5xl sm:text-6xl font-black gold-text candle-flicker">Coven of Witches</h1>
+          <h1 className="font-display text-5xl sm:text-6xl font-black gold-text candle-flicker">Street Kings</h1>
           <p className="font-serif-fancy text-purple-200/80 text-lg mt-3 max-w-lg mx-auto">
-            Gather round the cauldron. Avoid the fire, banish the witches, and pass the device from hand to hand.
+            Stellt eure Crews zusammen. Vermeidet die Hitze, meidet den Kingpin und reicht das Gerät von Hand zu Hand.
           </p>
         </div>
 
         <div className="panel rounded-2xl p-5 sm:p-7 rise-in" style={{ animationDelay: "0.1s" }}>
           <div className="flex items-center gap-2 mb-3 text-amber-300 font-display">
-            <Users size={18} /> How many witches?
+            <Users size={18} /> Wie viele Gangster?
           </div>
           <div className="grid grid-cols-4 gap-2 mb-6">
             {PRESETS.map((p) => (
@@ -83,7 +78,7 @@ export function SetupScreen({ onStart }) {
 
           <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
             <div className="flex items-center gap-2 text-purple-200/80 font-serif-fancy text-sm">
-              <Bot size={16} className="text-amber-300" /> Play solo? Fill seats with AI witches.
+              <Bot size={16} className="text-amber-300" /> Allein unterwegs? Fülle die Plätze mit KI-Gangstern.
             </div>
             <div className="flex gap-2">
               <button
@@ -91,14 +86,14 @@ export function SetupScreen({ onStart }) {
                 data-testid="btn-preset-solo"
                 className="text-xs font-display rounded-lg px-3 py-1.5 bg-amber-500/15 border border-amber-400/50 text-amber-200 hover:bg-amber-500/25 transition-colors"
               >
-                Solo vs AI
+                Solo gegen KI
               </button>
               <button
                 onClick={() => { setBots(AVATARS.map(() => false)); sfx.select(); }}
                 data-testid="btn-preset-all-human"
                 className="text-xs font-display rounded-lg px-3 py-1.5 bg-black/30 border border-purple-500/25 text-purple-200 hover:border-purple-400/50 transition-colors"
               >
-                All Human
+                Nur Menschen
               </button>
             </div>
           </div>
@@ -108,7 +103,7 @@ export function SetupScreen({ onStart }) {
               <div key={i} className="flex items-center gap-3 rise-in" style={{ animationDelay: `${0.05 * i}s` }}>
                 <button
                   onClick={() => cycleAvatar(i)}
-                  title="Change avatar"
+                  title="Avatar wechseln"
                   data-testid={`btn-avatar-${i}`}
                   className="shrink-0"
                 >
@@ -128,7 +123,7 @@ export function SetupScreen({ onStart }) {
                 />
                 {i === 0 ? (
                   <span className="shrink-0 w-16 text-center text-[11px] font-display uppercase tracking-wider text-amber-300/80">
-                    You
+                    Du
                   </span>
                 ) : (
                   <button
@@ -142,7 +137,7 @@ export function SetupScreen({ onStart }) {
                     }`}
                   >
                     {bots[i] ? <Bot size={16} /> : <User size={16} />}
-                    {bots[i] ? "AI" : "Human"}
+                    {bots[i] ? "KI" : "Mensch"}
                   </button>
                 )}
               </div>
@@ -154,7 +149,7 @@ export function SetupScreen({ onStart }) {
             data-testid="btn-start-coven-game"
             className="mt-7 w-full rounded-xl py-4 font-display text-lg font-bold text-purple-950 bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500 hover:from-amber-200 hover:to-amber-400 transition-all glow-ring flex items-center justify-center gap-2"
           >
-            <Play size={20} className="fill-purple-950" /> Enter the Coven
+            <Play size={20} className="fill-purple-950" /> Auf die Straße
           </button>
         </div>
       </div>

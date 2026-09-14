@@ -4,7 +4,7 @@ import { lowestSeats } from "../game/engine";
 import { Crown, RotateCcw, Users, ScrollText } from "lucide-react";
 import { sfx } from "../game/sound";
 
-export function GameOver({ state, onRematch, onNewGame, onStats }) {
+export function GameOver({ state, onRematch, onNewGame, onStats, rematchLabel = "Revanche", newGameLabel = "Neue Crew" }) {
   const { players, scores } = state;
   const winners = lowestSeats(scores);
   const order = players.map((_, i) => i).sort((a, b) => scores[a] - scores[b]);
@@ -20,8 +20,8 @@ export function GameOver({ state, onRematch, onNewGame, onStats }) {
           <div className="inline-flex float-slow mb-3">
             <Crown size={52} className="text-amber-400 candle-flicker" />
           </div>
-          <h2 className="font-display text-4xl gold-text mb-1">The Arch-Witch</h2>
-          <p className="font-serif-fancy text-purple-200/70 mb-6">Fewest fire points reigns supreme</p>
+          <h2 className="font-display text-4xl gold-text mb-1">Der Street King</h2>
+          <p className="font-serif-fancy text-purple-200/70 mb-6">Wer die wenigste Hitze kassiert, regiert die Stadt</p>
         </div>
 
         <div className="flex justify-center gap-4 mb-6">
@@ -29,7 +29,7 @@ export function GameOver({ state, onRematch, onNewGame, onStats }) {
             <div key={i} className="pop-in flex flex-col items-center">
               <Avatar avatar={players[i].avatar} size={92} active />
               <div className="font-display text-xl text-amber-200 mt-2" data-testid="game-over-winner-name">{players[i].name}</div>
-              <div className="font-mono-stat text-sm text-emerald-300">{scores[i]} fire</div>
+              <div className="font-mono-stat text-sm text-emerald-300">{scores[i]} Hitze</div>
             </div>
           ))}
         </div>
@@ -49,14 +49,14 @@ export function GameOver({ state, onRematch, onNewGame, onStats }) {
 
         <div className="grid grid-cols-2 gap-3">
           <button onClick={onRematch} data-testid="btn-play-rematch" className="rounded-xl py-3.5 font-display font-bold text-purple-950 bg-gradient-to-r from-amber-300 to-amber-500 glow-ring flex items-center justify-center gap-2">
-            <RotateCcw size={18} /> Rematch
+            <RotateCcw size={18} /> {rematchLabel}
           </button>
           <button onClick={onNewGame} data-testid="btn-new-coven-setup" className="rounded-xl py-3.5 font-display font-bold text-amber-100 bg-black/40 border border-purple-500/30 hover:border-amber-400/50 transition-colors flex items-center justify-center gap-2">
-            <Users size={18} /> New Coven
+            <Users size={18} /> {newGameLabel}
           </button>
         </div>
         <button onClick={onStats} className="mt-3 text-purple-300/70 hover:text-amber-300 text-sm inline-flex items-center gap-1.5 transition-colors">
-          <ScrollText size={15} /> View the Grimoire of Records
+          <ScrollText size={15} /> Akte ansehen
         </button>
       </div>
     </div>

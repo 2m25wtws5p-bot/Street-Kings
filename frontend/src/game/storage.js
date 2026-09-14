@@ -1,4 +1,4 @@
-// Local (browser) persistence for the Grimoire of Records.
+// Lokale (Browser-)Persistenz für die Akte.
 const KEY = "witches_coven_stats_v1";
 
 export function loadStats() {
@@ -25,7 +25,7 @@ export function recordGame({ players, scores, winnerNames, rounds }) {
     stats.lowestScore = minScore;
   }
   players.forEach((p, i) => {
-    const name = p.name || `Witch ${i + 1}`;
+    const name = p.name || `Gangster ${i + 1}`;
     const rec = stats.players[name] || { games: 0, wins: 0, totalFire: 0 };
     rec.games += 1;
     rec.totalFire += scores[i];

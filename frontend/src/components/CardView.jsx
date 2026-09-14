@@ -135,7 +135,7 @@ export function CardView({
       )}
       {isWizard && size !== "xs" && (
         <div className="absolute bottom-0 inset-x-0 px-1 py-1 text-center" style={{ background: `linear-gradient(0deg, ${special.tag}dd, transparent)` }}>
-          <div className="font-display text-[9px] font-bold uppercase tracking-wider text-white">Wizard</div>
+          <div className="font-display text-[9px] font-bold uppercase tracking-wider text-white">Laufjunge</div>
         </div>
       )}
     </Comp>

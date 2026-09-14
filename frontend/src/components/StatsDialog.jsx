@@ -29,19 +29,19 @@ export function StatsDialog({ open, onOpenChange }) {
       <DialogContent className="panel max-w-xl max-h-[85vh] overflow-y-auto border-amber-500/30" data-testid="stats-dialog">
         <DialogHeader>
           <DialogTitle className="font-display text-2xl gold-text flex items-center gap-2">
-            <ScrollText className="text-amber-400" /> Grimoire of Records
+            <ScrollText className="text-amber-400" /> Die Akte
           </DialogTitle>
         </DialogHeader>
 
         <div className="grid grid-cols-3 gap-3 my-2">
-          <Stat icon={<Trophy size={18} />} label="Games" value={stats.gamesPlayed || 0} />
-          <Stat icon={<ScrollText size={18} />} label="Rounds" value={stats.roundsPlayed || 0} />
-          <Stat icon={<Flame size={18} />} label="Best Score" value={stats.lowestScore ?? "—"} />
+          <Stat icon={<Trophy size={18} />} label="Spiele" value={stats.gamesPlayed || 0} />
+          <Stat icon={<ScrollText size={18} />} label="Runden" value={stats.roundsPlayed || 0} />
+          <Stat icon={<Flame size={18} />} label="Wenigste Hitze" value={stats.lowestScore ?? "—"} />
         </div>
 
-        <h3 className="font-display text-amber-300 text-sm mt-3 mb-1">Coven Leaderboard</h3>
+        <h3 className="font-display text-amber-300 text-sm mt-3 mb-1">Rangliste der Crews</h3>
         {players.length === 0 ? (
-          <p className="text-purple-200/60 text-sm py-3 text-center">No games recorded yet. Play a match!</p>
+          <p className="text-purple-200/60 text-sm py-3 text-center">Noch keine Spiele in der Akte. Spiel eine Partie!</p>
         ) : (
           <div className="space-y-1.5">
             {players.map((p, i) => (
@@ -51,9 +51,9 @@ export function StatsDialog({ open, onOpenChange }) {
                   <span className="font-display text-purple-100 text-sm">{p.name}</span>
                 </div>
                 <div className="flex items-center gap-4 font-mono-stat text-xs text-purple-200/80">
-                  <span className="text-amber-300">{p.wins}W</span>
-                  <span>{p.games} games</span>
-                  <span>avg {p.avg}</span>
+                  <span className="text-amber-300">{p.wins} Siege</span>
+                  <span>{p.games} Spiele</span>
+                  <span>Ø {p.avg} Hitze</span>
                 </div>
               </div>
             ))}
@@ -62,12 +62,12 @@ export function StatsDialog({ open, onOpenChange }) {
 
         {recent.length > 0 && (
           <>
-            <h3 className="font-display text-amber-300 text-sm mt-4 mb-1">Coven Chronicles (recent worldwide)</h3>
+            <h3 className="font-display text-amber-300 text-sm mt-4 mb-1">Polizeibericht (letzte Spiele weltweit)</h3>
             <div className="space-y-1">
               {recent.map((g, i) => (
                 <div key={i} className="text-[12px] text-purple-200/70 flex justify-between rounded bg-black/20 px-2 py-1">
                   <span className="text-amber-200">{g.winners.join(", ")}</span>
-                  <span>{g.players}p · {g.rounds} rounds</span>
+                  <span>{g.players} Spieler · {g.rounds} Runden</span>
                 </div>
               ))}
             </div>
@@ -79,7 +79,7 @@ export function StatsDialog({ open, onOpenChange }) {
           className="mt-4 flex items-center gap-1.5 text-xs text-purple-300/60 hover:text-red-300 transition-colors mx-auto"
           data-testid="btn-clear-stats"
         >
-          <Trash2 size={13} /> Clear local records
+          <Trash2 size={13} /> Lokale Akte löschen
         </button>
       </DialogContent>
     </Dialog>
