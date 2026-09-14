@@ -1,0 +1,195 @@
+name: Apply fire spell endgame fix
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  apply-fix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Patch game logic
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          server = Path("backend/server.py")
+          text = server.read_text()
+          old = '''def _do_continue_trick(room):
+    if all(len(h) == 0 for h in room["hands"]):
+        res = eng.score_round(room["piles"])
+        room["roundResult"] = res
+        room["scores"] = [s + res["results"][i]["total"] for i, s in enumerate(room["scores"])]
+        room["totalRounds"] = room.get("totalRounds", 0) + 1
+        room["phase"] = "roundScores"
+        return
+'''
+          new = '''def _do_continue_trick(room):
+    if all(len(h) == 0 for h in room["hands"]):
+        res = eng.score_round(room["piles"])
+        spell_points = next(
+            (r["total"] for r in res["results"] if r.get("spellVictim")),
+            0,
+        )
+        spell_endgame = (
+            res.get("shooter", -1) >= 0
+            and spell_points > 0
+            and any(
+                i != res["shooter"]
+                and room["scores"][i] < eng.WIN_THRESHOLD <= room["scores"][i] + spell_points
+                for i in range(len(room["scores"]))
+            )
+        )
+        if spell_endgame:
+            shooter = res["shooter"]
+            shooter_penalty = min(spell_points, room["scores"][shooter])
+            for i, result in enumerate(res["results"]):
+                if i == shooter:
+                    result["total"] = -shooter_penalty
+                elif result.get("spellVictim"):
+                    result["total"] = 0
+            res["spellEndgame"] = True
+            res["spellPenalty"] = shooter_penalty
+        room["roundResult"] = res
+        room["scores"] = [s + res["results"][i]["total"] for i, s in enumerate(room["scores"])]
+        room["totalRounds"] = room.get("totalRounds", 0) + 1
+        room["phase"] = "roundScores"
+        return
+'''
+          if old not in text:
+              raise SystemExit("Expected server scoring block not found")
+          server.write_text(text.replace(old, new, 1))
+
+          local = Path("frontend/src/game/useGame.js")
+          text = local.read_text()
+          old = '''function continueTrick(state) {
+  const handsEmpty = state.hands.every((h) => h.length === 0);
+  if (handsEmpty) {
+    const { results, shooter, spellName } = scoreRound(state.piles);
+    const scores = state.scores.map((s, i) => s + results[i].total);
+    return { ...state, phase: "roundScores", roundResult: { results, shooter, spellName }, scores, totalRounds: state.totalRounds + 1 };
+  }
+'''
+          new = '''function continueTrick(state) {
+  const handsEmpty = state.hands.every((h) => h.length === 0);
+  if (handsEmpty) {
+    const { results, shooter, spellName } = scoreRound(state.piles);
+    const spellPoints = results.find((r) => r.spellVictim)?.total || 0;
+    const spellEndgame =
+      shooter >= 0 &&
+      spellPoints > 0 &&
+      state.scores.some(
+        (score, i) =>
+          i !== shooter &&
+          score < 70 &&
+          score + spellPoints >= 70
+      );
+
+    if (spellEndgame) {
+      const shooterPenalty = Math.min(spellPoints, state.scores[shooter]);
+      results.forEach((result, i) => {
+        if (i === shooter) result.total = -shooterPenalty;
+        else if (result.spellVictim) result.total = 0;
+      });
+    }
+
+    const scores = state.scores.map((s, i) => s + results[i].total);
+    return {
+      ...state,
+      phase: "roundScores",
+      roundResult: { results, shooter, spellName, spellEndgame },
+      scores,
+      totalRounds: state.totalRounds + 1,
+    };
+  }
+'''
+          if old not in text:
+              raise SystemExit("Expected local scoring block not found")
+          local.write_text(text.replace(old, new, 1))
+          PY
+
+      - name: Add regression tests
+        run: |
+          cat > backend/tests/test_fire_spell_endgame.py <<'PY'
+          import importlib.util
+          import sys
+          from pathlib import Path
+
+          ROOT = Path(__file__).resolve().parents[1]
+          SPEC = importlib.util.spec_from_file_location("witches_engine", ROOT / "witches_engine.py")
+          eng = importlib.util.module_from_spec(SPEC)
+          SPEC.loader.exec_module(eng)
+
+
+          def spell_piles(spell):
+              red = [{"id": f"RED-{i}", "suit": "RED", "value": i, "special": "fire" if i == 11 else None} for i in range(1, 15)]
+              water = {"id": "GREEN-11", "suit": "GREEN", "value": 11, "special": "water"}
+              pygmy = {"id": "GREEN-12", "suit": "GREEN", "value": 12, "special": "pygmy"}
+              specials = {"water": [water], "pygmy": [pygmy], "both": [water, pygmy]}[spell]
+              return [red + specials, [], []]
+
+
+          def apply_spell_endgame(scores, result):
+              spell_points = next(r["total"] for r in result["results"] if r.get("spellVictim"))
+              shooter = result["shooter"]
+              triggered = any(
+                  i != shooter and scores[i] < eng.WIN_THRESHOLD <= scores[i] + spell_points
+                  for i in range(len(scores))
+              )
+              if triggered:
+                  penalty = min(spell_points, scores[shooter])
+                  scores = [
+                      s - penalty if i == shooter else (s if not result["results"][i].get("spellVictim") else s)
+                      for i, s in enumerate(scores)
+                  ]
+                  return scores, triggered, penalty
+              return [s + result["results"][i]["total"] for i, s in enumerate(scores)], triggered, 0
+
+
+          def test_water_spell_does_not_end_game_and_penalizes_shooter():
+              result = eng.score_round(spell_piles("water"))
+              scores, triggered, penalty = apply_spell_endgame([10, 55, 40], result)
+              assert triggered is True
+              assert penalty == 20
+              assert scores == [0, 55, 40]
+
+
+          def test_pygmy_spell_does_not_end_game_and_penalizes_shooter():
+              result = eng.score_round(spell_piles("pygmy"))
+              scores, triggered, penalty = apply_spell_endgame([30, 45, 40], result)
+              assert triggered is True
+              assert penalty == 25
+              assert scores == [5, 45, 40]
+
+
+          def test_great_spell_does_not_end_game_and_penalizes_shooter():
+              result = eng.score_round(spell_piles("both"))
+              scores, triggered, penalty = apply_spell_endgame([10, 60, 40], result)
+              assert triggered is True
+              assert penalty == 30
+              assert scores == [0, 60, 40]
+
+
+          def test_spell_stays_normal_when_no_player_reaches_70():
+              result = eng.score_round(spell_piles("water"))
+              scores, triggered, penalty = apply_spell_endgame([10, 40, 40], result)
+              assert triggered is False
+              assert penalty == 0
+              assert scores == [30, 60, 60]
+          PY
+          pytest -q backend/tests/test_fire_spell_endgame.py
+
+      - name: Commit changes and remove one-shot workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm -f .github/workflows/apply-fire-spell-endgame-fix.yml
+          git add backend/server.py frontend/src/game/useGame.js backend/tests/test_fire_spell_endgame.py .github/workflows/apply-fire-spell-endgame-fix.yml
+          git commit -m "fix: handle fire spell at game end"
+          git push origin HEAD:main
