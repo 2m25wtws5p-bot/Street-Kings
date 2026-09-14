@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { CardView } from "./CardView";
 import { Avatar } from "./Avatar";
 import { legalCardIds, leadSuit, dealCount } from "../game/engine";
 import { SUITS } from "../game/constants";
-import { Flame, Sun, MountainSnow, Leaf, Trophy, Sparkles } from "lucide-react";
+import { Flame, Sun, MountainSnow, Leaf, Trophy } from "lucide-react";
 import { sfx } from "../game/sound";
 
 const SUIT_ICON = { RED: Flame, YELLOW: Sun, BLUE: MountainSnow, GREEN: Leaf };
@@ -11,12 +12,14 @@ const SUIT_ICON = { RED: Flame, YELLOW: Sun, BLUE: MountainSnow, GREEN: Leaf };
 export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) {
   const { n, players, hands, scores, trick, trickNumber, currentSeat, phase, lastWinner } = state;
   const [armed, setArmed] = useState(null);
+  const [sweeping, setSweeping] = useState(false);
   const totalTricks = dealCount(n);
   const lead = leadSuit(trick);
   const isTrickEnd = phase === "trickEnd";
 
   useEffect(() => {
     setArmed(null);
+    setSweeping(false);
   }, [currentSeat, phase]);
 
   useEffect(() => {
@@ -26,6 +29,7 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) 
   const hand = !isTrickEnd ? hands[currentSeat] : [];
   const legal = !isTrickEnd ? new Set(legalCardIds(hand, trick)) : new Set();
   const active = players[currentSeat];
+  const sweepX = ((lastWinner ?? 0) - (n - 1) / 2) * 130;
 
   const clickCard = (card) => {
     if (!legal.has(card.id)) return;
@@ -38,6 +42,12 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) 
       sfx.select();
       setArmed(card.id);
     }
+  };
+
+  const handleContinue = () => {
+    setSweeping(true);
+    sfx.reveal();
+    setTimeout(() => onContinueTrick(), 520);
   };
 
   return (
@@ -85,7 +95,8 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) 
 
       {/* cauldron center */}
       <div className="flex-1 grid place-items-center px-4 py-2">
-        <div className="relative w-full max-w-2xl min-h-[220px] rounded-[40%] grid place-items-center"
+        <div
+          className="relative w-full max-w-2xl min-h-[220px] rounded-[40%] grid place-items-center"
           style={{ background: "radial-gradient(ellipse at center, rgba(80,40,130,0.35), rgba(11,7,19,0) 70%)" }}
           data-testid="central-trick-cauldron"
         >
@@ -93,20 +104,37 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) 
             <p className="font-serif-fancy text-purple-300/50 italic text-lg">The cauldron awaits an offering…</p>
           )}
           <div className="flex flex-wrap gap-3 justify-center items-end">
-            {trick.map((t, idx) => (
-              <div key={idx} className="flex flex-col items-center gap-1 pop-in" style={{ animationDelay: `${idx * 0.04}s` }}>
-                <div className="flex items-center gap-1 rounded-full bg-black/50 px-2 py-0.5 border border-purple-500/20">
-                  <Avatar avatar={players[t.seat].avatar} size={16} />
-                  <span className="text-[10px] text-purple-200/80 max-w-[70px] truncate">{players[t.seat].name}</span>
-                </div>
-                <CardView card={t.card} size="md" testId={`played-trick-card-${t.seat}`} className={isTrickEnd && t.seat === lastWinner ? "glow-ring" : ""} />
-              </div>
-            ))}
+            {trick.map((t, idx) => {
+              const center = (trick.length - 1) / 2;
+              return (
+                <motion.div
+                  key={`${t.seat}-${t.card.id}`}
+                  className="flex flex-col items-center gap-1"
+                  initial={{ y: 140, x: 0, rotate: (idx - center) * 10, scale: 0.5, opacity: 0 }}
+                  animate={
+                    sweeping
+                      ? { x: sweepX, y: -280, rotate: 0, scale: 0.3, opacity: 0 }
+                      : { y: 0, x: 0, rotate: (idx - center) * 6, scale: 1, opacity: 1 }
+                  }
+                  transition={
+                    sweeping
+                      ? { duration: 0.5, ease: "easeIn" }
+                      : { type: "spring", stiffness: 260, damping: 20, delay: idx * 0.04 }
+                  }
+                >
+                  <div className="flex items-center gap-1 rounded-full bg-black/50 px-2 py-0.5 border border-purple-500/20">
+                    <Avatar avatar={players[t.seat].avatar} size={16} />
+                    <span className="text-[10px] text-purple-200/80 max-w-[70px] truncate">{players[t.seat].name}</span>
+                  </div>
+                  <CardView card={t.card} size="md" testId={`played-trick-card-${t.seat}`} className={isTrickEnd && t.seat === lastWinner ? "glow-ring" : ""} />
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </div>
 
-      {/* trick end banner OR active hand */}
+      {/* trick end banner OR active hand OR bot thinking */}
       {isTrickEnd ? (
         <div className="px-4 pb-6 text-center rise-in">
           <div className="inline-flex items-center gap-2 font-display text-xl text-emerald-300 mb-3" data-testid="trick-winner-banner">
@@ -114,9 +142,10 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) 
           </div>
           <div>
             <button
-              onClick={onContinueTrick}
+              onClick={handleContinue}
+              disabled={sweeping}
               data-testid="btn-continue-trick"
-              className="rounded-xl px-8 py-3 font-display font-bold text-purple-950 bg-gradient-to-r from-amber-300 to-amber-500 glow-ring"
+              className="rounded-xl px-8 py-3 font-display font-bold text-purple-950 bg-gradient-to-r from-amber-300 to-amber-500 glow-ring disabled:opacity-60"
             >
               Gather & Continue
             </button>

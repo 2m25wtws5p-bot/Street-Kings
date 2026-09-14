@@ -1,7 +1,7 @@
 import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { SUITS, SUIT_ORDER, SPECIALS } from "../game/constants";
-import { WITCH_ART } from "../game/assets";
+import { SPECIAL_ICON } from "./CardView";
 import { Flame, Sun, MountainSnow, Leaf } from "lucide-react";
 
 const SUIT_ICON = { RED: Flame, YELLOW: Sun, BLUE: MountainSnow, GREEN: Leaf };
@@ -62,9 +62,15 @@ export function RulesDialog({ open, onOpenChange }) {
             <div className="grid gap-2">
               {CODEX.map((key) => {
                 const s = SPECIALS[key];
+                const Icon = SPECIAL_ICON[key];
                 return (
                   <div key={key} className="flex gap-3 items-center rounded-lg p-2 bg-black/30" style={{ border: `1px solid ${s.tag}55` }}>
-                    <img src={WITCH_ART[key]} alt={s.label} className="w-12 h-12 rounded-md object-cover object-top shrink-0" />
+                    <div
+                      className="w-12 h-12 rounded-md grid place-items-center shrink-0"
+                      style={{ background: `radial-gradient(circle, ${s.tag}33, transparent 70%)`, border: `1px solid ${s.tag}66` }}
+                    >
+                      <Icon size={24} color={s.tag} style={{ filter: `drop-shadow(0 0 6px ${s.tag}99)` }} />
+                    </div>
                     <div>
                       <div className="font-display text-sm" style={{ color: s.tag }}>
                         {s.label} <span className="font-mono-stat text-[10px] text-white/70">· {s.short}</span>
@@ -86,10 +92,11 @@ export function RulesDialog({ open, onOpenChange }) {
           </section>
 
           <section>
-            <h3 className="font-display text-amber-300 text-base mb-1">Passing Cards</h3>
+            <h3 className="font-display text-amber-300 text-base mb-1">Passing Cards & Bots</h3>
             <p className="text-[13px]">
               At the start of each round players secretly pass cards to a neighbour (3p pass 3, 4p pass 3, 5p pass 2,
-              6p pass 1), rotating direction each round. Curse a rival with your worst cards!
+              6p pass 1), rotating direction each round. Any empty seat can be filled with an <b>AI witch</b> — use the
+              "Solo vs AI" preset or toggle individual seats on the setup screen.
             </p>
           </section>
         </div>
