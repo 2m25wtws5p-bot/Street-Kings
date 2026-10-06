@@ -22,9 +22,16 @@ def room():
 
 
 class TimingTests(unittest.TestCase):
+    def test_bot_delays_have_bounded_variation_and_zero_delay_ci_mode(self):
+        with patch.object(server, "BOT_PLAY_DELAY", .95), patch.object(server.random, "uniform", side_effect=[.7, 1.25]):
+            self.assertAlmostEqual(server._bot_delay(), .665)
+            self.assertAlmostEqual(server._bot_delay(), 1.1875)
+        with patch.object(server, "BOT_PLAY_DELAY", 0):
+            self.assertEqual(server._bot_delay(), 0)
+
     def test_bot_cards_are_individually_visible_and_full_trick_is_held(self):
         state = room()
-        with patch.object(server, "BOT_PLAY_DELAY", .95), patch.object(server, "TRICK_HOLD_SECONDS", 2), patch.object(server.time, "time", return_value=100) as clock:
+        with patch.object(server, "BOT_PLAY_DELAY", .95), patch.object(server.random, "uniform", return_value=1), patch.object(server, "TRICK_HOLD_SECONDS", 2), patch.object(server.time, "time", return_value=100) as clock:
             server._apply_play(state, "RED-1")
             server._advance_bots(state)
             self.assertEqual(len(state["trick"]), 1)

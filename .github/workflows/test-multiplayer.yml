@@ -31,6 +31,8 @@ jobs:
       TRICK_HOLD_SECONDS: "0"
     steps:
       - uses: actions/checkout@v4
+      - name: Test street sound cues and mute controls
+        run: node frontend/scripts/test-street-sounds.cjs
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"

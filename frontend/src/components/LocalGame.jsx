@@ -49,17 +49,16 @@ export function LocalGame({ onExit, sound, setSound }) {
     let t;
     const { phase } = state;
     if (phase === "passGate" && state.players[state.passSeat]?.isBot) {
-      t = setTimeout(() => actions.confirmPass(botPass(state.hands[state.passSeat], state.passCount)), 650);
+      t = setTimeout(() => actions.confirmPass(botPass(state.hands[state.passSeat], state.passCount)), 580 + Math.random() * 240);
     } else if (phase === "playGate" && state.players[state.currentSeat]?.isBot) {
-      t = setTimeout(() => actions.reveal(), 250);
+      t = setTimeout(() => actions.reveal(), 140 + Math.random() * 100);
     } else if (phase === "playing" && state.players[state.currentSeat]?.isBot) {
       t = setTimeout(() => {
         const id = botPlay(state.hands[state.currentSeat], state.trick);
         const card = state.hands[state.currentSeat].find((c) => c.id === id);
-        if (card && (card.suit === "RED" || card.special)) sfx.fireBurst();
-        else sfx.playCard();
+        sfx.playCard(card, `${state.roundIndex}-${state.trickNumber}-${state.currentSeat}-${id}`);
         actions.playCard(id);
-      }, 850);
+      }, 620 + Math.random() * 320);
     }
     return () => t && clearTimeout(t);
   }, [state.phase, state.currentSeat, state.passSeat]); // eslint-disable-line

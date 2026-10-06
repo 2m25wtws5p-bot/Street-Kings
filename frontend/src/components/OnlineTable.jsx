@@ -20,7 +20,6 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
   const [selected, setSelected] = useState([]);
   const [armed, setArmed] = useState(null);
   const [trickReady, setTrickReady] = useState(false);
-  const trickLenRef = useRef(0);
   const phaseRef = useRef("");
 
   const { players, n, yourSeat, phase, trick = [], currentSeat, lastWinner, scores = [], handCounts = [] } = view;
@@ -43,10 +42,6 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
   useEffect(() => { if (phase !== "passing") setSelected([]); }, [phase]);
 
   // sound cues from server diffs
-  useEffect(() => {
-    if (trick.length > trickLenRef.current) sfx.playCard();
-    trickLenRef.current = trick.length;
-  }, [trick.length]);
   useEffect(() => {
     if (phase === "trickEnd" && phaseRef.current !== "trickEnd") sfx.winTrick();
     phaseRef.current = phase;
@@ -97,8 +92,6 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
   const clickPlay = (card) => {
     if (!legal.has(card.id)) return;
     if (armed === card.id) {
-      if (card.suit === "RED" || card.special) sfx.fireBurst();
-      else sfx.playCard();
       actions.play(card.id);
       setArmed(null);
     } else {
@@ -162,7 +155,7 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
                 {phase === "passing" ? "Die Crews verhandeln im Hinterzimmer…" : "Die Straße wartet auf den ersten Zug…"}
               </p>
             )}
-          <TrickCards trick={trick} players={players} n={n} trickKey={`${view.roundIndex}-${view.trickNumber}`} winner={lastWinner} complete={phase === "trickEnd"} />
+          <TrickCards trick={trick} players={players} n={n} trickKey={`${view.code}-${view.roundIndex}-${view.trickNumber}`} winner={lastWinner} complete={phase === "trickEnd"} />
           </div>
         </div>
 
@@ -293,5 +286,4 @@ function Shell({ view, actions, onLeave, sound, setSound, setRulesOpen, setStats
     </div>
   );
 }
-
 

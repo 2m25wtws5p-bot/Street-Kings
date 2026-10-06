@@ -190,9 +190,19 @@ body {
 .compact-hand > [data-selected="true"] { z-index:auto!important; transform:translateY(-18px); }
 .compact-hand > [data-selected="true"]:hover { transform:translateY(-18px); }
 .played-card-label { white-space:nowrap; }
+.compact-hand > * { transition:transform .32s cubic-bezier(.18,.8,.25,1),box-shadow .35s ease,opacity .28s ease,filter .28s ease; }
+.game-roster > * { transition:background-color .45s ease,border-color .45s ease,box-shadow .45s ease,opacity .35s ease; }
+.last-trick-button { transition:background-color .25s ease,box-shadow .25s ease,transform .2s ease; }
+.last-trick-button:not(:disabled):active { transform:translateY(1px); }
+.trick-winner-card { animation:table-win .7s ease-out both; }
+@keyframes table-win {
+  from { box-shadow:0 8px 18px #0008,0 0 0 1px #fde68a44; }
+  to { box-shadow:0 10px 24px #0009,0 0 0 2px #fde68a99,0 0 16px #fbbf2433; }
+}
 @media (prefers-reduced-motion:reduce) {
   .compact-hand > *, .game-roster > * { transition:none!important; }
   .rise-in, .pop-in, .float-slow, .candle-flicker, .police-strobe { animation:none!important; }
+  .trick-winner-card { animation:none!important; box-shadow:0 0 0 2px #fde68a99; }
 }
 @media (max-width:639px) {
   .game-table { min-height:100dvh; padding-top:52px; }
@@ -237,4 +247,3 @@ body {
   .game-center [data-testid^="played-trick-card-"] { height:64px; }
   .game-table [data-testid="trick-winner-banner"] { margin-bottom:6px; }
 }
-

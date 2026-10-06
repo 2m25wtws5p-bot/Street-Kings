@@ -222,8 +222,13 @@ def _start_tricks(room):
     room["trick"] = []
     room["trickNumber"] = 1
     room["phase"] = "playing"
-    room["nextBotAt"] = time.time() + BOT_PLAY_DELAY
+    room["nextBotAt"] = time.time() + _bot_delay()
     room["trickEndedAt"] = None
+
+
+def _bot_delay():
+    # Choose once per move, not per poll, so the whole table shares the pace.
+    return BOT_PLAY_DELAY * random.uniform(.7, 1.25)
 
 
 def _apply_play(room, card_id):
@@ -235,7 +240,7 @@ def _apply_play(room, card_id):
         return
     card = hand.pop(idx)
     room["trick"].append({"seat": seat, "card": card})
-    room["nextBotAt"] = time.time() + BOT_PLAY_DELAY
+    room["nextBotAt"] = time.time() + _bot_delay()
     if len(room["trick"]) < n:
         room["currentSeat"] = (seat + 1) % n
         return
@@ -261,7 +266,7 @@ def _do_continue_trick(room):
     room["trick"] = []
     room["trickNumber"] = room["trickNumber"] + 1
     room["phase"] = "playing"
-    room["nextBotAt"] = time.time() + BOT_PLAY_DELAY
+    room["nextBotAt"] = time.time() + _bot_delay()
     room["trickEndedAt"] = None
 
 

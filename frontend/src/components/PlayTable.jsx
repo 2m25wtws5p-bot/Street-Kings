@@ -40,8 +40,7 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) 
   const clickCard = (card) => {
     if (!legal.has(card.id)) return;
     if (armed === card.id) {
-      if (card.suit === "RED" || card.special) sfx.fireBurst();
-      else sfx.playCard();
+      sfx.playCard(card, `${state.roundIndex}-${trickNumber}-${currentSeat}-${card.id}`);
       onPlay(card.id);
       setArmed(null);
     } else {
@@ -54,7 +53,7 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) 
     if (!ready || sweeping) return;
     setSweeping(true);
     sfx.reveal();
-    sweepTimer.current = setTimeout(() => onContinueTrick(), 450);
+    sweepTimer.current = setTimeout(() => onContinueTrick(), 520);
   };
 
   return (

@@ -1,91 +1,130 @@
-// Tiny Web Audio synth for mystical game feedback. No external assets.
-let ctx = null;
+// Original boom-bap cues: no external music samples, downloads or loops.
+let ctx = null, master = null, noise = null;
 let enabled = true;
+let lastCardCue = null;
+const configuredVolume = Number(process.env.REACT_APP_SFX_VOLUME);
+const volume = Number.isFinite(configuredVolume) && configuredVolume > 0 ? Math.min(configuredVolume, .8) : .48;
+const vary = (base, amount = .08) => base * (1 + (Math.random() * 2 - 1) * amount);
 
 function ac() {
-  if (typeof window === "undefined") return null;
-  if (!ctx) {
-    const AC = window.AudioContext || window.webkitAudioContext;
-    if (!AC) return null;
-    ctx = new AC();
+  if (!enabled || typeof window === "undefined") return null;
+  try {
+    if (!ctx || ctx.state === "closed") {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      ctx = new AC();
+      master = ctx.createGain();
+      master.gain.value = volume;
+      const limiter = ctx.createDynamicsCompressor();
+      limiter.threshold.value = -16;
+      limiter.knee.value = 12;
+      limiter.ratio.value = 6;
+      limiter.attack.value = .003;
+      limiter.release.value = .16;
+      master.connect(limiter);
+      limiter.connect(ctx.destination);
+      noise = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * .4), ctx.sampleRate);
+      const data = noise.getChannelData(0);
+      for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+    }
+    if (ctx.state === "suspended") ctx.resume().catch(() => {});
+    return ctx;
+  } catch {
+    // Audio restrictions must never interrupt a turn.
+    return null;
   }
-  if (ctx.state === "suspended") ctx.resume();
-  return ctx;
 }
+export function setSoundEnabled(value) {
+  enabled = Boolean(value);
+  if (ctx && master) {
+    master.gain.cancelScheduledValues(ctx.currentTime);
+    master.gain.setTargetAtTime(enabled ? volume : 0, ctx.currentTime, .015);
+  }
+}
+export function isSoundEnabled() { return enabled; }
 
-export function setSoundEnabled(v) {
-  enabled = v;
+function envelope(c, at, duration, gain) {
+  const node = c.createGain();
+  node.gain.setValueAtTime(.0001, at);
+  node.gain.linearRampToValueAtTime(gain, at + .004);
+  node.gain.exponentialRampToValueAtTime(.0001, at + duration);
+  node.connect(master);
+  return node;
 }
-export function isSoundEnabled() {
-  return enabled;
-}
-
-function tone(freq, start, dur, type = "sine", gain = 0.14) {
+function bass(delay = 0, gain = .3, duration = .2, frequency = 105) {
   const c = ac();
   if (!c) return;
-  const o = c.createOscillator();
-  const g = c.createGain();
-  o.type = type;
-  o.frequency.setValueAtTime(freq, c.currentTime + start);
-  g.gain.setValueAtTime(0, c.currentTime + start);
-  g.gain.linearRampToValueAtTime(gain, c.currentTime + start + 0.015);
-  g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + start + dur);
-  o.connect(g);
-  g.connect(c.destination);
-  o.start(c.currentTime + start);
-  o.stop(c.currentTime + start + dur + 0.02);
+  const at = c.currentTime + delay;
+  const oscillator = c.createOscillator();
+  oscillator.type = "sine";
+  oscillator.frequency.setValueAtTime(vary(frequency), at);
+  oscillator.frequency.exponentialRampToValueAtTime(46, at + duration * .8);
+  const amp = envelope(c, at, duration, gain);
+  oscillator.connect(amp);
+  oscillator.onended = () => { oscillator.disconnect(); amp.disconnect(); };
+  oscillator.start(at);
+  oscillator.stop(at + duration + .02);
 }
-
-function noiseBurst(start, dur, gain = 0.12) {
+function texture(delay, duration, gain, frequency, type = "bandpass") {
   const c = ac();
   if (!c) return;
-  const buffer = c.createBuffer(1, c.sampleRate * dur, c.sampleRate);
-  const data = buffer.getChannelData(0);
-  for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
-  const src = c.createBufferSource();
-  src.buffer = buffer;
-  const g = c.createGain();
-  g.gain.setValueAtTime(gain, c.currentTime + start);
-  g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + start + dur);
+  const at = c.currentTime + delay;
+  const source = c.createBufferSource();
+  source.buffer = noise;
+  source.playbackRate.value = vary(1, .1);
   const filter = c.createBiquadFilter();
-  filter.type = "bandpass";
-  filter.frequency.value = 900;
-  src.connect(filter);
-  filter.connect(g);
-  g.connect(c.destination);
-  src.start(c.currentTime + start);
+  filter.type = type;
+  filter.frequency.value = vary(frequency, .12);
+  filter.Q.value = .65;
+  const amp = envelope(c, at, duration, gain);
+  source.connect(filter);
+  filter.connect(amp);
+  source.onended = () => { source.disconnect(); filter.disconnect(); amp.disconnect(); };
+  source.start(at, Math.random() * .04);
+  source.stop(at + duration + .02);
 }
-
+function chord(delay, duration = .32, gain = .025) {
+  const c = ac();
+  if (!c) return;
+  // Warm minor-seventh stab rather than a bright arcade fanfare.
+  [130.81, 155.56, 196, 233.08].forEach((frequency) => {
+    const at = c.currentTime + delay;
+    const oscillator = c.createOscillator();
+    oscillator.type = "triangle";
+    oscillator.frequency.value = frequency;
+    oscillator.detune.value = (Math.random() * 2 - 1) * 5;
+    const filter = c.createBiquadFilter();
+    filter.type = "lowpass";
+    filter.frequency.setValueAtTime(1600, at);
+    filter.frequency.exponentialRampToValueAtTime(450, at + duration);
+    const amp = envelope(c, at, duration, gain);
+    oscillator.connect(filter);
+    filter.connect(amp);
+    oscillator.onended = () => { oscillator.disconnect(); filter.disconnect(); amp.disconnect(); };
+    oscillator.start(at);
+    oscillator.stop(at + duration + .02);
+  });
+}
+const hat = (delay = 0, gain = .07) => texture(delay, .045, gain, 6500, "highpass");
+const rim = (delay = 0, gain = .13) => texture(delay, .075, gain, 1500);
 export const sfx = {
-  playCard() {
+  playCard(card, cueKey) {
     if (!enabled) return;
-    tone(523.25, 0, 0.18, "triangle", 0.1);
+    if (cueKey && lastCardCue === cueKey) return;
+    if (cueKey) lastCardCue = cueKey;
+    texture(0, .09, .09, 2400); // cardboard slide
+    bass(.1, card?.special ? .27 : .18, .16, 115); // soft table tap / kick
+    rim(.105, .035);
+    if (card?.special) hat(.16, .05);
   },
-  select() {
-    if (!enabled) return;
-    tone(659.25, 0, 0.1, "sine", 0.07);
-  },
-  winTrick() {
-    if (!enabled) return;
-    tone(196, 0, 0.6, "sine", 0.16);
-    tone(392, 0.02, 0.5, "sine", 0.08);
-  },
-  fireBurst() {
-    if (!enabled) return;
-    noiseBurst(0, 0.35, 0.14);
-    tone(120, 0, 0.3, "sawtooth", 0.06);
-  },
-  witchReveal() {
-    if (!enabled) return;
-    [523.25, 622.25, 783.99].forEach((f, i) => tone(f, i * 0.06, 0.5, "sine", 0.08));
-  },
+  select() { if (enabled) { hat(0, .035); texture(0, .04, .04, 1200); } },
+  winTrick() { if (enabled) { bass(.13, .28); rim(.3, .12); chord(.32); } },
+  fireBurst() { if (enabled) { sfx.playCard({ special: true }); chord(.14, .22, .016); } },
+  witchReveal() { if (enabled) { texture(0, .16, .08, 1800); chord(.08, .4); } },
   fanfare() {
     if (!enabled) return;
-    [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => tone(f, i * 0.12, 0.5, "triangle", 0.12));
+    // Short, swung drum fill, not continuous background music.
+    bass(0, .3); hat(.18); rim(.37); bass(.56, .22); hat(.77); rim(.96); chord(.98, .5, .035);
   },
-  reveal() {
-    if (!enabled) return;
-    tone(440, 0, 0.25, "sine", 0.1);
-    tone(880, 0.05, 0.2, "sine", 0.05);
-  },
+  reveal() { if (enabled) { texture(0, .18, .09, 1400); hat(.12, .045); } },
 };
