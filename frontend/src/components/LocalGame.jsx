@@ -97,14 +97,14 @@ export function LocalGame({ onExit, sound, setSound }) {
 
       {state.phase === "playGate" &&
         (state.players[state.currentSeat]?.isBot ? (
-          <div className="pt-10">
+          <div className="sm:pt-10">
             <PlayTable state={state} onPlay={() => {}} onContinueTrick={() => {}} hideHand />
           </div>
         ) : (
           <PassGate player={state.players[state.currentSeat]} headline="Dein Zug" onReveal={actions.reveal} ctaPrefix="Karten zeigen" note="Die Straße ruft. Nimm das Gerät und spiel im Geheimen…" />
         ))}
       {(state.phase === "playing" || state.phase === "trickEnd") && (
-        <div className="pt-10">
+        <div className="sm:pt-10">
           <PlayTable state={state} onPlay={actions.playCard} onContinueTrick={actions.continueTrick} hideHand={state.phase === "playing" && state.players[state.currentSeat]?.isBot} />
         </div>
       )}
