@@ -20,9 +20,11 @@ import witches_engine as eng
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+mongo_url = os.environ.get("MONGO_URL") or os.environ.get("MONGO_URI")
+if not mongo_url:
+    raise RuntimeError("Set MONGO_URL (or MONGO_URI) to the private MongoDB connection URL.")
+client = AsyncIOMotorClient(mongo_url, serverSelectionTimeoutMS=5000)
+db = client[os.environ.get("DB_NAME", "street_kings")]
 
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
@@ -56,6 +58,15 @@ class GameResult(BaseModel):
 @api_router.get("/")
 async def root():
     return {"message": "Street Kings API"}
+
+
+@api_router.get("/health")
+async def health():
+    try:
+        await client.admin.command("ping")
+    except Exception:
+        raise HTTPException(status_code=503, detail="Datenbank nicht erreichbar")
+    return {"status": "ok"}
 
 
 @api_router.post("/games", response_model=GameResult)
@@ -552,7 +563,7 @@ async def room_action(code: str, payload: ActionReq):
                 raise HTTPException(status_code=409, detail="Bereits getauscht")
             hand_ids = {c["id"] for c in room["hands"][seat]}
             cards = payload.cards or []
-            if len(cards) != room["passCount"] or not set(cards).issubset(hand_ids):
+            if len(cards) != room["passCount"] or len(set(cards)) != len(cards) or not set(cards).issubset(hand_ids):
                 raise HTTPException(status_code=400, detail="Ungültige Kartenauswahl")
             room["pendingSelections"][str(seat)] = cards
         elif t == "play":
@@ -587,8 +598,11 @@ app.include_router(api_router)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_credentials=False,
+    allow_origins=[origin.strip() for origin in os.environ.get(
+        "CORS_ORIGINS",
+        "https://2m25wtws5p-bot.github.io,http://localhost:3000",
+    ).split(",") if origin.strip()],
     allow_methods=["*"],
     allow_headers=["*"],
 )
