@@ -3,6 +3,7 @@ import { CardView, SUIT_ICON } from "./CardView";
 import { Avatar } from "./Avatar";
 import { PlayerIdentity } from "./PlayerIdentity";
 import { TrickCards } from "./TrickCards";
+import { SelectedCards } from "./SelectedCards";
 import { legalCardIds, leadSuit, dealCount } from "../game/engine";
 import { SUITS } from "../game/constants";
 import { Trophy } from "lucide-react";
@@ -160,6 +161,7 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) 
               />
             ))}
           </div>
+          {armed && <SelectedCards hand={hand} selected={[armed]} count={1} onRemove={() => setArmed(null)} />}
         </div>
       )}
     </div>

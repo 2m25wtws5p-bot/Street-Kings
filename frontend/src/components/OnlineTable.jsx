@@ -207,6 +207,7 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
                 <CardView key={card.id} card={card} size="md" selected={armed === card.id} dim={!legal.has(card.id)} onClick={() => clickPlay(card)} testId={`hand-card-item-${card.id}`} />
               ))}
             </div>
+            {armed && <SelectedCards hand={yourHand} selected={[armed]} count={1} onRemove={() => setArmed(null)} />}
           </div>
         ) : (
           <Waiting text={`Warten, bis ${nameOf(currentSeat)} spielt…`} yourHand={yourHand} />

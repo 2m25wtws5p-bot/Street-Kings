@@ -43,3 +43,7 @@ Built-in image generation was used, not CLI/API fallback. Final project assets:
 - `water.webp`: precise edit of the previous informant. Preserve face, red hair, pose, green jacket, note, alley and illustrated style. Add only a small worn red chest/shoulder fabric patch and subtle red jacket piping to signal red heat risk. Predominantly green, no text or framing.
 
 The card illustrations remain 320 × 480. Suit identity and game rules are unchanged.
+
+## Gritty New York-style background (7 October 2026)
+
+Replacement `../backgrounds/high-rises.webp`, generated with the built-in image tool and optimized locally to 1536 × 1024 WebP. Final prompt: original wide photorealistic New York-style residential block at blue hour; weathered brick apartments, black fire escapes, distant concrete towers, scratched shutters, old graffiti, damp cracked asphalt, chain-link fences and sparse litter at the margins. Ominous quiet atmosphere, soft dusk light, restrained dirty olive/charcoal/rust colors. Low contrast, slight photographic softness, quiet central space behind the card game. No people, weapons, violence, readable signs, logos, bright neon, spotlights or futuristic architecture. The CSS dark overlay keeps the setting secondary to gameplay.

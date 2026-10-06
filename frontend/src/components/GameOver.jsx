@@ -14,7 +14,7 @@ export function GameOver({ state, onRematch, onNewGame, onStats, rematchLabel = 
   }, []);
 
   return (
-    <div className="min-h-screen coven-bg px-4 py-10 grid place-items-center">
+    <div className="round-summary game-over-summary min-h-screen coven-bg px-4 py-10 grid place-items-center">
       <div className="max-w-md w-full text-center">
         <div className="rise-in">
           <div className="inline-flex float-slow mb-3">
@@ -24,7 +24,7 @@ export function GameOver({ state, onRematch, onNewGame, onStats, rematchLabel = 
           <p className="font-serif-fancy text-slate-300/70 mb-6">Wer die wenigste Hitze kassiert, regiert die Stadt</p>
         </div>
 
-        <div className="flex justify-center gap-4 mb-6">
+        <div className="score-winners flex flex-wrap justify-center gap-4 mb-6">
           {winners.map((i) => (
             <div key={i} className="pop-in flex flex-col items-center">
               <Avatar avatar={players[i].avatar} size={92} active />
@@ -34,13 +34,13 @@ export function GameOver({ state, onRematch, onNewGame, onStats, rematchLabel = 
           ))}
         </div>
 
-        <div className="panel rounded-md p-3 mb-6 text-left">
+        <div className="score-card score-ranking panel rounded-md p-3 mb-6 text-left">
           {order.map((i, rank) => (
             <div key={i} className="flex items-center justify-between py-1.5 border-b border-white/5 last:border-0">
               <div className="flex items-center gap-2">
                 <span className="font-mono-stat text-slate-400/60 w-5">{rank + 1}.</span>
                 <Avatar avatar={players[i].avatar} size={26} />
-                <span className="font-display text-sm text-slate-100">{players[i].name}</span>
+                <span className="score-name font-display text-sm text-slate-100">{players[i].name}</span>
               </div>
               <span className="font-mono-stat text-sm text-red-300">{scores[i]}</span>
             </div>

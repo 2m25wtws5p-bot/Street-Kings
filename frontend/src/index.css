@@ -362,3 +362,51 @@ body {
   .selected-cards-row > span { white-space:nowrap; font-size:10px; }
   .crew-name [data-testid^="player-offline-"] { color:#b32630; }
 }
+
+/* A stable mobile fan: selection must never cover a neighbour's number. */
+@media(max-width:639px) {
+  .compact-hand { isolation:isolate; }
+  .compact-hand > .street-card,
+  .compact-hand > .street-card:hover,
+  .compact-hand > .street-card:focus-visible,
+  .compact-hand > .street-card[data-selected="true"] { z-index:auto!important; transform:none!important; }
+  .compact-hand .card-pip-top { min-width:15px; padding:0; gap:0; }
+  .compact-hand .card-pip-top .font-display { font-size:17px; line-height:1; }
+  .compact-hand .card-pip-top svg { width:8px; height:8px; }
+  .compact-hand .card-selection-check { left:2px; right:auto; top:32px; width:14px; height:14px; line-height:14px; border:1px solid #443620; }
+  .compact-hand > [data-selected="true"]::before { width:5px; background:#fff0b8; }
+  .selected-cards-row > .street-card { width:44px; height:64px; }
+  .selected-cards-row .card-pip { min-width:15px; padding:1px; }
+  .selected-cards-row .font-display { font-size:17px; }
+}
+
+/* Abrechnung: paper scorecards, printed ink and worn suit-colored details. */
+.round-summary { padding-top:64px; padding-bottom:24px; }
+.round-summary h2 { font-family:"Permanent Marker","Barlow Condensed",sans-serif; }
+.score-card { background:linear-gradient(120deg,#f0e2c5,#d9cfb9); border:3px solid #9b7855; border-left:6px solid #c49258; border-radius:5px 11px 5px 7px; color:#263733; box-shadow:3px 5px 0 #070d0e66,inset 0 0 0 1px #fff4; }
+.score-card:nth-child(even) { background:linear-gradient(120deg,#e4e9d4,#cad8ca); border-left-color:#64968b; }
+.score-name { color:#263733; font-family:"Permanent Marker","Barlow Condensed",sans-serif; font-size:16px; }
+.score-delta { padding:2px 7px; background:#f8ead5; border:1px solid #aa7463; border-radius:3px 6px 3px 3px; font-size:24px; line-height:1; }
+.score-delta.text-red-300 { color:#a02b32; }
+.score-delta.text-emerald-300 { color:#28654b; }
+.score-chip { background:#f8f0da!important; border-color:#807965!important; color:#334c43!important; border-radius:3px; font-family:"Chivo",sans-serif; }
+.score-chip svg { color:#7b4134; }
+.score-progress > span { color:#554b3e; font-weight:700; }
+.score-progress > div { background:#b9ad96; border-radius:2px; }
+.score-progress > div > div { border-radius:2px; background:linear-gradient(90deg,#b8833c,#aa3540)!important; }
+.score-next { background:#e9bd67; border:2px solid #a47838; box-shadow:2px 4px 0 #0005; border-radius:4px 8px 4px 6px; }
+.score-takeover { background:#efe1bc; color:#423628; border:3px solid #b14a3f; }
+.score-takeover p,.score-takeover > div { color:#633a2d; }
+.score-ranking .text-slate-400\/60 { color:#74634d; }
+.score-ranking .text-red-300 { color:#9d2f37; font-weight:800; }
+.score-ranking > div { border-color:#8a796b44; gap:8px; }
+.score-ranking > div > div { min-width:0; }
+.score-ranking .score-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+@media(max-width:639px) {
+  .round-summary { padding-left:10px; padding-right:10px; }
+  .round-summary h2 { font-size:27px; }
+  .score-card { padding:10px; }
+  .score-name { font-size:14px; }
+  .score-delta { font-size:22px; }
+  .round-summary .score-next { margin-top:18px; padding:12px; }
+}
