@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { AVATARS } from "../game/constants";
 import { Avatar } from "./Avatar";
 import { OnlineTable } from "./OnlineTable";
-import { roomApi } from "../game/api";
+import { roomApi, onlineErrorMessage } from "../game/api";
 import { useOnlineGame } from "../game/useOnlineGame";
 import { sfx } from "../game/sound";
 import { Wifi, Plus, LogIn, ArrowLeft, Copy, Crown, Bot, Play, UserPlus, Loader, Eye, WifiOff } from "lucide-react";
@@ -76,10 +76,33 @@ export function OnlineFlow({ initialCode, onExit, sound, setSound }) {
     return <CreateJoin initialCode={initialCode} onExit={onExit} onSession={beginSession} />;
   }
 
+  if (!online.view && online.error) {
+    return (
+      <div className="min-h-screen coven-bg grid place-items-center px-4">
+        <div className="panel rounded-lg p-5 max-w-md text-center">
+          <p role="alert" className="text-red-300 mb-4">{online.error}</p>
+          <button onClick={leave} className="text-amber-300">Zurück zur Startseite</button>
+        </div>
+      </div>
+    );
+  }
+
   if (!online.view) {
     return (
       <div className="min-h-screen coven-bg grid place-items-center">
         <Loader className="animate-spin text-amber-400" size={32} />
+      </div>
+    );
+  }
+
+  if (online.error) {
+    return (
+      <div className="min-h-screen coven-bg grid place-items-center px-4">
+        <div className="panel rounded-lg p-5 max-w-md text-center">
+          <p role="alert" className="text-red-300 mb-4">{online.error}</p>
+          <p className="text-slate-300 text-sm mb-4">Die Verbindung wird automatisch erneut versucht.</p>
+          <button onClick={leave} className="text-amber-300">Verlassen</button>
+        </div>
       </div>
     );
   }
@@ -110,7 +133,7 @@ function CreateJoin({ initialCode, onExit, onSession }) {
       okSfx();
       onSession(s);
     } catch (e) {
-      setErr(e?.response?.data?.detail || "Das hat nicht geklappt. Versuch es noch einmal.");
+      setErr(onlineErrorMessage(e));
     } finally {
       setBusy(false);
     }
