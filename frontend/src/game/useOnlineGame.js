@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { roomApi, onlineErrorMessage } from "./api";
 
+const configuredPollMs = Number(process.env.REACT_APP_GAME_POLL_MS);
+const pollMs = Number.isFinite(configuredPollMs) && configuredPollMs >= 500 ? configuredPollMs : 650;
+
 export function useOnlineGame(code, token) {
   const [view, setView] = useState(null);
   const [error, setError] = useState(null);
@@ -37,7 +40,7 @@ export function useOnlineGame(code, token) {
   useEffect(() => {
     if (!code) return;
     poll();
-    const id = setInterval(poll, 650);
+    const id = setInterval(poll, pollMs);
     return () => clearInterval(id);
   }, [code, poll]);
 
@@ -69,3 +72,4 @@ export function useOnlineGame(code, token) {
     rematch: () => roomApi.rematch(code, tokenRef.current).then(acceptView).catch(poll),
   };
 }
+
