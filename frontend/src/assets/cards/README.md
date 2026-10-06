@@ -33,3 +33,13 @@ Generated anew with the built-in image-generation tool. Shared style: original f
 - Laufjunge: male courier, age 20, slim, youthful clean-shaven face, shaggy blond hair under a backwards black baseball cap, charcoal sweatshirt, silver-grey vest and messenger bag. Cool monochrome grey alley, no gold, yellow, beige or cream clothing.
 
 Risk specials (red 11, green 11/12) use a warning triangle and dark warning label. Helpful specials (blue/yellow 11) use a shield/check and light protection label. These cues are display-only and do not modify rules. Neutral runner framing is now cool silver-grey, explicitly distinct from golden yellow.
+
+## Organic tabletop revision (7 October 2026)
+
+Built-in image generation was used, not CLI/API fallback. Final project assets:
+
+- `../backgrounds/high-rises.webp`: original photorealistic wide European apartment towers at dusk, concrete balconies, warm windows and leafy trees. Soft atmospheric light, muted teal/sandstone, uncluttered center behind UI. No neon, futuristic skyline, people, logos or text. 1536 × 1024, optimized WebP.
+- `air.webp`: full-bleed 2:3 detailed painted editorial street-comic portrait. Mature calm Black male fixer, cropped silver hair and neat beard, navy work jacket. Reassuring open hand, folding a red warning notice into a worn blue folder to convey neutralizing trouble. Natural brick courtyard, screenprinted paper texture. Quiet corners for code-rendered pips; no text, borders, weapons or magical effects.
+- `water.webp`: precise edit of the previous informant. Preserve face, red hair, pose, green jacket, note, alley and illustrated style. Add only a small worn red chest/shoulder fabric patch and subtle red jacket piping to signal red heat risk. Predominantly green, no text or framing.
+
+The card illustrations remain 320 × 480. Suit identity and game rules are unchanged.

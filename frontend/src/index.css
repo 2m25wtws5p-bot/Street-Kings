@@ -234,6 +234,11 @@ body {
 .compact-hand > [data-selected="true"]:hover { transform:translateY(-18px); }
 .played-card-label { white-space:nowrap; }
 .game-table { overflow:clip; }
+.game-center { flex-shrink:0; }
+.game-center > [data-testid="central-trick-cauldron"] { height:auto; padding:14px 8px 20px; }
+.trick-cards { position:relative; width:100%; padding:8px 0; }
+.game-table > div:last-child { position:relative; isolation:isolate; flex-shrink:0; margin-top:12px; }
+[data-testid="btn-continue-trick"] { position:relative; z-index:2; touch-action:manipulation; }
 .compact-hand > * { transition:transform .32s cubic-bezier(.18,.8,.25,1),box-shadow .35s ease,opacity .28s ease,filter .28s ease; }
 .game-roster > * { transition:background-color .45s ease,border-color .45s ease,box-shadow .45s ease,opacity .35s ease; }
 .last-trick-button { transition:background-color .25s ease,box-shadow .25s ease,transform .2s ease; }
@@ -261,6 +266,9 @@ body {
   .game-center [data-testid^="played-trick-card-"] { width:48px; height:76px; }
   .game-center [data-testid^="played-trick-card-"] .font-display { font-size:16px; }
   .game-center > div > div { gap:5px; }
+  .game-center .trick-cards { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); max-width:300px; gap:14px 4px; }
+  .game-center .played-card { min-width:0; }
+  .game-center > [data-testid="central-trick-cauldron"] { padding:10px 4px 16px; }
   .game-table > div:last-child { padding:4px 8px 10px; }
   .game-table > div:last-child .text-lg, .game-table > div:last-child .text-xl { font-size:13px; }
   .game-table > div:last-child button:not([data-testid^="hand-card-"]):not([data-testid^="pass-card-"]) { padding-top:7px; padding-bottom:7px; }
@@ -325,6 +333,19 @@ body {
 .game-roster .crew-player > :first-child { background:#263936!important; border-color:#71826b!important; box-shadow:none!important; transform:none!important; }
 .game-roster .crew-player > :first-child svg { filter:none!important; color:#efe6cf; stroke:#efe6cf; }
 .game-center > [data-testid="central-trick-cauldron"] { border:1px dashed #d9c8a318; background:radial-gradient(ellipse at center,#48716b18,transparent 75%)!important; border-radius:20%; }
+/* Soft photographic neighborhood behind the printed tabletop. */
+.coven-bg { background-color:#1b2928; background-image:linear-gradient(180deg,#152322b8,#182522d9),url("./assets/backgrounds/high-rises.webp"); background-size:cover; background-position:center; background-repeat:no-repeat; }
+.game-roster .crew-player { border:3px solid #9b7855; border-left:5px solid #c49258; background:linear-gradient(115deg,#f2e3c5,#d7ccb7); box-shadow:2px 4px 0 #08131166,inset 0 0 0 1px #fff3; }
+.game-roster .crew-player:nth-child(even) { background:linear-gradient(115deg,#e5eed8,#c9d9ce); border-left-color:#64968b; }
+.crew-name { text-shadow:0 1px 0 #fff5; }
+.card-suit-stamp svg,.card-pip svg { fill:var(--suit-ink); fill-opacity:.18; stroke-linejoin:round; }
+.game-roster .crew-player > :first-child { border-radius:42% 48% 40% 46%; box-shadow:1px 2px 0 #0004!important; }
+.crew-heat { padding:2px 4px; background:#f8e3cd; border:1px solid #a24d3e; border-radius:3px 5px 3px 2px; }
+.crew-heat b { font-family:"Barlow Condensed",sans-serif; font-size:15px; line-height:1; }
+.crew-card-count { padding:2px 3px; border:1px solid #657166; border-radius:3px; background:#eee9d4; }
+.played-card-label { background:#eee4cdf2!important; color:#243732; border:1px solid #89795e!important; box-shadow:1px 2px 0 #0004; }
+.played-card-label > span { color:#243732!important; }
+.street-card[data-special="water"] .card-pip-top { box-shadow:2px 2px 0 #c73a36; }
 @media(max-width:639px) {
   .crew-name { font-size:10px; gap:2px; }
   .crew-name > span:first-child { max-width:72px; }

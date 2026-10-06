@@ -7,7 +7,7 @@ export function PlayerIdentity({ name, heat, cards, children }) {
     <div className="crew-name" title={name}><span>{name}</span>{children}</div>
     <div className="crew-stats">
       <span className="crew-heat" data-heat={heat >= 50 ? "high" : heat >= 25 ? "warm" : "low"} aria-label={`${heat} Hitze`}>
-        <Flame size={11} aria-hidden="true"/><b>{heat}</b><span>Hitze</span>
+        <Flame size={11} fill="currentColor" strokeWidth={1.4} aria-hidden="true"/><b>{heat}</b><span>Hitze</span>
       </span>
       <span className="crew-card-count" aria-label={`${cards} Karten`}><Layers size={10} aria-hidden="true"/>{cards}</span>
     </div>
