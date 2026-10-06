@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { CardView, SUIT_ICON } from "./CardView";
 import { Avatar } from "./Avatar";
+import { PlayerIdentity } from "./PlayerIdentity";
 import { TrickCards } from "./TrickCards";
 import { legalCardIds, leadSuit, dealCount } from "../game/engine";
 import { SUITS } from "../game/constants";
@@ -80,7 +81,9 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) 
           <div
             key={i}
             data-testid={`opponent-seat-player-${i}`}
-            className={`flex items-center gap-2 rounded-md px-2.5 py-1.5 border transition-all ${
+            data-current={!isTrickEnd && i === currentSeat ? "true" : undefined}
+            data-winner={isTrickEnd && i === lastWinner ? "true" : undefined}
+            className={`crew-player flex items-center gap-2 rounded-md px-2.5 py-1.5 border transition-all ${
               !isTrickEnd && i === currentSeat
                 ? "bg-amber-500/15 border-amber-400/70"
                 : isTrickEnd && i === lastWinner
@@ -89,12 +92,7 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) 
             }`}
           >
             <Avatar avatar={p.avatar} size={30} active={!isTrickEnd && i === currentSeat} />
-            <div className="leading-tight">
-              <div className="font-display text-xs text-slate-100 max-w-[90px] truncate">{p.name}</div>
-              <div className="font-mono-stat text-[10px] text-slate-400/70">
-                <span className="text-red-300">{scores[i]} Hitze</span> · {hands[i].length}K
-              </div>
-            </div>
+            <PlayerIdentity name={p.name} heat={scores[i]} cards={hands[i].length}/>
           </div>
         ))}
       </div>
@@ -167,4 +165,3 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) 
     </div>
   );
 }
-

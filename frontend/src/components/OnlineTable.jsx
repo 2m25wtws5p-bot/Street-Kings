@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { CardView, SUIT_ICON } from "./CardView";
 import { Avatar } from "./Avatar";
+import { PlayerIdentity } from "./PlayerIdentity";
 import { LastTrickButton } from "./LastTrickButton";
 import { TrickCards } from "./TrickCards";
 import { SelectedCards } from "./SelectedCards";
@@ -123,20 +124,14 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
             const passed = phase === "passing" && view.passedSeats?.[i];
             const offline = !p.isBot && !p.connected;
             return (
-              <div key={i} data-testid={`opponent-seat-player-${i}`} className={`flex items-center gap-2 rounded-md px-2.5 py-1.5 border transition-all ${isCurrent ? "bg-amber-500/15 border-amber-400/70" : isWinner ? "bg-emerald-500/15 border-emerald-400/60" : "bg-black/30 border-white/10"} ${offline ? "opacity-60" : ""}`}>
+              <div key={i} data-testid={`opponent-seat-player-${i}`} data-current={isCurrent ? "true" : undefined} data-winner={isWinner ? "true" : undefined} className={`crew-player flex items-center gap-2 rounded-md px-2.5 py-1.5 border transition-all ${isCurrent ? "bg-amber-500/15 border-amber-400/70" : isWinner ? "bg-emerald-500/15 border-emerald-400/60" : "bg-black/30 border-white/10"} ${offline ? "opacity-60" : ""}`}>
                 <Avatar avatar={p.avatar} size={30} active={isCurrent} />
-                <div className="leading-tight">
-                  <div className="font-display text-xs text-slate-100 max-w-[92px] truncate flex items-center gap-1">
-                    {p.name}
+                <PlayerIdentity name={p.name} heat={scores[i]} cards={handCounts[i]}>
                     {i === yourSeat && <span className="text-amber-300/80 text-[9px]">(du)</span>}
                     {passed && <Check size={11} className="text-emerald-400" />}
                     {offline && <WifiOff size={11} className="text-red-400" data-testid={`player-offline-${i}`} />}
                     {p.reviewingLastTrick && <Eye size={13} className="text-amber-200" aria-label="Sieht letzten Stich an" />}
-                  </div>
-                  <div className="font-mono-stat text-[10px] text-slate-400/70">
-                    <span className="text-red-300">{scores[i]} Hitze</span> · {handCounts[i]}K
-                  </div>
-                </div>
+                </PlayerIdentity>
                 {offline && view.isHost && i !== yourSeat && (
                   <button onClick={() => { if (window.confirm(`${p.name} durch einen KI-Gangster ersetzen?`)) actions.replaceWithBot(i); }} data-testid={`btn-replace-bot-${i}`} title="Durch KI ersetzen" className="ml-1 grid place-items-center w-7 h-7 rounded-md bg-red-950/60 border border-red-500/60 text-red-200 hover:bg-red-900/70 transition-colors">
                     <Bot size={14} />
@@ -286,4 +281,3 @@ function Shell({ view, actions, onLeave, sound, setSound, setRulesOpen, setStats
     </div>
   );
 }
-

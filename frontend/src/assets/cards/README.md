@@ -20,3 +20,16 @@ Shared direction: original portrait 2:3, full-bleed illustration, detailed hand-
 | wizard.webp | Adult courier in a cream hoodie, charcoal vest and messenger bag with parcel; ivory, charcoal, terracotta. |
 
 The four neutral runner cards intentionally share artwork. Specials retain their canonical suit, and green 12 always uses green framing and a green number field. Numbers and icons are high-contrast on solid paper-colored corners; illustrations are decorative and have empty alt text because the full playable card is already named for assistive technology.
+
+## Revised character prompt set (7 October 2026)
+
+Generated anew with the built-in image-generation tool. Shared style: original full-bleed portrait 2:3, detailed painted urban comic screenprint, crisp ink, gouache and restrained halftone. One clearly distinct adult character, thumbnail-readable silhouette, quiet outer corners. Contemporary brick neighborhood; no futuristic effects, weapons, text, numerals, borders, logos or watermarks.
+
+- Kingpin: imposing bald Black man, age 55, square jaw and thick grey beard, red leather bomber and gold chain, stern expression.
+- Informant: thin white man, age 35, pale freckled face, messy red hair and narrow moustache, green windbreaker and folded note, suspicious sideways glance.
+- Schmierer: cheerful stocky East Asian man, age 60, round face and slick grey hair, mustard suit and patterned yellow scarf, sealed envelope.
+- Fixer: capable South Asian woman, age 50, angular face, dark hair in a tight bun and rectangular black glasses, cobalt tailored jacket.
+- Patin: commanding Latina woman, age 65, short swept-back silver hair and strong cheekbones, green velvet coat, gold brooch and red scarf.
+- Laufjunge: male courier, age 20, slim, youthful clean-shaven face, shaggy blond hair under a backwards black baseball cap, charcoal sweatshirt, silver-grey vest and messenger bag. Cool monochrome grey alley, no gold, yellow, beige or cream clothing.
+
+Risk specials (red 11, green 11/12) use a warning triangle and dark warning label. Helpful specials (blue/yellow 11) use a shield/check and light protection label. These cues are display-only and do not modify rules. Neutral runner framing is now cool silver-grey, explicitly distinct from golden yellow.

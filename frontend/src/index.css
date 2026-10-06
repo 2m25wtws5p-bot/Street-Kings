@@ -278,7 +278,7 @@ body {
   .game-passing > :last-child { gap:6px; margin-top:8px; }
   .game-passing [data-testid="btn-confirm-card-pass"] { padding:8px 24px; font-size:16px; }
   .selected-cards { gap:6px; min-height:52px; }
-  .selected-cards-row > * { width:36px; height:52px; }
+  .selected-cards-row > .street-card { width:36px; height:52px; }
   .selected-cards-row .font-display { font-size:14px; }
   .game-center .played-card-label { padding:2px 4px; gap:2px; }
   .game-center .played-card-label > span:last-child { max-width:48px; }
@@ -290,4 +290,49 @@ body {
   .game-center, .game-center > div { min-height:84px; }
   .game-center [data-testid^="played-trick-card-"] { height:64px; }
   .game-table [data-testid="trick-winner-banner"] { margin-bottom:6px; }
+}
+
+/* Clear suit rails, explicit heat warnings and paper-label crew identities. */
+.coven-bg { background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%201200%20800%22%20preserveAspectRatio%3D%22none%22%3E%3Cg%20fill%3D%22%23253537%22%20stroke%3D%22%23729088%22%20stroke-opacity%3D%22.22%22%3E%3Cpath%20d%3D%22M0%20800V340h94v82h60v378M1200%20800V290h-105v130h-70v380%22%2F%3E%3Cpath%20d%3D%22M0%20360h94M0%20420h94M0%20480h154M0%20540h154M0%20600h154M0%20660h154M1095%20350h105M1095%20410h105M1025%20470h175M1025%20530h175M1025%20590h175M1025%20650h175%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22%23ddb16e%22%20opacity%3D%22.1%22%3E%3Cpath%20d%3D%22M22%20382h22v25H22zm40%200h18v25H62zm-40%2065h22v25H22zm40%200h18v25H62zm1060-71h22v25h-22zm42%200h22v25h-22zm-42%2065h22v25h-22zm42%200h22v25h-22z%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M18%20690l55-32-15%2045%2050-15M1100%20705l30-45%2035%2045-42-13%22%20stroke%3D%22%23dc7660%22%20stroke-width%3D%229%22%20opacity%3D%22.16%22%2F%3E%3Cpath%20d%3D%22M0%20755h150m900%200h150%22%20stroke%3D%22%23d5bc86%22%20stroke-width%3D%222%22%20opacity%3D%22.15%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"),radial-gradient(ellipse at 0% 0%,#89432c44,transparent 45%),radial-gradient(ellipse at 100% 90%,#186a6a44,transparent 50%),radial-gradient(#e9d3b80b 1px,transparent 1px); background-size:100% 100%,100% 100%,100% 100%,9px 9px; background-position:center bottom,center,center,0 0; }
+.street-card::before { content:""; position:absolute; z-index:1; inset:0 auto 0 0; width:5px; background:var(--suit-accent); border-right:1px solid var(--suit-ink); pointer-events:none; }
+.street-card .card-art { inset:2px; width:calc(100% - 4px); height:calc(100% - 4px); }
+.card-pip { border:1px solid var(--suit-ink); }
+.card-pip-top { left:1px; top:1px; }
+.card-pip-bottom { right:1px; bottom:1px; }
+.card-impact-label { font-family:"Barlow Condensed",sans-serif; font-size:7px; line-height:1; font-weight:900; letter-spacing:.08em; margin-top:1px; }
+.street-card[data-impact="risk"] .card-special-stamp { color:#fff5ed; background:#bb2737; border-color:#ffe0c8; border-radius:3px; }
+.street-card[data-impact="risk"] .card-special-banner { background:#291e23; color:#fff4e8; }
+.street-card[data-impact="risk"] .card-special-rule { color:#ff9a94; }
+.street-card[data-impact="risk"] .card-impact-label { color:#ffb3a6; }
+.street-card[data-impact="help"] .card-special-stamp { color:#e9fff3; background:#146044; border-color:#e9fff3; }
+.street-card[data-impact="help"] .card-impact-label { color:#165a39; }
+.street-card[data-impact="neutral"] .card-special-banner { background:#e7edf5; color:#263444; }
+.street-card .card-selection-check { right:24px; width:12px; height:12px; line-height:12px; font-size:10px; }
+.street-card[data-card-size="lg"] .card-impact-label { font-size:9px; }
+.game-roster .crew-player { background:#ded2b8; border:2px solid #4a4438; color:#292d28; border-radius:4px 9px 5px 4px; box-shadow:2px 3px 0 #080d0e66; transform:rotate(-1deg); }
+.game-roster .crew-player:nth-child(even) { transform:rotate(1deg); background:#d7ddce; }
+.game-roster .crew-player[data-current="true"] { border-color:#f4c643; box-shadow:0 0 0 1px #f4c643,2px 3px 0 #080d0e66; }
+.game-roster .crew-player[data-winner="true"] { border-color:#26ab72; }
+.crew-identity { min-width:0; line-height:1.15; }
+.crew-name { display:flex; align-items:center; gap:3px; font-family:"Permanent Marker","Barlow Condensed",sans-serif; font-size:12px; color:#222e30; }
+.crew-name > span:first-child { max-width:95px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.crew-name > :not(:first-child) { flex-shrink:0; color:#354b39; }
+.crew-stats { display:flex; align-items:center; gap:6px; margin-top:2px; font-size:10px; font-weight:700; font-variant-numeric:tabular-nums; }
+.crew-heat { display:inline-flex; align-items:center; gap:2px; color:#8c3029; }
+.crew-heat[data-heat="high"] { color:#b0192a; }
+.crew-heat[data-heat="warm"] { color:#9a4023; }
+.crew-card-count { display:inline-flex; align-items:center; gap:2px; color:#455354; }
+.game-roster .crew-player > :first-child { background:#263936!important; border-color:#71826b!important; box-shadow:none!important; transform:none!important; }
+.game-roster .crew-player > :first-child svg { filter:none!important; color:#efe6cf; stroke:#efe6cf; }
+.game-center > [data-testid="central-trick-cauldron"] { border:1px dashed #d9c8a318; background:radial-gradient(ellipse at center,#48716b18,transparent 75%)!important; border-radius:20%; }
+@media(max-width:639px) {
+  .crew-name { font-size:10px; gap:2px; }
+  .crew-name > span:first-child { max-width:72px; }
+  .crew-stats { font-size:9px; gap:3px; }
+  .crew-heat svg,.crew-card-count svg { width:9px; height:9px; }
+  .card-impact-label { font-size:6px; }
+  .game-center .card-impact-label { font-size:5px; }
+  .selected-cards-row .card-special-stamp { right:1px; top:1px; }
+  .selected-cards-row > span { white-space:nowrap; font-size:10px; }
+  .crew-name [data-testid^="player-offline-"] { color:#b32630; }
 }
