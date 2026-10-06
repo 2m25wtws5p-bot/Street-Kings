@@ -350,6 +350,9 @@ body {
   .crew-name { font-size:10px; gap:2px; }
   .crew-name > span:first-child { max-width:72px; }
   .crew-stats { font-size:9px; gap:3px; }
+  .crew-heat > span { display:none; }
+  .crew-heat { padding:2px 3px; }
+  .crew-identity { flex:1; }
   .crew-heat svg,.crew-card-count svg { width:9px; height:9px; }
   .card-impact-label { font-size:6px; }
   .game-center .card-impact-label { font-size:5px; }
