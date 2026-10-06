@@ -5,23 +5,39 @@ export function useOnlineGame(code, token) {
   const [view, setView] = useState(null);
   const [error, setError] = useState(null);
   const tokenRef = useRef(token);
+  const codeRef = useRef(code);
+  const polling = useRef(false);
+  const versionRef = useRef(-1);
   tokenRef.current = token;
+  codeRef.current = code;
+  useEffect(() => { versionRef.current = -1; setView(null); setError(null); }, [code, token]);
+
+  const acceptView = useCallback((v) => {
+    if (v.code !== codeRef.current) return;
+    // A slow poll must not undo a newer action or another player's move.
+    if ((v.version ?? 0) < versionRef.current) return;
+    versionRef.current = v.version ?? 0;
+    setView(v);
+  }, []);
 
   const poll = useCallback(async () => {
-    if (!code) return;
+    if (!code || polling.current) return;
+    polling.current = true;
     try {
       const v = await roomApi.get(code, tokenRef.current);
-      setView(v);
+      acceptView(v);
       setError(null);
     } catch (e) {
       setError(onlineErrorMessage(e));
+    } finally {
+      polling.current = false;
     }
-  }, [code]);
+  }, [code, acceptView]);
 
   useEffect(() => {
     if (!code) return;
     poll();
-    const id = setInterval(poll, 1300);
+    const id = setInterval(poll, 650);
     return () => clearInterval(id);
   }, [code, poll]);
 
@@ -29,12 +45,12 @@ export function useOnlineGame(code, token) {
     async (payload) => {
       try {
         const v = await roomApi.action(code, tokenRef.current, payload);
-        setView(v);
+        acceptView(v);
       } catch (e) {
         poll();
       }
     },
-    [code, poll]
+    [code, poll, acceptView]
   );
 
   return {
@@ -45,10 +61,11 @@ export function useOnlineGame(code, token) {
     play: (cardId) => doAction({ type: "play", cardId }),
     continueTrick: () => doAction({ type: "continueTrick" }),
     nextRound: () => doAction({ type: "nextRound" }),
-    start: () => roomApi.start(code, tokenRef.current).then(setView).catch(poll),
-    addBot: () => roomApi.bots(code, tokenRef.current, "add").then(setView).catch(poll),
-    removeBot: () => roomApi.bots(code, tokenRef.current, "remove").then(setView).catch(poll),
-    replaceWithBot: (seat) => roomApi.replace(code, tokenRef.current, seat).then(setView).catch(poll),
-    rematch: () => roomApi.rematch(code, tokenRef.current).then(setView).catch(poll),
+    reviewLastTrick: (reviewing) => doAction({ type: "reviewLastTrick", reviewing }),
+    start: () => roomApi.start(code, tokenRef.current).then(acceptView).catch(poll),
+    addBot: () => roomApi.bots(code, tokenRef.current, "add").then(acceptView).catch(poll),
+    removeBot: () => roomApi.bots(code, tokenRef.current, "remove").then(acceptView).catch(poll),
+    replaceWithBot: (seat) => roomApi.replace(code, tokenRef.current, seat).then(acceptView).catch(poll),
+    rematch: () => roomApi.rematch(code, tokenRef.current).then(acceptView).catch(poll),
   };
 }

@@ -174,13 +174,29 @@ body {
 /* Compact hand: keep every card's value and suit reachable without scrolling. */
 .compact-hand > [data-special] { top: -8px; }
 .card-source { position:absolute; z-index:2; top:46px; left:3px; font-size:9px; line-height:12px; writing-mode:vertical-rl; max-height:60px; overflow:hidden; white-space:nowrap; color:#fef3c7; background:#171a21dd; border-radius:3px; padding:2px 0; }
-.last-trick-button { flex-shrink:0; border:1px solid #fbbf2455; border-radius:6px; padding:5px 8px; color:#fde68a; font-size:11px; background:#171a21; }
+.last-trick-button { position:fixed; top:56px; right:10px; z-index:45; display:flex; align-items:center; gap:6px; border:1px solid #fbbf24aa; border-radius:8px; padding:8px 11px; color:#fef3c7; font-size:12px; font-weight:600; background:#252017f5; box-shadow:0 3px 12px #0008; }
+.last-trick-button:not(:disabled):hover { background:#40301c; }
 .last-trick-button:disabled { opacity:.4; }
 .last-trick-dialog { color:#e2e8f0; background:#171a21; border:1px solid #fbbf2455; border-radius:12px; padding:20px; width:min(560px,calc(100vw - 24px)); margin:auto; max-height:90dvh; overflow:auto; }
 .last-trick-dialog::backdrop { background:#000b; }
+.game-table > :first-child { min-height:56px; padding-right:150px; }
+.game-passing { padding-top:100px; }
+.trick-review-notice { position:fixed; top:99px; right:10px; z-index:44; max-width:200px; padding:5px 8px; border-radius:6px; color:#fde68a; background:#171a21ed; font-size:11px; border:1px solid #fbbf2455; }
+.selected-cards { width:100%; display:flex; align-items:center; justify-content:center; gap:10px; min-height:64px; }
+.selected-cards-label { font-size:11px; color:#fde68a; white-space:nowrap; }
+.selected-cards-row { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+.selected-cards-row > * { flex-shrink:0; }
+.card-selection-check { position:absolute; z-index:5; top:2px; right:2px; color:#171a21; background:#fde68a; border-radius:50%; width:16px; height:16px; text-align:center; font-size:12px; line-height:16px; font-weight:800; }
+.compact-hand > [data-selected="true"] { z-index:35!important; transform:translateY(-18px); }
+.compact-hand > [data-selected="true"]:hover { transform:translateY(-18px); }
+.played-card-label { white-space:nowrap; }
+@media (prefers-reduced-motion:reduce) {
+  .compact-hand > *, .game-roster > * { transition:none!important; }
+  .rise-in, .pop-in, .float-slow, .candle-flicker, .police-strobe { animation:none!important; }
+}
 @media (max-width:639px) {
   .game-table { min-height:100dvh; padding-top:52px; }
-  .game-table > :first-child { gap:4px; padding:4px 8px; flex-wrap:wrap; }
+  .game-table > :first-child { gap:4px; padding:4px 150px 4px 8px; flex-wrap:wrap; min-height:42px; }
   .game-roster { gap:4px; padding:2px 6px 4px; }
   .game-roster > div { padding:3px 5px; gap:4px; flex:1 1 28%; min-width:0; }
   .game-roster > div > :first-child { width:22px!important; height:22px!important; }
@@ -201,11 +217,17 @@ body {
   .compact-hand > *:focus-visible, .compact-hand > *.z-20 { z-index:30; }
   .compact-hand .font-display.text-2xl { font-size:20px; }
   .compact-hand .card-source { top:38px; max-height:50px; }
-  .game-passing { min-height:100dvh; padding-top:56px; padding-bottom:10px; }
+  .game-passing { min-height:100dvh; padding-top:100px; padding-bottom:10px; }
   .game-passing > :first-child { margin-bottom:4px; }
   .game-passing h2 { font-size:18px; }
   .game-passing p { font-size:13px; }
   .game-passing > :last-child { gap:6px; margin-top:8px; }
+  .game-passing [data-testid="btn-confirm-card-pass"] { padding:8px 24px; font-size:16px; }
+  .selected-cards { gap:6px; min-height:52px; }
+  .selected-cards-row > * { width:36px; height:52px; }
+  .selected-cards-row .font-display { font-size:14px; }
+  .game-center .played-card-label { padding:2px 4px; gap:2px; }
+  .game-center .played-card-label > span:last-child { max-width:48px; }
 }
 @media (max-width:639px) and (max-height:700px) {
   .compact-hand { row-gap:16px; margin-top:16px; }

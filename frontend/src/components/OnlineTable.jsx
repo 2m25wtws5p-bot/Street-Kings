@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
 import { CardView, SUIT_ICON } from "./CardView";
 import { Avatar } from "./Avatar";
 import { LastTrickButton } from "./LastTrickButton";
+import { TrickCards } from "./TrickCards";
+import { SelectedCards } from "./SelectedCards";
 import { RoundScores } from "./RoundScores";
 import { GameOver } from "./GameOver";
 import { GameHeaderButtons } from "./GameHeaderButtons";
@@ -18,6 +19,7 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
   const [statsOpen, setStatsOpen] = useState(false);
   const [selected, setSelected] = useState([]);
   const [armed, setArmed] = useState(null);
+  const [trickReady, setTrickReady] = useState(false);
   const trickLenRef = useRef(0);
   const phaseRef = useRef("");
 
@@ -27,6 +29,14 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
   const yourTurn = !spectator && phase === "playing" && currentSeat === yourSeat;
   const iPassed = view.iPassed;
   const nameOf = (seat) => players.find((p) => p.seat === seat)?.name;
+
+  useEffect(() => {
+    setTrickReady(false);
+    if (phase !== "trickEnd") return;
+    // Hold the complete trick locally too, including after a slow reconnect.
+    const timer = setTimeout(() => setTrickReady(true), view.trickHoldMs ?? 2000);
+    return () => clearTimeout(timer);
+  }, [phase, view.roundIndex, view.trickNumber, view.trickHoldMs]);
 
   // reset local UI when relevant server state changes
   useEffect(() => { setArmed(null); }, [currentSeat, phase]);
@@ -43,7 +53,7 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
   }, [phase]);
 
   const pseudo = { players, scores, roundResult: view.roundResult, roundIndex: view.roundIndex };
-  const shellProps = { view, onLeave, sound, setSound, setRulesOpen, setStatsOpen, rulesOpen, statsOpen };
+  const shellProps = { view, actions, onLeave, sound, setSound, setRulesOpen, setStatsOpen, rulesOpen, statsOpen };
 
   if (phase === "roundScores" && view.roundResult) {
     return (
@@ -104,7 +114,6 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
           <div className="font-mono-stat text-xs text-slate-300/70">
             Runde {(view.roundIndex ?? 0) + 1} · {phase === "passing" ? "Karten werden getauscht" : `Stich ${view.trickNumber}/${dealCount(n)}`}
           </div>
-          <LastTrickButton trick={view.lastTrick} players={players} winner={lastWinner} />
           {lead && (
             <div className="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-display" style={{ background: `${SUITS[lead].primary}22`, border: `1px solid ${SUITS[lead].primary}66`, color: SUITS[lead].accent }} data-testid="active-lead-suit-indicator">
               {React.createElement(SUIT_ICON[lead], { size: 14 })} Angespielt: {SUITS[lead].people}
@@ -129,6 +138,7 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
                     {i === yourSeat && <span className="text-amber-300/80 text-[9px]">(du)</span>}
                     {passed && <Check size={11} className="text-emerald-400" />}
                     {offline && <WifiOff size={11} className="text-red-400" data-testid={`player-offline-${i}`} />}
+                    {p.reviewingLastTrick && <Eye size={13} className="text-amber-200" aria-label="Sieht letzten Stich an" />}
                   </div>
                   <div className="font-mono-stat text-[10px] text-slate-400/70">
                     <span className="text-red-300">{scores[i]} Hitze</span> · {handCounts[i]}K
@@ -152,21 +162,7 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
                 {phase === "passing" ? "Die Crews verhandeln im Hinterzimmer…" : "Die Straße wartet auf den ersten Zug…"}
               </p>
             )}
-            <div className="flex flex-wrap gap-3 justify-center items-end">
-              {trick.map((t, idx) => {
-                const center = (trick.length - 1) / 2;
-                return (
-                  <motion.div key={`${t.seat}-${t.card.id}`} className="flex flex-col items-center gap-1" initial={{ y: 130, rotate: (idx - center) * 10, scale: 0.5, opacity: 0 }} animate={{ y: 0, rotate: (idx - center) * 6, scale: 1, opacity: 1 }} transition={{ type: "spring", stiffness: 260, damping: 20 }}>
-                    <div className="flex items-center gap-1 rounded-full bg-black/50 px-2 py-0.5 border border-white/10">
-                      <Avatar avatar={players.find((p) => p.seat === t.seat)?.avatar} size={16} />
-                      <span className="text-[10px] text-slate-300/80 max-w-[70px] truncate">{nameOf(t.seat)}</span>
-                    </div>
-                    <CardView card={t.card} size="md" testId={`played-trick-card-${t.seat}`} className={phase === "trickEnd" && t.seat === lastWinner ? "glow-ring" : ""} />
-                  </motion.div>
-                );
-              })}
-            </div>
-          </div>
+          <TrickCards trick={trick} players={players} n={n} trickKey={`${view.roundIndex}-${view.trickNumber}`} winner={lastWinner} complete={phase === "trickEnd"} />
         </div>
 
         {/* bottom action area */}
@@ -179,8 +175,8 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
             </div>
             <div>
               {lastWinner === yourSeat || view.isHost ? (
-                <button onClick={actions.continueTrick} data-testid="btn-continue-trick" className="rounded-md px-8 py-3 font-display font-bold text-black bg-gradient-to-r from-yellow-300 to-amber-400 glow-ring">
-                  Einsammeln & weiter
+                <button disabled={!trickReady} onClick={actions.continueTrick} data-testid="btn-continue-trick" className="rounded-md px-8 py-3 font-display font-bold text-black bg-gradient-to-r from-yellow-300 to-amber-400 glow-ring disabled:opacity-60">
+                  {trickReady ? "Einsammeln & weiter" : "Stich ansehen…"}
                 </button>
               ) : (
                 <p className="font-serif-fancy text-slate-300/70 italic">Warten, bis {nameOf(lastWinner)} den Stich einsammelt…</p>
@@ -204,6 +200,7 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
                 ))}
               </div>
               <div className="text-center mt-3">
+                <SelectedCards hand={yourHand} selected={selected} count={view.passCount} onRemove={toggleSelect} />
                 <button disabled={selected.length !== view.passCount} onClick={() => { sfx.playCard(); actions.pass(selected); }} data-testid="btn-confirm-card-pass" className={`rounded-md px-8 py-3 font-display font-bold transition-all ${selected.length === view.passCount ? "text-black bg-gradient-to-r from-yellow-300 to-amber-400 glow-ring" : "text-slate-400/40 bg-black/30 border border-white/10 cursor-not-allowed"}`}>
                   Deal besiegeln
                 </button>
@@ -262,7 +259,7 @@ function Waiting({ text, yourHand }) {
   );
 }
 
-function Shell({ view, onLeave, sound, setSound, setRulesOpen, setStatsOpen, rulesOpen, statsOpen, children }) {
+function Shell({ view, actions, onLeave, sound, setSound, setRulesOpen, setStatsOpen, rulesOpen, statsOpen, children }) {
   const copyLink = () => {
     const url = `${window.location.origin}${window.location.pathname}?room=${view.code}`;
     navigator.clipboard?.writeText(url);
@@ -288,8 +285,11 @@ function Shell({ view, onLeave, sound, setSound, setRulesOpen, setStatsOpen, rul
         <GameHeaderButtons sound={sound} setSound={setSound} onRules={() => setRulesOpen(true)} onStats={() => setStatsOpen(true)} />
       </div>
       {children}
+      <LastTrickButton trick={view.lastTrick} players={view.players} winner={view.lastWinner} onReviewChange={view.isSpectator ? undefined : actions.reviewLastTrick} />
+      {view.players.some((p) => p.reviewingLastTrick && p.seat !== view.yourSeat) && <div className="trick-review-notice" role="status" data-testid="trick-review-notice"><Eye size={12} className="inline mr-1" />{view.players.filter((p) => p.reviewingLastTrick && p.seat !== view.yourSeat).map((p) => p.name).join(", ")} sieht letzten Stich an</div>}
       <RulesDialog open={rulesOpen} onOpenChange={setRulesOpen} />
       <StatsDialog open={statsOpen} onOpenChange={setStatsOpen} />
     </div>
   );
 }
+

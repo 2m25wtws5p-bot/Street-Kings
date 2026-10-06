@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { CardView } from "./CardView";
+import { SelectedCards } from "./SelectedCards";
 import { Avatar } from "./Avatar";
 import { targetSeat } from "../game/engine";
 import { ArrowRight, Handshake } from "lucide-react";
@@ -55,6 +56,7 @@ export function PassingScreen({ state, onConfirm }) {
       </div>
 
       <div className="flex flex-col items-center gap-3 mt-4">
+        <SelectedCards hand={hand} selected={selected} count={passCount} onRemove={toggle} />
         <div className="font-mono-stat text-sm text-amber-300" data-testid="passing-phase-selected-count">
           {selected.length} / {passCount} gewählt
         </div>

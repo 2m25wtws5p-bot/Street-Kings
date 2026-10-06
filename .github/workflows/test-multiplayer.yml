@@ -25,6 +25,10 @@ jobs:
       REACT_APP_BACKEND_URL: http://127.0.0.1:8000
       PYTHONPATH: backend
       CORS_ORIGINS: https://2m25wtws5p-bot.github.io
+      # Integration rounds run without wall-clock waits. Unit tests below
+      # explicitly exercise real production deadlines with a mocked clock.
+      BOT_PLAY_DELAY: "0"
+      TRICK_HOLD_SECONDS: "0"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

@@ -101,6 +101,8 @@ BOT_AVATARS = [
 BOT_NAMES = ["Vito", "Ronny", "Kalle", "Shorty", "Dragan", "Nadja", "Ivo", "Mischa"]
 OFFLINE_AFTER = 10.0  # seconds without a poll -> player counts as disconnected
 MAX_SPECTATORS = 20
+BOT_PLAY_DELAY = float(os.environ.get("BOT_PLAY_DELAY", "0.95"))
+TRICK_HOLD_SECONDS = float(os.environ.get("TRICK_HOLD_SECONDS", "2.0"))
 
 _locks: Dict[str, asyncio.Lock] = {}
 
@@ -144,6 +146,7 @@ class ActionReq(BaseModel):
     type: str  # 'pass' | 'play' | 'continueTrick' | 'nextRound'
     cards: Optional[List[str]] = None
     cardId: Optional[str] = None
+    reviewing: Optional[bool] = None
 
 
 def _gen_code() -> str:
@@ -219,6 +222,8 @@ def _start_tricks(room):
     room["trick"] = []
     room["trickNumber"] = 1
     room["phase"] = "playing"
+    room["nextBotAt"] = time.time() + BOT_PLAY_DELAY
+    room["trickEndedAt"] = None
 
 
 def _apply_play(room, card_id):
@@ -230,6 +235,7 @@ def _apply_play(room, card_id):
         return
     card = hand.pop(idx)
     room["trick"].append({"seat": seat, "card": card})
+    room["nextBotAt"] = time.time() + BOT_PLAY_DELAY
     if len(room["trick"]) < n:
         room["currentSeat"] = (seat + 1) % n
         return
@@ -238,6 +244,7 @@ def _apply_play(room, card_id):
     room["lastTrick"] = list(room["trick"])
     room["lastWinner"] = winner
     room["phase"] = "trickEnd"
+    room["trickEndedAt"] = time.time()
 
 
 def _do_continue_trick(room):
@@ -254,6 +261,8 @@ def _do_continue_trick(room):
     room["trick"] = []
     room["trickNumber"] = room["trickNumber"] + 1
     room["phase"] = "playing"
+    room["nextBotAt"] = time.time() + BOT_PLAY_DELAY
+    room["trickEndedAt"] = None
 
 
 def _do_next_round(room):
@@ -274,7 +283,12 @@ def _do_next_round(room):
 
 
 def _advance_bots(room):
-    """Auto-play bot seats until a human is required or a terminal phase."""
+    """Advance due bot moves only; deadlines persist across server restarts.
+
+    Active clients drive this under the room lock through polling. Each move
+    schedules its successor, so even six concurrent polls cannot skip a move.
+    Tests can use zero delays while production keeps every play observable.
+    """
     for _ in range(500):
         phase = room["phase"]
         if phase == "passing":
@@ -286,12 +300,16 @@ def _advance_bots(room):
         elif phase == "playing":
             cur = room["currentSeat"]
             if room["players"][cur]["isBot"]:
+                if time.time() < room.get("nextBotAt", 0):
+                    break
                 cid = eng.bot_play(room["hands"][cur], room["trick"])
                 _apply_play(room, cid)
                 continue
             break
         elif phase == "trickEnd":
             if room["players"][room["lastWinner"]]["isBot"]:
+                if time.time() < room.get("trickEndedAt", 0) + TRICK_HOLD_SECONDS:
+                    break
                 _do_continue_trick(room)
                 continue
             break
@@ -304,7 +322,7 @@ def _redact(room, token):
     me = _player_by_token(room, token)
     your_seat = me["seat"] if me else None
     players_pub = sorted(
-        [{"name": p["name"], "avatar": p["avatar"], "isBot": p["isBot"], "seat": p["seat"], "connected": _connected(p)} for p in room["players"]],
+        [{"name": p["name"], "avatar": p["avatar"], "isBot": p["isBot"], "seat": p["seat"], "connected": _connected(p), "reviewingLastTrick": p.get("review_until", 0) > time.time()} for p in room["players"]],
         key=lambda x: x["seat"],
     )
     view = {
@@ -319,6 +337,8 @@ def _redact(room, token):
         "spectators": [s["name"] for s in room.get("spectators", [])],
         "threshold": eng.WIN_THRESHOLD,
         "version": room.get("version", 0),
+        "trickEndedAt": room.get("trickEndedAt"),
+        "trickHoldMs": int(TRICK_HOLD_SECONDS * 1000),
     }
     if room["status"] == "lobby":
         return view
@@ -535,19 +555,34 @@ async def rematch_room(code: str, payload: TokenReq):
 
 @api_router.get("/rooms/{code}")
 async def get_room(code: str, token: str = ""):
-    room = await _get_room(code)
-    me = _player_by_token(room, token)
-    if me and not me["isBot"]:
-        now = time.time()
-        me["last_seen"] = now
-        await db.rooms.update_one({"_id": code, "players.token": token}, {"$set": {"players.$.last_seen": now}})
-    return _redact(room, token)
+    async with _lock(code):
+        room = await _get_room(code)
+        me = _player_by_token(room, token)
+        if me and not me["isBot"]:
+            now = time.time()
+            me["last_seen"] = now
+            await db.rooms.update_one({"_id": code, "players.token": token}, {"$set": {"players.$.last_seen": now}})
+        before = (room.get("phase"), room.get("trickNumber"), len(room.get("trick", [])))
+        if room["status"] == "playing":
+            _advance_bots(room)
+        after = (room.get("phase"), room.get("trickNumber"), len(room.get("trick", [])))
+        if before != after:
+            await _maybe_record(room)
+            await _save_room(room)
+        return _redact(room, token)
 
 
 @api_router.post("/rooms/{code}/action")
 async def room_action(code: str, payload: ActionReq):
     async with _lock(code):
         room = await _get_room(code)
+        if payload.type == "reviewLastTrick":
+            me = _player_by_token(room, payload.token)
+            if not me or me["isBot"]:
+                raise HTTPException(status_code=403, detail="Du sitzt nicht an diesem Tisch")
+            me["review_until"] = time.time() + 6 if payload.reviewing and room.get("lastTrick") else 0
+            await _save_room(room)
+            return _redact(room, payload.token)
         if room["status"] not in ("playing",):
             raise HTTPException(status_code=409, detail="Kein laufendes Spiel")
         me = _player_by_token(room, payload.token)
@@ -581,6 +616,8 @@ async def room_action(code: str, payload: ActionReq):
                 raise HTTPException(status_code=409, detail="Kein Stich zum Einsammeln")
             if seat != room["lastWinner"] and room["host_token"] != payload.token:
                 raise HTTPException(status_code=403, detail="Nur der Stichgewinner kann weitermachen")
+            if time.time() < (room.get("trickEndedAt") or 0) + TRICK_HOLD_SECONDS:
+                raise HTTPException(status_code=409, detail="Der Stich bleibt noch kurz sichtbar")
             _do_continue_trick(room)
         elif t == "nextRound":
             if phase != "roundScores":

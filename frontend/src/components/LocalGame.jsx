@@ -11,6 +11,7 @@ import { RulesDialog } from "@/components/RulesDialog";
 import { StatsDialog } from "@/components/StatsDialog";
 import { Avatar } from "@/components/Avatar";
 import { GameHeaderButtons } from "@/components/GameHeaderButtons";
+import { LastTrickButton } from "@/components/LastTrickButton";
 import { lowestSeats, botPass, botPlay } from "@/game/engine";
 import { recordGame } from "@/game/storage";
 import { sfx } from "@/game/sound";
@@ -66,7 +67,7 @@ export function LocalGame({ onExit, sound, setSound }) {
   const botActing =
     (state.phase === "playGate" && state.players?.[state.currentSeat]?.isBot) ||
     (state.phase === "passGate" && state.players?.[state.passSeat]?.isBot);
-  const showHeader = ["passing", "playing", "trickEnd", "roundScores"].includes(state.phase) || botActing;
+  const showHeader = state.phase !== "setup" || botActing;
 
   return (
     <div className="grain min-h-screen">
@@ -86,6 +87,7 @@ export function LocalGame({ onExit, sound, setSound }) {
       )}
 
       {state.phase === "setup" && <SetupScreen onStart={actions.startGame} />}
+      {state.phase !== "setup" && <LastTrickButton trick={state.lastTrick} players={state.players} winner={state.lastWinner} />}
 
       {state.phase === "passGate" &&
         (state.players[state.passSeat]?.isBot ? (
@@ -95,17 +97,12 @@ export function LocalGame({ onExit, sound, setSound }) {
         ))}
       {state.phase === "passing" && <PassingScreen state={state} onConfirm={actions.confirmPass} />}
 
-      {state.phase === "playGate" &&
-        (state.players[state.currentSeat]?.isBot ? (
-          <div className="sm:pt-10">
-            <PlayTable state={state} onPlay={() => {}} onContinueTrick={() => {}} hideHand />
-          </div>
-        ) : (
+      {state.phase === "playGate" && !state.players[state.currentSeat]?.isBot && (
           <PassGate player={state.players[state.currentSeat]} headline="Dein Zug" onReveal={actions.reveal} ctaPrefix="Karten zeigen" note="Die Straße ruft. Nimm das Gerät und spiel im Geheimen…" />
-        ))}
-      {(state.phase === "playing" || state.phase === "trickEnd") && (
+        )}
+      {(state.phase === "playing" || state.phase === "trickEnd" || (state.phase === "playGate" && state.players[state.currentSeat]?.isBot)) && (
         <div className="sm:pt-10">
-          <PlayTable state={state} onPlay={actions.playCard} onContinueTrick={actions.continueTrick} hideHand={state.phase === "playing" && state.players[state.currentSeat]?.isBot} />
+          <PlayTable state={state} onPlay={actions.playCard} onContinueTrick={actions.continueTrick} hideHand={state.players[state.currentSeat]?.isBot} />
         </div>
       )}
 
@@ -143,3 +140,4 @@ function BotWaiting({ player, text }) {
     </div>
   );
 }
+

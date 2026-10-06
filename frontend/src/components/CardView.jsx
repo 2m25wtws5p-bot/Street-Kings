@@ -70,6 +70,8 @@ export function CardView({
       onClick={onClick}
       data-testid={testId}
       data-special={special && !isWizard ? card.special : undefined}
+      data-selected={selected ? "true" : undefined}
+      aria-pressed={onClick ? selected : undefined}
       data-received-from={card.receivedFrom || undefined}
       aria-label={`${card.suit || "Laufjunge"} ${numeral}${special ? ` · ${special.label}: ${special.short}` : ""}${card.receivedFrom ? ` · von ${card.receivedFrom}` : ""}`}
       title={card.receivedFrom ? `Erhalten von ${card.receivedFrom}` : undefined}
@@ -88,6 +90,7 @@ export function CardView({
       <div className={`absolute inset-0 bg-gradient-to-b ${gradCls}`} />
       <div className="absolute inset-0 card-concrete" />
       <div className="absolute inset-[3px] rounded-md border border-white/10 pointer-events-none" />
+      {selected && <span className="card-selection-check" aria-hidden="true">✓</span>}
 
       {special ? (
         <>
