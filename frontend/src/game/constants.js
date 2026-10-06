@@ -6,7 +6,7 @@ export const SUITS = {
     people: "Hitze",
     realm: "Polizeidruck & Fahndung",
     icon: "siren",
-    primary: "#EF4444",
+    primary: "#e64949",
     accent: "#F87171",
     neon: "#FF2A2A",
     border: "#7F1D1D",
@@ -18,7 +18,7 @@ export const SUITS = {
     people: "Schwarzmarkt",
     realm: "Untergrundhandel",
     icon: "mask",
-    primary: "#FACC15",
+    primary: "#efbc35",
     accent: "#FDE047",
     neon: "#FFE600",
     border: "#713F12",
@@ -30,7 +30,7 @@ export const SUITS = {
     people: "Cash",
     realm: "Geld & Bargeld",
     icon: "banknote",
-    primary: "#00A3FF",
+    primary: "#3a8cdc",
     accent: "#38BDF8",
     neon: "#00E5FF",
     border: "#0C4A6E",
@@ -42,7 +42,7 @@ export const SUITS = {
     people: "Ware",
     realm: "Schmuggel & illegale Geschäfte",
     icon: "package",
-    primary: "#10B981",
+    primary: "#3cb87b",
     accent: "#34D399",
     neon: "#00FF88",
     border: "#064E3B",
@@ -117,4 +117,3 @@ export const AVATARS = [
 ];
 
 export const WIN_THRESHOLD = 70;
-
