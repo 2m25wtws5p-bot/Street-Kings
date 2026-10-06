@@ -7,6 +7,8 @@ import { sfx } from "../game/sound";
 function cardPose(id) {
   let seed = 0;
   for (const letter of id) seed = (seed * 31 + letter.charCodeAt(0)) >>> 0;
+  seed = Math.imul(seed ^ (seed >>> 16), 0x45d9f3b) >>> 0;
+  seed = (seed ^ (seed >>> 16)) >>> 0;
   return { tilt: ((seed % 101) / 100 - .5) * 7, lift: (seed % 5) - 2, duration: .48 + (seed % 6) * .017 };
 }
 

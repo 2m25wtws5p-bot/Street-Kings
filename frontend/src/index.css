@@ -190,6 +190,7 @@ body {
 .compact-hand > [data-selected="true"] { z-index:auto!important; transform:translateY(-18px); }
 .compact-hand > [data-selected="true"]:hover { transform:translateY(-18px); }
 .played-card-label { white-space:nowrap; }
+.game-table { overflow:clip; }
 .compact-hand > * { transition:transform .32s cubic-bezier(.18,.8,.25,1),box-shadow .35s ease,opacity .28s ease,filter .28s ease; }
 .game-roster > * { transition:background-color .45s ease,border-color .45s ease,box-shadow .45s ease,opacity .35s ease; }
 .last-trick-button { transition:background-color .25s ease,box-shadow .25s ease,transform .2s ease; }
