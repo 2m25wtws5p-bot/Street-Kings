@@ -32,7 +32,7 @@ jobs:
 
       - name: Frontend-Abhängigkeiten installieren
         working-directory: frontend
-        run: npm install
+        run: npm install --legacy-peer-deps
 
       - name: Produktionsversion erstellen
         working-directory: frontend
