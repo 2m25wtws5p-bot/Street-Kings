@@ -1,6 +1,7 @@
 {
   "name": "frontend",
   "version": "0.1.0",
+  "homepage": "https://2m25wtws5p-bot.github.io/Street-Kings",
   "private": true,
   "dependencies": {
     "@hookform/resolvers": "5.0.1",
