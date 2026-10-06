@@ -200,7 +200,9 @@ def test_full_game_host_plus_bots_completes(s):
             hand = view["yourHand"]
             trick = view["trick"]
             if trick:
-                lead = trick[0]["card"]["suit"]
+                # Laufjungen (value 0) do not establish the lead suit.
+                lead = next((entry["card"]["suit"] for entry in trick
+                             if entry["card"]["value"] != 0), None)
                 follow = [c for c in hand if c["suit"] == lead]
                 pick = follow[0] if follow else hand[0]
             else:
