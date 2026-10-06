@@ -44,7 +44,15 @@ export function OnlineFlow({ initialCode, onExit, sound, setSound }) {
             localStorage.removeItem(LS_KEY);
           }
         })
-        .catch(() => localStorage.removeItem(LS_KEY))
+        .catch((error) => {
+          if ([403, 404].includes(error?.response?.status)) {
+            localStorage.removeItem(LS_KEY);
+          } else {
+            // Keep the reconnect token during temporary server/network failures.
+            setSession(s);
+            setUrlRoom(s.code);
+          }
+        })
         .finally(() => setResuming(false));
     } catch {
       setResuming(false);
