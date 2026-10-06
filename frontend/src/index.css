@@ -219,8 +219,8 @@ body {
   .compact-hand .card-source { top:38px; max-height:50px; }
   .game-passing { min-height:100dvh; padding-top:100px; padding-bottom:10px; }
   .game-passing > :first-child { margin-bottom:4px; }
-  .game-passing h2 { font-size:18px; }
-  .game-passing p { font-size:13px; }
+  .game-passing h2 { font-size:18px; line-height:24px; }
+  .game-passing p { font-size:13px; line-height:18px; }
   .game-passing > :last-child { gap:6px; margin-top:8px; }
   .game-passing [data-testid="btn-confirm-card-pass"] { padding:8px 24px; font-size:16px; }
   .selected-cards { gap:6px; min-height:52px; }
@@ -237,3 +237,4 @@ body {
   .game-center [data-testid^="played-trick-card-"] { height:64px; }
   .game-table [data-testid="trick-winner-banner"] { margin-bottom:6px; }
 }
+

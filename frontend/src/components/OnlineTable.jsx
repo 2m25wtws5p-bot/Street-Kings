@@ -163,6 +163,7 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
               </p>
             )}
           <TrickCards trick={trick} players={players} n={n} trickKey={`${view.roundIndex}-${view.trickNumber}`} winner={lastWinner} complete={phase === "trickEnd"} />
+          </div>
         </div>
 
         {/* bottom action area */}
@@ -292,4 +293,5 @@ function Shell({ view, actions, onLeave, sound, setSound, setRulesOpen, setStats
     </div>
   );
 }
+
 
