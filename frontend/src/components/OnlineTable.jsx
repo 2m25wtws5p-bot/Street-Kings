@@ -248,9 +248,9 @@ function SpectatorBar({ phase, currentSeat, lastWinner, nameOf, passed = [], n }
 function Waiting({ text, yourHand }) {
   return (
     <div className="px-4 pb-10 text-center rise-in" data-testid="waiting-indicator">
-      <div className="font-serif-fancy text-slate-300/70 italic text-lg mb-3 flex items-center justify-center gap-2">
+      {text && <div className="font-serif-fancy text-slate-300/70 italic text-lg mb-3 flex items-center justify-center gap-2">
         <Hourglass size={18} className="text-amber-300 candle-flicker" /> {text}
-      </div>
+      </div>}
       {yourHand && (
         <div className="compact-hand flex flex-wrap justify-center gap-1 max-w-4xl mx-auto opacity-80">
           {yourHand.map((c) => (
@@ -293,4 +293,3 @@ function Shell({ view, onLeave, sound, setSound, setRulesOpen, setStatsOpen, rul
     </div>
   );
 }
-
