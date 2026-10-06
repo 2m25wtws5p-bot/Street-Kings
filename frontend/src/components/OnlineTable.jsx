@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { CardView, SUIT_ICON } from "./CardView";
 import { Avatar } from "./Avatar";
+import { LastTrickButton } from "./LastTrickButton";
 import { RoundScores } from "./RoundScores";
 import { GameOver } from "./GameOver";
 import { GameHeaderButtons } from "./GameHeaderButtons";
@@ -98,11 +99,12 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
 
   return (
     <Shell {...shellProps}>
-      <div className="min-h-screen coven-bg flex flex-col pt-10">
+      <div className="game-table min-h-screen coven-bg flex flex-col pt-10">
         <div className="flex items-center justify-between px-4 pt-2 pb-2">
           <div className="font-mono-stat text-xs text-slate-300/70">
             Runde {(view.roundIndex ?? 0) + 1} · {phase === "passing" ? "Karten werden getauscht" : `Stich ${view.trickNumber}/${dealCount(n)}`}
           </div>
+          <LastTrickButton trick={view.lastTrick} players={players} winner={lastWinner} />
           {lead && (
             <div className="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-display" style={{ background: `${SUITS[lead].primary}22`, border: `1px solid ${SUITS[lead].primary}66`, color: SUITS[lead].accent }} data-testid="active-lead-suit-indicator">
               {React.createElement(SUIT_ICON[lead], { size: 14 })} Angespielt: {SUITS[lead].people}
@@ -111,7 +113,7 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
         </div>
 
         {/* roster */}
-        <div className="flex flex-wrap gap-2 justify-center px-3 pb-2">
+        <div className="game-roster flex flex-wrap gap-2 justify-center px-3 pb-2">
           {players.map((p) => {
             const i = p.seat;
             const isCurrent = phase === "playing" && i === currentSeat;
@@ -143,7 +145,7 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
         </div>
 
         {/* table center */}
-        <div className="flex-1 grid place-items-center px-4 py-2">
+        <div className="game-center flex-1 grid place-items-center px-4 py-2">
           <div className="relative w-full max-w-2xl min-h-[200px] rounded-[40%] grid place-items-center" style={{ background: "radial-gradient(ellipse at center, rgba(239,68,68,0.10), rgba(13,15,19,0) 70%)" }} data-testid="central-trick-cauldron">
             {trick.length === 0 && phase !== "trickEnd" && (
               <p className="font-serif-fancy text-slate-400/50 italic text-lg">
@@ -184,10 +186,11 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
                 <p className="font-serif-fancy text-slate-300/70 italic">Warten, bis {nameOf(lastWinner)} den Stich einsammelt…</p>
               )}
             </div>
+            <Waiting yourHand={yourHand} text="" />
           </div>
         ) : phase === "passing" ? (
           iPassed ? (
-            <Waiting text={`Deal besiegelt! Warten auf die anderen Crews… (${view.passedSeats.filter(Boolean).length}/${n})`} />
+            <Waiting yourHand={yourHand} text={`Deal besiegelt! Warten auf die anderen Crews… (${view.passedSeats.filter(Boolean).length}/${n})`} />
           ) : (
             <div className="px-2 pb-4" data-testid="passing-hand-container">
               <div className="text-center mb-2 font-serif-fancy text-slate-300/80" data-testid="passing-phase-instructions">
@@ -195,7 +198,7 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
                 <span className="text-amber-200 font-semibold font-display">{nameOf(view.passTarget)}</span>
                 <span className="font-mono-stat text-amber-300 text-sm ml-2" data-testid="passing-phase-selected-count">{selected.length}/{view.passCount}</span>
               </div>
-              <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2 max-w-5xl mx-auto">
+              <div className="compact-hand flex flex-wrap justify-center gap-1.5 sm:gap-2 max-w-5xl mx-auto">
                 {yourHand.map((card) => (
                   <CardView key={card.id} card={card} size="md" selected={selected.includes(card.id)} onClick={() => toggleSelect(card.id)} testId={`pass-card-item-${card.id}`} />
                 ))}
@@ -213,7 +216,7 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
               <span className="text-amber-200 font-semibold font-display">Dein Zug</span>, spiel deine Karte
               {armed && <span className="text-amber-400/80 text-sm"> — nochmal tippen, um sie zu legen</span>}
             </div>
-            <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2 max-w-5xl mx-auto">
+            <div className="compact-hand flex flex-wrap justify-center gap-1.5 sm:gap-2 max-w-5xl mx-auto">
               {yourHand.map((card) => (
                 <CardView key={card.id} card={card} size="md" selected={armed === card.id} dim={!legal.has(card.id)} onClick={() => clickPlay(card)} testId={`hand-card-item-${card.id}`} />
               ))}
@@ -249,7 +252,7 @@ function Waiting({ text, yourHand }) {
         <Hourglass size={18} className="text-amber-300 candle-flicker" /> {text}
       </div>
       {yourHand && (
-        <div className="flex flex-wrap justify-center gap-1 max-w-4xl mx-auto opacity-80">
+        <div className="compact-hand flex flex-wrap justify-center gap-1 max-w-4xl mx-auto opacity-80">
           {yourHand.map((c) => (
             <CardView key={c.id} card={c} size="sm" />
           ))}
@@ -290,3 +293,4 @@ function Shell({ view, onLeave, sound, setSound, setRulesOpen, setStatsOpen, rul
     </div>
   );
 }
+

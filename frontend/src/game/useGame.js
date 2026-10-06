@@ -48,7 +48,7 @@ function beginRound(base) {
   return startTricks({ ...common, passCount: 0, passDir: 0 });
 }
 
-function applyPasses(hands, pending, dir, n) {
+function applyPasses(hands, pending, dir, n, players) {
   const remaining = hands.map((h) => [...h]);
   const incoming = Array.from({ length: n }, () => []);
   for (let seat = 0; seat < n; seat++) {
@@ -56,7 +56,7 @@ function applyPasses(hands, pending, dir, n) {
     const give = [];
     remaining[seat] = remaining[seat].filter((c) => {
       if (sel.includes(c.id)) {
-        give.push(c);
+        give.push({ ...c, receivedFrom: players[seat].name });
         return false;
       }
       return true;
@@ -99,7 +99,7 @@ function continueTrick(state) {
     return { ...state, phase: "roundScores", roundResult: { results, shooter, spellName }, scores, totalRounds: state.totalRounds + 1 };
   }
   const winner = state.lastWinner;
-  return { ...state, phase: "playGate", leader: winner, currentSeat: winner, trick: [], trickNumber: state.trickNumber + 1, lastTrick: null };
+  return { ...state, phase: "playGate", leader: winner, currentSeat: winner, trick: [], trickNumber: state.trickNumber + 1 };
 }
 
 function reducer(state, action) {
@@ -119,7 +119,7 @@ function reducer(state, action) {
       const nextSeat = state.passSeat + 1;
       if (nextSeat < state.n)
         return { ...state, pendingSelections: pending, passSeat: nextSeat, phase: "passGate" };
-      const hands = applyPasses(state.hands, pending, state.passDir, state.n);
+      const hands = applyPasses(state.hands, pending, state.passDir, state.n, state.players);
       return startTricks({ ...state, hands, pendingSelections: pending });
     }
     case "PLAY_CARD":
@@ -164,3 +164,4 @@ export function useWitchesGame() {
   };
   return { state, actions };
 }
+

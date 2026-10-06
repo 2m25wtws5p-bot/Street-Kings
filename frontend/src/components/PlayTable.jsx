@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { CardView, SUIT_ICON } from "./CardView";
 import { Avatar } from "./Avatar";
+import { LastTrickButton } from "./LastTrickButton";
 import { legalCardIds, leadSuit, dealCount } from "../game/engine";
 import { SUITS } from "../game/constants";
 import { Trophy } from "lucide-react";
@@ -49,13 +50,14 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) 
   };
 
   return (
-    <div className="min-h-screen coven-bg flex flex-col">
+    <div className="game-table min-h-screen coven-bg flex flex-col">
       {/* header row */}
       <div className="flex items-center justify-between px-4 pt-3 pb-2">
         <div className="font-mono-stat text-xs text-slate-300/70">
           Runde {state.roundIndex + 1} · Stich {trickNumber}/{totalTricks}
         </div>
-        {lead && (
+        <LastTrickButton trick={state.lastTrick} players={players} winner={lastWinner} />
+          {lead && (
           <div
             className="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-display"
             style={{ background: `${SUITS[lead].primary}22`, border: `1px solid ${SUITS[lead].primary}66`, color: SUITS[lead].accent }}
@@ -67,7 +69,7 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) 
       </div>
 
       {/* opponents roster */}
-      <div className="flex flex-wrap gap-2 justify-center px-3 pb-2">
+      <div className="game-roster flex flex-wrap gap-2 justify-center px-3 pb-2">
         {players.map((p, i) => (
           <div
             key={i}
@@ -92,7 +94,7 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) 
       </div>
 
       {/* table center */}
-      <div className="flex-1 grid place-items-center px-4 py-2">
+      <div className="game-center flex-1 grid place-items-center px-4 py-2">
         <div
           className="relative w-full max-w-2xl min-h-[220px] rounded-[40%] grid place-items-center"
           style={{ background: "radial-gradient(ellipse at center, rgba(239,68,68,0.10), rgba(13,15,19,0) 70%)" }}
@@ -168,7 +170,7 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) 
             <span className="text-amber-200 font-semibold font-display">{active.name}</span>, spiel deine Karte
             {armed && <span className="text-amber-400/80 text-sm"> — nochmal tippen, um sie auf den Tisch zu legen</span>}
           </div>
-          <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2 max-w-5xl mx-auto">
+          <div className="compact-hand flex flex-wrap justify-center gap-1.5 sm:gap-2 max-w-5xl mx-auto">
             {hand.map((card) => (
               <CardView
                 key={card.id}
@@ -186,3 +188,4 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) 
     </div>
   );
 }
+

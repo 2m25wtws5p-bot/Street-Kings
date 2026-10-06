@@ -170,3 +170,40 @@ body {
         display: contents !important;
     }
 }
+
+/* Compact hand: keep every card's value and suit reachable without scrolling. */
+.compact-hand > [data-special] { top: -8px; }
+.card-source { position:absolute; z-index:2; top:46px; left:3px; font-size:9px; line-height:12px; writing-mode:vertical-rl; max-height:60px; overflow:hidden; white-space:nowrap; color:#fef3c7; background:#171a21dd; border-radius:3px; padding:2px 0; }
+.last-trick-button { flex-shrink:0; border:1px solid #fbbf2455; border-radius:6px; padding:5px 8px; color:#fde68a; font-size:11px; background:#171a21; }
+.last-trick-button:disabled { opacity:.4; }
+.last-trick-dialog { color:#e2e8f0; background:#171a21; border:1px solid #fbbf2455; border-radius:12px; padding:20px; width:min(560px,calc(100vw - 24px)); margin:auto; max-height:90dvh; overflow:auto; }
+.last-trick-dialog::backdrop { background:#000b; }
+@media (max-width:639px) {
+  .game-table { min-height:100dvh; padding-top:52px; }
+  .game-table > :first-child { gap:4px; padding:4px 8px; flex-wrap:wrap; }
+  .game-roster { gap:4px; padding:2px 6px 4px; }
+  .game-roster > div { padding:3px 5px; gap:4px; flex:1 1 28%; min-width:0; }
+  .game-roster > div > :first-child { width:22px!important; height:22px!important; }
+  .game-roster .font-display { font-size:10px; max-width:76px; }
+  .game-center { min-height:100px; padding:4px 8px; }
+  .game-center > div { min-height:100px; }
+  .game-center p { font-size:12px; text-align:center; }
+  .game-center [data-testid^="played-trick-card-"] { width:48px; height:76px; }
+  .game-center [data-testid^="played-trick-card-"] .font-display { font-size:16px; }
+  .game-center > div > div { gap:5px; }
+  .game-table > div:last-child { padding:4px 8px 10px; }
+  .game-table > div:last-child .text-lg, .game-table > div:last-child .text-xl { font-size:13px; }
+  .game-table > div:last-child button:not([data-testid^="hand-card-"]):not([data-testid^="pass-card-"]) { padding-top:7px; padding-bottom:7px; }
+  .game-table [data-testid="waiting-indicator"] { padding:4px 0 8px; }
+  .compact-hand { display:grid; grid-template-columns:repeat(10,minmax(0,1fr)); column-gap:0; row-gap:22px; width:calc(100% - 38px); max-width:480px; margin:20px auto 4px; padding:0; justify-content:start; }
+  .compact-hand > * { width:64px; height:96px; position:relative; }
+  .compact-hand > *:nth-child(10n) { z-index:1; }
+  .compact-hand > *:focus-visible, .compact-hand > *.z-20 { z-index:30; }
+  .compact-hand .font-display.text-2xl { font-size:20px; }
+  .compact-hand .card-source { top:38px; max-height:50px; }
+  .game-passing { min-height:100dvh; padding-top:56px; padding-bottom:10px; }
+  .game-passing > :first-child { margin-bottom:4px; }
+  .game-passing h2 { font-size:18px; }
+  .game-passing p { font-size:13px; }
+  .game-passing > :last-child { gap:6px; margin-top:8px; }
+}

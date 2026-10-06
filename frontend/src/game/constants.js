@@ -95,7 +95,7 @@ export const SPECIALS = {
     key: "pygmy",
     label: "Patin",
     short: "+10 HITZE",
-    tag: "#E11D48",
+    tag: "#00FF88",
     desc: "Die mächtigste Figur der Unterwelt, über allen Crews (Ware 12). Wer sie kassiert, zieht brutale +10 Hitze auf sich.",
   },
   wizard: {
@@ -117,3 +117,4 @@ export const AVATARS = [
 ];
 
 export const WIN_THRESHOLD = 70;
+

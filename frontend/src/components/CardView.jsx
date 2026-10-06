@@ -69,6 +69,10 @@ export function CardView({
       type={onClick ? "button" : undefined}
       onClick={onClick}
       data-testid={testId}
+      data-special={special && !isWizard ? card.special : undefined}
+      data-received-from={card.receivedFrom || undefined}
+      aria-label={`${card.suit || "Laufjunge"} ${numeral}${special ? ` · ${special.label}: ${special.short}` : ""}${card.receivedFrom ? ` · von ${card.receivedFrom}` : ""}`}
+      title={card.receivedFrom ? `Erhalten von ${card.receivedFrom}` : undefined}
       className={`${sizeCls} relative shrink-0 rounded-lg overflow-hidden text-left transition-transform duration-200 ${
         selected ? "-translate-y-4 z-20" : ""
       } ${dim ? "opacity-40 saturate-50" : ""} ${onClick ? "cursor-pointer hover:-translate-y-1" : ""} ${className}`}
@@ -110,6 +114,7 @@ export function CardView({
       )}
 
       {/* top-left pip */}
+      {card.receivedFrom && <span className="card-source" title={`Erhalten von ${card.receivedFrom}`}>↪ {card.receivedFrom}</span>}
       <div className="absolute top-1 left-1.5 flex flex-col items-center leading-none">
         <span className={`font-display font-black ${NUM[size]}`} style={{ color: pipColor, textShadow: `0 0 8px ${neon}88, 0 1px 3px rgba(0,0,0,0.9)` }}>
           {numeral}
@@ -144,3 +149,4 @@ export function CardView({
     </Comp>
   );
 }
+

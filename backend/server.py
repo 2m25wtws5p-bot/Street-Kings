@@ -200,7 +200,8 @@ def _apply_passes(room):
     incoming = [[] for _ in range(n)]
     for seat in range(n):
         sel = set(room["pendingSelections"].get(str(seat), []))
-        give = [c for c in hands[seat] if c["id"] in sel]
+        source_name = next(p["name"] for p in room["players"] if p["seat"] == seat)
+        give = [{**c, "receivedFrom": source_name} for c in hands[seat] if c["id"] in sel]
         hands[seat] = [c for c in hands[seat] if c["id"] not in sel]
         incoming[eng.target_seat(seat, d, n)].extend(give)
     for seat in range(n):
@@ -623,3 +624,4 @@ async def _ensure_indexes():
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
+

@@ -24,7 +24,7 @@ export function PassingScreen({ state, onConfirm }) {
   const done = selected.length === passCount;
 
   return (
-    <div className="min-h-screen coven-bg flex flex-col px-3 py-5">
+    <div className="game-passing min-h-screen coven-bg flex flex-col px-3 py-5">
       <div className="text-center mb-4 rise-in">
         <div className="flex items-center justify-center gap-3 mb-2">
           <Avatar avatar={me.avatar} size={38} />
@@ -40,7 +40,7 @@ export function PassingScreen({ state, onConfirm }) {
       </div>
 
       <div className="flex-1 flex items-center justify-center">
-        <div className="flex flex-wrap justify-center gap-2 max-w-4xl">
+        <div className="compact-hand flex flex-wrap justify-center gap-2 max-w-4xl">
           {hand.map((card) => (
             <CardView
               key={card.id}
@@ -78,3 +78,4 @@ export function PassingScreen({ state, onConfirm }) {
     </div>
   );
 }
+
