@@ -15,7 +15,7 @@ try {
   configurationError = "Der Online-Spielserver ist nicht eingerichtet. Die Veröffentlichung benötigt eine gültige HTTPS-Spielserver-Adresse (REACT_APP_BACKEND_URL).";
 }
 const API = backendUrl.endsWith("/api") ? backendUrl : `${backendUrl}/api`;
-const client = axios.create({ timeout: 15000 });
+const client = axios.create({ timeout: 120000 });
 client.interceptors.request.use((config) => {
   if (configurationError) {
     const error = new Error(configurationError);
@@ -30,7 +30,7 @@ export function onlineErrorMessage(error) {
   const detail = error?.response?.data?.detail;
   if (typeof detail === "string") return detail;
   if (error?.code === "ECONNABORTED" || error?.code === "ETIMEDOUT") {
-    return "Der Spielserver antwortet nicht rechtzeitig. Bitte versuche es noch einmal.";
+    return "Der Spielserver antwortet nicht rechtzeitig. Kostenlose Server benötigen nach einer Ruhephase etwas Zeit zum Aufwachen. Bitte versuche es noch einmal.";
   }
   if (!error?.response) {
     return "Der Spielserver ist nicht erreichbar. Prüfe deine Verbindung; möglicherweise ist der Server offline oder blockiert die Verbindung.";
