@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { roomApi } from "./api";
+import { roomApi, onlineErrorMessage } from "./api";
 
 export function useOnlineGame(code, token) {
   const [view, setView] = useState(null);
@@ -14,7 +14,7 @@ export function useOnlineGame(code, token) {
       setView(v);
       setError(null);
     } catch (e) {
-      setError(e?.response?.status || "error");
+      setError(onlineErrorMessage(e));
     }
   }, [code]);
 
