@@ -1,0 +1,55 @@
+name: Test online multiplayer
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  multiplayer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      mongo:
+        image: mongo:7
+        ports: ["27017:27017"]
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.adminCommand({ping:1})'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      MONGO_URL: mongodb://127.0.0.1:27017
+      DB_NAME: street_kings_ci
+      REACT_APP_BACKEND_URL: http://127.0.0.1:8000
+      PYTHONPATH: backend
+      CORS_ORIGINS: https://2m25wtws5p-bot.github.io
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install server and test dependencies
+        run: python -m pip install -r backend/requirements.runtime.txt pytest pytest-xdist requests
+      - name: Start test server
+        run: nohup python -m uvicorn server:app --app-dir backend --host 127.0.0.1 --port 8000 --workers 1 > backend-test.log 2>&1 &
+      - name: Wait for server and database
+        run: |
+          python - <<'PY'
+          import time, urllib.request
+          for attempt in range(30):
+              try:
+                  with urllib.request.urlopen("http://127.0.0.1:8000/api/health", timeout=2) as response:
+                      if response.status == 200:
+                          break
+              except Exception:
+                  time.sleep(1)
+          else:
+              raise SystemExit("Server/database readiness check failed")
+          PY
+      - name: Test existing features and three-player online round
+        run: python -m pytest backend/tests
+      - name: Show server logs on failure
+        if: failure()
+        run: cat backend-test.log
