@@ -351,7 +351,9 @@ body {
   .crew-name > span:first-child { max-width:72px; }
   .crew-stats { font-size:9px; gap:3px; }
   .crew-heat > span { display:none; }
-  .crew-heat { padding:2px 3px; }
+  .crew-heat { padding:1px 2px; gap:1px; }
+  .crew-heat b { font-size:12px; }
+  .crew-card-count { padding:1px 2px; gap:1px; }
   .crew-identity { flex:1; }
   .crew-heat svg,.crew-card-count svg { width:9px; height:9px; }
   .card-impact-label { font-size:6px; }
