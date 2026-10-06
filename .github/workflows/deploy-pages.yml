@@ -36,6 +36,8 @@ jobs:
 
       - name: Produktionsversion erstellen
         working-directory: frontend
+        env:
+          REACT_APP_BACKEND_URL: ${{ vars.REACT_APP_BACKEND_URL || secrets.REACT_APP_BACKEND_URL }}
         run: npm run build
 
       - name: Pages-Dateien hochladen
