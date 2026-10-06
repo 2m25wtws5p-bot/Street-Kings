@@ -90,7 +90,7 @@ def test_three_independent_players_complete_round_with_private_hands():
             other_seat = (seat + 1) % 3
             call("POST", f"/rooms/{code}/action", expected=409, json={
                 "token": tokens[other_seat], "type": "play",
-                "cardId": view(code, tokens[other_seat])["yourHand"][0]["id"],
+                "cardId": legal[0],
             })
             call("POST", f"/rooms/{code}/action", json={
                 "token": tokens[seat], "type": "play", "cardId": legal[0],
