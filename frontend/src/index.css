@@ -195,7 +195,7 @@ body {
   .game-table > div:last-child .text-lg, .game-table > div:last-child .text-xl { font-size:13px; }
   .game-table > div:last-child button:not([data-testid^="hand-card-"]):not([data-testid^="pass-card-"]) { padding-top:7px; padding-bottom:7px; }
   .game-table [data-testid="waiting-indicator"] { padding:4px 0 8px; }
-  .compact-hand { display:grid; grid-template-columns:repeat(10,minmax(0,1fr)); column-gap:0; row-gap:22px; width:calc(100% - 38px); max-width:480px; margin:20px auto 4px; padding:0; justify-content:start; }
+  .compact-hand { display:grid; grid-template-columns:repeat(10,minmax(0,1fr)); column-gap:0; row-gap:22px; width:calc(100% - 40px); max-width:480px; margin:20px 40px 4px 0; padding:0; justify-content:start; }
   .compact-hand > * { width:64px; height:96px; position:relative; }
   .compact-hand > *:nth-child(10n) { z-index:1; }
   .compact-hand > *:focus-visible, .compact-hand > *.z-20 { z-index:30; }

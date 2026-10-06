@@ -72,6 +72,13 @@ def test_three_independent_players_complete_round_with_private_hands():
             "cards": [card["id"] for card in current["yourHand"][:current["passCount"]]],
         })
 
+    for source, original in enumerate(views):
+        target = original["passTarget"]
+        passed_ids = {card["id"] for card in original["yourHand"][:original["passCount"]]}
+        received = [card for card in view(code, tokens[target])["yourHand"] if card["id"] in passed_ids]
+        assert len(received) == original["passCount"]
+        assert all(card["receivedFrom"] == original["players"][source]["name"] for card in received)
+
     for _ in range(100):
         current = view(code, tokens[0])
         if current["phase"] == "roundScores":
@@ -82,6 +89,8 @@ def test_three_independent_players_complete_round_with_private_hands():
         if current["phase"] == "trickEnd":
             call("POST", f"/rooms/{code}/action",
                  json={"token": tokens[current["lastWinner"]], "type": "continueTrick"})
+            continued = view(code, tokens[0])
+            assert continued["lastTrick"] == current["lastTrick"]
         else:
             assert current["phase"] == "playing"
             seat = current["currentSeat"]
@@ -97,3 +106,4 @@ def test_three_independent_players_complete_round_with_private_hands():
             })
     else:
         raise AssertionError("Three-player round did not finish")
+
