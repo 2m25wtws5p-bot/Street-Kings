@@ -50,6 +50,8 @@ jobs:
           PY
       - name: Test existing features and three-player online round
         run: python -m pytest backend/tests
+      - name: Verify deployment image builds
+        run: docker build -t street-kings-server:ci .
       - name: Show server logs on failure
         if: failure()
         run: cat backend-test.log
