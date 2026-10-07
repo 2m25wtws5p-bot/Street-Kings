@@ -373,6 +373,10 @@ body {
   .compact-hand > .street-card:hover,
   .compact-hand > .street-card:focus-visible,
   .compact-hand > .street-card[data-selected="true"] { z-index:auto!important; transform:none!important; }
+  .compact-hand > .street-card[data-selected="true"],
+  .compact-hand > .street-card[data-selected="true"]:hover,
+  .compact-hand > .street-card[data-selected="true"]:focus-visible { transform:translateY(-12px)!important; }
+  .compact-hand > .street-card { transition:transform .3s cubic-bezier(.2,.75,.25,1),box-shadow .3s ease; }
   .compact-hand .card-pip-top { min-width:15px; padding:0; gap:0; }
   .compact-hand .card-pip-top .font-display { font-size:17px; line-height:1; }
   .compact-hand .card-pip-top svg { width:8px; height:8px; }

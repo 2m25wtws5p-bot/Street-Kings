@@ -98,7 +98,7 @@ BOT_AVATARS = [
     {"key": "boss", "label": "Boss", "icon": "crown", "color": "#C084FC"},
     {"key": "dealer", "label": "Dealer", "icon": "banknote", "color": "#F472B6"},
 ]
-BOT_NAMES = ["Vito", "Ronny", "Kalle", "Shorty", "Dragan", "Nadja", "Ivo", "Mischa"]
+BOT_NAMES = ["Brooklyn Ace", "Harlem Slim", "Queens Rico", "Big Dre", "Uptown Jade", "Bronx Ghost"]
 OFFLINE_AFTER = 10.0  # seconds without a poll -> player counts as disconnected
 MAX_SPECTATORS = 20
 BOT_PLAY_DELAY = float(os.environ.get("BOT_PLAY_DELAY", "0.95"))
@@ -666,4 +666,3 @@ async def _ensure_indexes():
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
-

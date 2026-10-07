@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { AVATARS } from "../game/constants";
+import { AVATARS, BOT_NAMES } from "../game/constants";
 import { Avatar } from "./Avatar";
 import { Siren, Users, Play, Bot, User } from "lucide-react";
 import { sfx } from "../game/sound";
@@ -33,7 +33,7 @@ export function SetupScreen({ onStart }) {
 
   const start = () => {
     const players = Array.from({ length: count }, (_, i) => ({
-      name: (names[i] || "").trim() || `${AVATARS[avatars[i]].label} ${i + 1}`,
+      name: (names[i] || "").trim() || (i > 0 && bots[i] ? BOT_NAMES[i % BOT_NAMES.length] : `${AVATARS[avatars[i]].label} ${i + 1}`),
       avatar: AVATARS[avatars[i]],
       isBot: i === 0 ? false : bots[i],
     }));
@@ -117,7 +117,7 @@ export function SetupScreen({ onStart }) {
                     setNames(nx);
                   }}
                   maxLength={16}
-                  placeholder={`${AVATARS[avatars[i]].label} ${i + 1}`}
+                  placeholder={i > 0 && bots[i] ? BOT_NAMES[i % BOT_NAMES.length] : `${AVATARS[avatars[i]].label} ${i + 1}`}
                   data-testid={`input-player-name-${i}`}
                   className="flex-1 bg-black/40 border border-white/10 focus:border-amber-400/60 rounded-lg px-3 py-2.5 text-slate-50 placeholder:text-slate-400/40 outline-none transition-colors font-serif-fancy text-lg"
                 />

@@ -117,3 +117,5 @@ export const AVATARS = [
 ];
 
 export const WIN_THRESHOLD = 70;
+// Fictional street nicknames, shared with the server's bot defaults.
+export const BOT_NAMES = ["Brooklyn Ace", "Harlem Slim", "Queens Rico", "Big Dre", "Uptown Jade", "Bronx Ghost"];
