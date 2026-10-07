@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import axios from "axios";
+import { gameApi } from "@/game/api";
 import { useWitchesGame } from "@/game/useGame";
 import { SetupScreen } from "@/components/SetupScreen";
 import { PassGate } from "@/components/PassGate";
@@ -18,8 +18,6 @@ import { lowestSeats, botPass, botPlay } from "@/game/engine";
 import { recordGame } from "@/game/storage";
 import { sfx } from "@/game/sound";
 import { Home } from "lucide-react";
-
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export function LocalGame({ onExit, sound, setSound }) {
   const { state, actions } = useWitchesGame();
@@ -48,8 +46,8 @@ export function LocalGame({ onExit, sound, setSound }) {
     savedRef.current = true;
     const winners = lowestSeats(state.scores).map((i) => state.players[i].name);
     recordGame({ players: state.players, scores: state.scores, winnerNames: winners, rounds: state.totalRounds });
-    axios
-      .post(`${API}/games`, {
+    gameApi
+      .record({
         players: state.n,
         rounds: state.totalRounds,
         scores: state.players.map((p, i) => ({ name: p.name, score: state.scores[i] })),

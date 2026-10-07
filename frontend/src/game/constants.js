@@ -68,7 +68,7 @@ export const SPECIALS = {
     label: "Kingpin",
     short: "HITZE x2",
     tag: "#EF4444",
-    desc: "Der mächtigste Gangster der Stadt (Hitze 11). Verdoppelt die gesamte Hitze, die du in dieser Runde kassierst (maximal 15). Er selbst bringt keine Hitze.",
+    desc: "Der mächtigste Gangster der Stadt (Hitze 11). Verdoppelt die Hitze deiner übrigen roten Karten (höchstens 15 Hitze für rote Karten). Er selbst bringt keine Hitze.",
   },
   water: {
     key: "water",

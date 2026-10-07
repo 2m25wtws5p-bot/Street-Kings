@@ -9,7 +9,7 @@ const { captureCardExchange, exchangeHistoryAvailable, localExchangeSeat } = awa
 const fixture = (n) => ({
   players: Array.from({ length: n }, (_, seat) => ({ name: `Crew ${seat}`, isBot: seat > 1 })),
   hands: Array.from({ length: n }, (_, seat) => Array.from({ length: 4 }, (_, value) => ({ id: `${seat}-${value}`, value, suit: "RED", special: null }))),
-  pending: Array.from({ length: n }, (_, seat) => [`${seat}-0`, `${seat}-2`]),
+  pending: Array.from({ length: n }, (_, seat) => [`${seat}-0`, `${seat}-1`, `${seat}-2`]),
 });
 
 test("sent and received snapshots match left, right and across deals for every player count", () => {
@@ -96,7 +96,7 @@ test("local reducer records the exchange before moving cards and clears it in th
   const nextRound = reducer({ ...dealt, phase: "roundScores" }, { type: "NEXT_ROUND" });
   assert.deepEqual(nextRound.exchangeHistory, [null, null, null, null]);
   assert.equal(nextRound.roundIndex, 1);
-  const rematch = reducer(dealt, { type: "RESTART_SAME" });
+  const rematch = reducer({ ...dealt, phase: "gameOver" }, { type: "RESTART_SAME" });
   assert.deepEqual(rematch.exchangeHistory, [null, null, null, null]);
 });
 

@@ -1,13 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { AVATARS, randomAvatarIndex } from "../game/constants";
 import { Avatar } from "./Avatar";
 import { OnlineTable } from "./OnlineTable";
 import { roomApi, onlineErrorMessage } from "../game/api";
 import { useOnlineGame } from "../game/useOnlineGame";
 import { sfx } from "../game/sound";
+import { loadRoomSession, saveRoomSession, clearRoomSession } from "../game/storage";
 import { Wifi, Plus, LogIn, ArrowLeft, Copy, Crown, Bot, Play, UserPlus, Loader, Eye, WifiOff } from "lucide-react";
-
-const LS_KEY = "witches_room";
 
 function setUrlRoom(code) {
   try {
@@ -26,47 +25,48 @@ export function OnlineFlow({ initialCode, onExit, sound, setSound }) {
   const online = useOnlineGame(session?.code, session?.token);
 
   useEffect(() => {
-    const raw = localStorage.getItem(LS_KEY);
-    if (!raw) {
+    const s = loadRoomSession();
+    // An invitation to another room must not silently reopen the previous one.
+    if (!s || (initialCode && initialCode.toUpperCase() !== s.code)) {
       setResuming(false);
       return;
     }
-    try {
-      const s = JSON.parse(raw);
+    let active = true;
+    const controller = new AbortController();
       roomApi
-        .get(s.code, s.token)
+        .get(s.code, s.token, { signal: controller.signal })
         .then((v) => {
-          const seated = v.yourSeat != null || s.spectator;
-          if (seated && v.status !== "gameOver") {
+          if (!active) return;
+          const seated = v.yourSeat != null || (v.isSpectator && s.spectator);
+          if (seated) {
             setSession(s);
             setUrlRoom(s.code);
           } else {
-            localStorage.removeItem(LS_KEY);
+            clearRoomSession();
           }
         })
         .catch((error) => {
+          if (!active) return;
           if ([403, 404].includes(error?.response?.status)) {
-            localStorage.removeItem(LS_KEY);
+            clearRoomSession();
           } else {
             // Keep the reconnect token during temporary server/network failures.
             setSession(s);
             setUrlRoom(s.code);
           }
         })
-        .finally(() => setResuming(false));
-    } catch {
-      setResuming(false);
-    }
-  }, []);
+        .finally(() => { if (active) setResuming(false); });
+    return () => { active = false; controller.abort(); };
+  }, [initialCode]);
 
   const beginSession = (s) => {
     setSession(s);
-    localStorage.setItem(LS_KEY, JSON.stringify({ code: s.code, token: s.token, spectator: !!s.spectator }));
+    saveRoomSession(s);
     setUrlRoom(s.code);
   };
 
   const leave = () => {
-    localStorage.removeItem(LS_KEY);
+    clearRoomSession();
     setUrlRoom(null);
     setSession(null);
     onExit();
@@ -81,7 +81,7 @@ export function OnlineFlow({ initialCode, onExit, sound, setSound }) {
   }
 
   if (!session) {
-    return <CreateJoin initialCode={initialCode} onExit={onExit} onSession={beginSession} />;
+    return <CreateJoin initialCode={initialCode} onExit={() => { setUrlRoom(null); onExit(); }} onSession={beginSession} />;
   }
 
   if (!online.view && online.error) {
@@ -103,23 +103,17 @@ export function OnlineFlow({ initialCode, onExit, sound, setSound }) {
     );
   }
 
-  if (online.error) {
-    return (
-      <div className="min-h-screen coven-bg grid place-items-center px-4">
-        <div className="panel rounded-lg p-5 max-w-md text-center">
-          <p role="alert" className="text-red-300 mb-4">{online.error}</p>
-          <p className="text-slate-300 text-sm mb-4">Die Verbindung wird automatisch erneut versucht.</p>
-          <button onClick={leave} className="text-amber-300">Verlassen</button>
-        </div>
-      </div>
-    );
-  }
-
-  if (online.view.status === "lobby") {
-    return <Lobby view={online.view} actions={online} onLeave={leave} />;
-  }
-
-  return <OnlineTable view={online.view} actions={online} onLeave={leave} sound={sound} setSound={setSound} />;
+  // A transient failure must not unmount the table and erase a selected deal.
+  return <>
+    {online.view.status === "lobby"
+      ? <Lobby view={online.view} actions={online} onLeave={leave} />
+      : <OnlineTable view={online.view} actions={online} onLeave={leave} sound={sound} setSound={setSound} />}
+    {(online.error || online.actionError) && <div role="alert" data-testid="online-action-error" className="fixed bottom-3 inset-x-3 z-50 mx-auto max-w-md panel rounded-lg p-3 text-sm">
+      <p className="text-red-300">{online.error || online.actionError}</p>
+      {online.error ? <p className="text-slate-300 mt-1">Die Verbindung wird automatisch erneut versucht.</p>
+        : <button type="button" onClick={online.dismissActionError} className="text-amber-300 mt-1">Schließen</button>}
+    </div>}
+  </>;
 }
 
 function CreateJoin({ initialCode, onExit, onSession }) {
@@ -128,27 +122,34 @@ function CreateJoin({ initialCode, onExit, onSession }) {
   const [code, setCode] = useState(initialCode || "");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
+  const busyRef = useRef(false);
+  const mounted = useRef(true);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
 
   const avatar = AVATARS[avatarIdx];
   const displayName = name.trim() || avatar.label;
   const invited = !!initialCode;
 
   const run = async (fn, okSfx) => {
+    if (busyRef.current) return;
+    busyRef.current = true;
     setBusy(true);
     setErr("");
     try {
       const s = await fn();
+      if (!mounted.current) return;
       okSfx();
       onSession(s);
     } catch (e) {
-      setErr(onlineErrorMessage(e));
+      if (mounted.current) setErr(onlineErrorMessage(e));
     } finally {
-      setBusy(false);
+      busyRef.current = false;
+      if (mounted.current) setBusy(false);
     }
   };
 
   const validCode = () => {
-    if (code.trim().length < 4) {
+    if (!/^[A-Z0-9]{4,6}$/.test(code.trim().toUpperCase())) {
       setErr("Gib einen gültigen Raum-Code ein.");
       return false;
     }
@@ -208,7 +209,7 @@ function CreateJoin({ initialCode, onExit, onSession }) {
             </button>
           </div>
           <p className="text-slate-400/50 text-[11px] mt-2 text-center">
-            Rausgeflogen? Tritt mit demselben Namen wieder bei und du übernimmst deinen Platz.
+            Verbindung verloren? Öffne das Spiel auf demselben Gerät und Browser erneut. Dein gespeicherter Zugang bringt dich zurück an deinen Platz.
           </p>
 
           {err && <p className="text-red-300 text-sm mt-3 text-center" data-testid="online-error">{err}</p>}
@@ -219,10 +220,16 @@ function CreateJoin({ initialCode, onExit, onSession }) {
 }
 
 function Lobby({ view, actions, onLeave }) {
-  const copyLink = () => {
+  const [copyError, setCopyError] = useState("");
+  const copyLink = async () => {
     const url = `${window.location.origin}${window.location.pathname}?room=${view.code}`;
-    navigator.clipboard?.writeText(url);
-    sfx.select();
+    try {
+      if (!navigator.clipboard) throw new Error("Clipboard unavailable");
+      await navigator.clipboard.writeText(url);
+      setCopyError(""); sfx.select();
+    } catch {
+      setCopyError("Kopieren ist in diesem Browser gesperrt. Teile stattdessen den Raum-Code.");
+    }
   };
   const n = view.players.length;
   const canStart = n >= 3 && n <= 6;
@@ -241,6 +248,7 @@ function Lobby({ view, actions, onLeave }) {
             {view.code} <Copy size={18} className="text-amber-300" />
           </button>
           <p className="text-slate-400/50 text-xs mt-2">Tippe auf den Code, um den Einladungslink zu kopieren</p>
+          {copyError && <p role="status" className="text-amber-200 text-xs mt-2">{copyError}</p>}
         </div>
 
         <div className="panel rounded-lg p-4 rise-in">
@@ -248,10 +256,10 @@ function Lobby({ view, actions, onLeave }) {
             <span className="font-display text-amber-300 text-sm">Gangster ({n}/6)</span>
             {view.isHost && (
               <div className="flex gap-1.5">
-                <button onClick={actions.addBot} disabled={n >= 6} data-testid="btn-add-bot" className="text-xs font-display rounded-lg px-3 py-1.5 bg-white/5 border border-slate-400/60 text-slate-100 hover:bg-white/10 transition-colors disabled:opacity-40 flex items-center gap-1">
+                <button onClick={actions.addBot} disabled={n >= 6 || actions.busy} data-testid="btn-add-bot" className="text-xs font-display rounded-lg px-3 py-1.5 bg-white/5 border border-slate-400/60 text-slate-100 hover:bg-white/10 transition-colors disabled:opacity-40 flex items-center gap-1">
                   <Bot size={14} /> Bot hinzufügen
                 </button>
-                <button onClick={actions.removeBot} data-testid="btn-remove-bot" className="text-xs font-display rounded-lg px-3 py-1.5 bg-black/30 border border-white/10 text-slate-300 hover:border-slate-400/60 transition-colors">
+                <button onClick={actions.removeBot} disabled={actions.busy || !view.players.some(player => player.isBot)} data-testid="btn-remove-bot" className="text-xs font-display rounded-lg px-3 py-1.5 bg-black/30 border border-white/10 text-slate-300 hover:border-slate-400/60 transition-colors disabled:opacity-40">
                   Entfernen
                 </button>
               </div>
@@ -284,7 +292,7 @@ function Lobby({ view, actions, onLeave }) {
 
         <div className="mt-6">
           {view.isHost ? (
-            <button onClick={actions.start} disabled={!canStart} data-testid="btn-start-online-game" className={`w-full rounded-md py-4 font-display text-lg font-bold flex items-center justify-center gap-2 transition-all ${canStart ? "text-black bg-gradient-to-r from-yellow-300 to-amber-400 glow-ring" : "text-slate-400/40 bg-black/30 border border-white/10 cursor-not-allowed"}`}>
+            <button onClick={actions.start} disabled={!canStart || actions.busy} data-testid="btn-start-online-game" className={`w-full rounded-md py-4 font-display text-lg font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-60 ${canStart ? "text-black bg-gradient-to-r from-yellow-300 to-amber-400 glow-ring" : "text-slate-400/40 bg-black/30 border border-white/10 cursor-not-allowed"}`}>
               <Play size={20} /> {canStart ? "Auf die Straße" : "Mindestens 3 Gangster nötig"}
             </button>
           ) : view.isSpectator ? (

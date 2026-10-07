@@ -32,7 +32,14 @@ def shuffle(deck):
     return d
 
 
+def _validate_player_count(n):
+    # Never silently discard/over-deal cards for a corrupted saved setup.
+    if type(n) is not int or not 3 <= n <= 6:
+        raise ValueError("Player count must be an integer between 3 and 6")
+
+
 def deal_count(n):
+    _validate_player_count(n)
     return 60 // n
 
 
@@ -43,6 +50,10 @@ def _sort_key(c):
 
 def deal(deck, n):
     count = deal_count(n)
+    if (not isinstance(deck, (list, tuple)) or len(deck) != 60
+            or any(not isinstance(card, dict) or not isinstance(card.get("id"), str) for card in deck)
+            or len({card["id"] for card in deck}) != 60):
+        raise ValueError("A deal requires exactly 60 uniquely identified cards")
     hands = [[] for _ in range(n)]
     idx = 0
     for seat in range(n):
@@ -55,6 +66,9 @@ def deal(deck, n):
 
 
 def pass_info(n, round_index):
+    _validate_player_count(n)
+    if type(round_index) is not int or round_index < 0:
+        raise ValueError("Round index must be a nonnegative integer")
     counts = {3: 4, 4: 3, 5: 2, 6: 2}
     count = counts[n]
     if n in (3, 5):
@@ -89,6 +103,8 @@ def legal_card_ids(hand, trick):
 
 
 def resolve_trick(trick):
+    if not trick:
+        raise ValueError("Cannot resolve an empty trick")
     lead_entry = next((t for t in trick if t["card"]["suit"] is not None), None)
     if lead_entry is None:
         return trick[0]["seat"]
@@ -201,6 +217,8 @@ def _lead_pref(c):
 
 
 def bot_play(hand, trick):
+    if not hand:
+        raise ValueError("Cannot choose a card from an empty hand")
     legal_set = set(legal_card_ids(hand, trick))
     legal = [c for c in hand if c["id"] in legal_set]
     if not legal:

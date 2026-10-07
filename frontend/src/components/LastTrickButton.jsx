@@ -9,6 +9,9 @@ export function LastTrickButton({ trick, players, winner, onReviewChange }) {
   const notify = useRef(onReviewChange);
   notify.current = onReviewChange;
   useEffect(() => {
+    if (!trick?.length) setOpen(false);
+  }, [trick]);
+  useEffect(() => {
     if (!open) return;
     notify.current?.(true);
     const heartbeat = setInterval(() => notify.current?.(true), 3000);

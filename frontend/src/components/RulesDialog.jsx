@@ -39,7 +39,8 @@ export function RulesDialog({ open, onOpenChange }) {
               })}
             </div>
             <p className="mt-2 text-[13px]">
-              Jede <b className="text-red-300">rote Karte (Hitze)</b> ist eine Hitze-Karte und bringt <b>1 Hitze</b>.
+              Jede normale <b className="text-red-300">rote Karte (Hitze)</b> bringt <b>1 Hitze</b>.
+              Für den Kingpin (rote 11) gilt die unten erklärte Sonderregel.
               Versuche, keine Stiche mit Hitze-Karten zu kassieren!
             </p>
           </section>
@@ -93,8 +94,9 @@ export function RulesDialog({ open, onOpenChange }) {
           <section>
             <h3 className="font-display text-amber-300 text-base mb-1">Karten weitergeben & Bots</h3>
             <p className="text-[13px]">
-              Zu Beginn jeder Runde geben alle Spieler verdeckt Karten weiter (3 Spieler: 4 Karten, 4 Spieler: 3,
-              5 Spieler: 2, 6 Spieler: 2); die Richtung wechselt jede Runde (links, rechts, gegenüber). Jeder freie Platz kann mit einem{" "}
+              Beim Kartentausch geben alle Spieler verdeckt Karten weiter (3 Spieler: 4 Karten, 4 Spieler: 3,
+              5 Spieler: 2, 6 Spieler: 2). Bei 3 oder 5 Spielern wechseln links und rechts; bei 4 oder 6 Spielern
+              folgen links, rechts, gegenüber und eine Runde ohne Tausch. Jeder freie Platz kann mit einem{" "}
               <b>KI-Gangster</b> besetzt werden — nutze „Solo gegen KI“ oder schalte einzelne Plätze im Setup um.
             </p>
           </section>
@@ -103,8 +105,9 @@ export function RulesDialog({ open, onOpenChange }) {
             <h3 className="font-display text-amber-300 text-base mb-1">Online: Zuschauen & Zurückkehren</h3>
             <p className="text-[13px]">
               Über den Raum-Link kannst du <b>mitspielen</b> oder <b>zuschauen</b>. Zuschauer sehen Tisch, Stiche und Hitze
-              live, aber keine Handkarten. Fliegst du aus dem Spiel, bleibt dein Platz reserviert — tritt einfach mit{" "}
-              <b>demselben Namen</b> wieder bei und du übernimmst deinen Sitz.
+              live, aber keine Handkarten. Fliegst du aus dem Spiel, bleibt dein Platz reserviert — öffne das Spiel auf{" "}
+              <b>demselben Gerät und im selben Browser</b> erneut. Dein gespeicherter Spielerzugang bringt dich zurück
+              an deinen Platz. Der Name allein reicht dafür nicht aus.
             </p>
           </section>
         </div>

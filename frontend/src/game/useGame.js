@@ -10,6 +10,7 @@ import {
   scoreRound,
   isGameOver,
   sortCards,
+  legalCardIds,
 } from "./engine";
 
 function newHands(n) {
@@ -78,6 +79,8 @@ function startTricks(state) {
 }
 
 function playCard(state, cardId) {
+  if (state.phase !== "playing" || !state.hands?.[state.currentSeat] ||
+      !legalCardIds(state.hands[state.currentSeat], state.trick).includes(cardId)) return state;
   const seat = state.currentSeat;
   const hands = state.hands.map((h) => [...h]);
   const idx = hands[seat].findIndex((c) => c.id === cardId);
@@ -94,6 +97,7 @@ function playCard(state, cardId) {
 }
 
 function continueTrick(state) {
+  if (state.phase !== "trickEnd") return state;
   const handsEmpty = state.hands.every((h) => h.length === 0);
   if (handsEmpty) {
     const { results, shooter, spellName } = scoreRound(state.piles);
@@ -107,7 +111,10 @@ function continueTrick(state) {
 function reducer(state, action) {
   switch (action.type) {
     case "START_GAME": {
+      if (state.phase !== "setup") return state;
       const players = action.players;
+      if (!Array.isArray(players) || players.length < 3 || players.length > 6 ||
+          !players.every(player => player && typeof player.name === "string")) return state;
       const n = players.length;
       return beginRound({ players, n, scores: Array(n).fill(0), roundIndex: 0, totalRounds: 0 });
     }
@@ -116,8 +123,14 @@ function reducer(state, action) {
       if (state.phase === "playGate") return { ...state, phase: "playing" };
       return state;
     case "CONFIRM_PASS": {
+      const botGate = state.phase === "passGate" && state.players?.[state.passSeat]?.isBot;
+      if (state.phase !== "passing" && !botGate) return state;
+      const ids = action.cardIds;
+      const handIds = new Set(state.hands[state.passSeat].map(card => card.id));
+      if (!Array.isArray(ids) || ids.length !== state.passCount ||
+          new Set(ids).size !== ids.length || !ids.every(id => handIds.has(id))) return state;
       const pending = [...state.pendingSelections];
-      pending[state.passSeat] = action.cardIds;
+      pending[state.passSeat] = [...ids];
       const nextSeat = state.passSeat + 1;
       if (nextSeat < state.n)
         return { ...state, pendingSelections: pending, passSeat: nextSeat, phase: "passGate" };
@@ -130,6 +143,7 @@ function reducer(state, action) {
     case "CONTINUE_TRICK":
       return continueTrick(state);
     case "NEXT_ROUND":
+      if (state.phase !== "roundScores") return state;
       if (isGameOver(state.scores)) return { ...state, phase: "gameOver" };
       return beginRound({
         players: state.players,
@@ -139,6 +153,7 @@ function reducer(state, action) {
         totalRounds: state.totalRounds,
       });
     case "RESTART_SAME":
+      if (state.phase !== "gameOver") return state;
       return beginRound({
         players: state.players,
         n: state.n,

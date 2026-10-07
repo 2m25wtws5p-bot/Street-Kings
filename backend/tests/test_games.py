@@ -53,18 +53,20 @@ def test_save_game_and_verify(session):
     assert len(data["scores"]) == 4
     assert data["scores"][0]["name"] == "TEST_Alice"
 
-    # summary incremented
+    # Other parallel CI workers may also finish games between these reads.
     after = session.get(f"{API}/games/summary").json()["total_games"]
-    assert after == before + 1
+    assert after >= before + 1
 
     # recent should contain it, most recent first
-    r2 = session.get(f"{API}/games/recent")
+    r2 = session.get(f"{API}/games/recent?limit=100")
     assert r2.status_code == 200
     recent = r2.json()
     assert isinstance(recent, list)
     assert len(recent) >= 1
     ids = [g["id"] for g in recent]
-    assert data["id"] in ids
+    assert ids.count(data["id"]) == 1
+    saved = next(g for g in recent if g["id"] == data["id"])
+    assert saved["scores"] == payload["scores"]
     # ensure _id excluded
     for g in recent:
         assert "_id" not in g
@@ -84,7 +86,7 @@ def test_recent_ordering(session):
         assert r.status_code == 200
         ids.append(r.json()["id"])
 
-    r = session.get(f"{API}/games/recent?limit=5")
+    r = session.get(f"{API}/games/recent?limit=100")
     assert r.status_code == 200
     recent = r.json()
     # last inserted should appear before earlier one

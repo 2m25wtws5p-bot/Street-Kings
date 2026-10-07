@@ -1,6 +1,7 @@
 """Tests for updated Amigo rules, replace-with-bot and rematch endpoints."""
 import os
 import time
+import uuid
 import pytest
 import requests
 
@@ -255,7 +256,8 @@ def _drive_to_game_over(s, code, host_tok):
 
 def test_rematch_after_game_over(s):
     # only-bots game (host + 2 bots) so bots auto-play everything -> we just poll & call nextRound.
-    r = s.post(f"{API}/rooms", json={"name": "Host", "avatar": AV_A})
+    host_name = f"Rematch-{uuid.uuid4().hex[:8]}"
+    r = s.post(f"{API}/rooms", json={"name": host_name, "avatar": AV_A})
     code, host = r.json()["code"], r.json()["token"]
     for _ in range(2):
         s.post(f"{API}/rooms/{code}/bots", json={"token": host, "action": "add"})
@@ -263,10 +265,16 @@ def test_rematch_after_game_over(s):
     v = _drive_to_game_over(s, code, host)
     assert v["status"] == "gameOver"
 
-    # game_results should be recorded
-    r = s.get(f"{API}/games/summary")
-    total_before = r.json()["total_games"]
-    assert total_before >= 1
+    # Inspect only this match; global counts can grow in parallel CI workers.
+    def own_results():
+        response = s.get(f"{API}/games/recent?limit=100")
+        assert response.status_code == 200, response.text
+        return [game for game in response.json()
+                if any(score["name"] == host_name for score in game["scores"])]
+
+    recorded = own_results()
+    assert len(recorded) == 1
+    recorded_id = recorded[0]["id"]
 
     # rematch
     r = s.post(f"{API}/rooms/{code}/rematch", json={"token": host})
@@ -280,5 +288,4 @@ def test_rematch_after_game_over(s):
     assert len(v2["yourHand"]) > 0
 
     # Should not double-record
-    r2 = s.get(f"{API}/games/summary")
-    assert r2.json()["total_games"] == total_before
+    assert [game["id"] for game in own_results()] == [recorded_id]

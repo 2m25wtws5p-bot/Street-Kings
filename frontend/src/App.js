@@ -36,7 +36,7 @@ function App() {
       {screen === "home" && (
         <HomeScreen
           onLocal={() => setScreen("local")}
-          onOnline={() => setScreen("online")}
+          onOnline={() => { setInitialCode(null); setScreen("online"); }}
           onRules={() => setRulesOpen(true)}
           onStats={() => setStatsOpen(true)}
         />
@@ -45,7 +45,7 @@ function App() {
       {screen === "local" && <LocalGame onExit={() => setScreen("home")} sound={sound} setSound={setSound} />}
 
       {screen === "online" && (
-        <OnlineFlow initialCode={initialCode} onExit={() => setScreen("home")} sound={sound} setSound={setSound} />
+        <OnlineFlow initialCode={initialCode} onExit={() => { setInitialCode(null); setScreen("home"); }} sound={sound} setSound={setSound} />
       )}
 
       <RulesDialog open={rulesOpen} onOpenChange={setRulesOpen} />

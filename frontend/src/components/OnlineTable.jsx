@@ -83,6 +83,7 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
   const legal = yourTurn ? new Set(legalCardIds(yourHand, trick)) : new Set();
 
   const toggleSelect = (id) => {
+    if (actions.busy) return;
     setSelected((prev) => {
       if (prev.includes(id)) return prev.filter((x) => x !== id);
       if (prev.length >= view.passCount) return prev;
@@ -92,6 +93,7 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
   };
 
   const clickPlay = (card) => {
+    if (actions.busy) return;
     if (!legal.has(card.id)) return;
     if (armed === card.id) {
       actions.play(card.id);
@@ -134,7 +136,7 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
                     {p.reviewingLastTrick && <Eye size={13} className="text-amber-200" aria-label="Sieht letzten Stich an" />}
                 </PlayerIdentity>
                 {offline && view.isHost && i !== yourSeat && (
-                  <button onClick={() => { if (window.confirm(`${p.name} durch einen KI-Gangster ersetzen?`)) actions.replaceWithBot(i); }} data-testid={`btn-replace-bot-${i}`} title="Durch KI ersetzen" className="ml-1 grid place-items-center w-7 h-7 rounded-md bg-red-950/60 border border-red-500/60 text-red-200 hover:bg-red-900/70 transition-colors">
+                  <button disabled={actions.busy} onClick={() => { if (window.confirm(`${p.name} durch einen KI-Gangster ersetzen?`)) actions.replaceWithBot(i); }} data-testid={`btn-replace-bot-${i}`} title="Durch KI ersetzen" className="ml-1 grid place-items-center w-7 h-7 rounded-md bg-red-950/60 border border-red-500/60 text-red-200 hover:bg-red-900/70 transition-colors disabled:opacity-40">
                     <Bot size={14} />
                   </button>
                 )}
@@ -165,7 +167,7 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
             </div>
             <div>
               {lastWinner === yourSeat || view.isHost ? (
-                <button disabled={!trickReady} onClick={actions.continueTrick} data-testid="btn-continue-trick" className="rounded-md px-8 py-3 font-display font-bold text-black bg-gradient-to-r from-yellow-300 to-amber-400 glow-ring disabled:opacity-60">
+                <button disabled={!trickReady || actions.busy} onClick={actions.continueTrick} data-testid="btn-continue-trick" className="rounded-md px-8 py-3 font-display font-bold text-black bg-gradient-to-r from-yellow-300 to-amber-400 glow-ring disabled:opacity-60">
                   {trickReady ? "Einsammeln & weiter" : "Stich ansehen…"}
                 </button>
               ) : (
@@ -191,7 +193,7 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
               </div>
               <div className="text-center mt-3">
                 <SelectedCards hand={yourHand} selected={selected} count={view.passCount} onRemove={toggleSelect} />
-                <button disabled={selected.length !== view.passCount} onClick={() => { sfx.playCard(); actions.pass(selected); }} data-testid="btn-confirm-card-pass" className={`rounded-md px-8 py-3 font-display font-bold transition-all ${selected.length === view.passCount ? "text-black bg-gradient-to-r from-yellow-300 to-amber-400 glow-ring" : "text-slate-400/40 bg-black/30 border border-white/10 cursor-not-allowed"}`}>
+                <button disabled={actions.busy || selected.length !== view.passCount} onClick={() => { sfx.playCard(); actions.pass(selected); }} data-testid="btn-confirm-card-pass" className={`rounded-md px-8 py-3 font-display font-bold transition-all ${selected.length === view.passCount ? "text-black bg-gradient-to-r from-yellow-300 to-amber-400 glow-ring" : "text-slate-400/40 bg-black/30 border border-white/10 cursor-not-allowed"}`}>
                   Deal besiegeln
                 </button>
               </div>
@@ -251,10 +253,17 @@ function Waiting({ text, yourHand }) {
 }
 
 function Shell({ view, actions, onLeave, sound, setSound, setRulesOpen, setStatsOpen, rulesOpen, statsOpen, children }) {
-  const copyLink = () => {
+  const [copyError, setCopyError] = useState("");
+  const copyLink = async () => {
     const url = `${window.location.origin}${window.location.pathname}?room=${view.code}`;
-    navigator.clipboard?.writeText(url);
-    sfx.select();
+    try {
+      if (!navigator.clipboard) throw new Error("Clipboard unavailable");
+      await navigator.clipboard.writeText(url);
+      setCopyError("");
+      sfx.select();
+    } catch {
+      setCopyError("Kopieren ist gesperrt. Teile stattdessen den Raum-Code.");
+    }
   };
   const specCount = view.spectators?.length || 0;
   return (
@@ -276,6 +285,7 @@ function Shell({ view, actions, onLeave, sound, setSound, setRulesOpen, setStats
         <GameHeaderButtons sound={sound} setSound={setSound} onRules={() => setRulesOpen(true)} onStats={() => setStatsOpen(true)} />
       </div>
       {children}
+      {copyError && <button type="button" role="status" onClick={() => setCopyError("")} className="fixed bottom-3 inset-x-3 z-50 mx-auto max-w-md panel rounded-lg p-3 text-sm text-amber-200">{copyError} · Schließen</button>}
       <LastTrickButton trick={view.lastTrick} players={view.players} winner={view.lastWinner} onReviewChange={view.isSpectator ? undefined : actions.reviewLastTrick} />
       {!view.isSpectator && <ExchangeHistoryButton exchange={view.yourExchange} phase={view.phase} trickNumber={view.trickNumber} scopeKey={`${view.code}-${view.roundIndex}-${view.yourSeat}`} />}
       {view.players.some((p) => p.reviewingLastTrick && p.seat !== view.yourSeat) && <div className="trick-review-notice" role="status" data-testid="trick-review-notice"><Eye size={12} className="inline mr-1" />{view.players.filter((p) => p.reviewingLastTrick && p.seat !== view.yourSeat).map((p) => p.name).join(", ")} sieht letzten Stich an</div>}

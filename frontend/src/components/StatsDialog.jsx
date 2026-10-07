@@ -2,22 +2,22 @@ import React, { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { loadStats, clearStats } from "../game/storage";
 import { Trophy, Siren, ScrollText, Trash2, Crown } from "lucide-react";
-import axios from "axios";
-
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+import { gameApi } from "../game/api";
 
 export function StatsDialog({ open, onOpenChange }) {
-  const [stats, setStats] = useState(loadStats());
+  const [stats, setStats] = useState(loadStats);
   const [recent, setRecent] = useState([]);
 
   useEffect(() => {
-    if (open) {
-      setStats(loadStats());
-      axios
-        .get(`${API}/games/recent?limit=8`)
-        .then((r) => setRecent(r.data || []))
-        .catch(() => setRecent([]));
-    }
+    if (!open) return;
+    let active = true;
+    const controller = new AbortController();
+    setStats(loadStats());
+    setRecent([]);
+    gameApi.recent({ signal: controller.signal })
+      .then(games => { if (active) setRecent(games); })
+      .catch(() => { if (active) setRecent([]); });
+    return () => { active = false; controller.abort(); };
   }, [open]);
 
   const players = Object.entries(stats.players || {})

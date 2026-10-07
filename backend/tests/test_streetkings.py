@@ -1,4 +1,4 @@
-"""New tests for Street Kings reskin: German API, spectator mode, reconnect-by-name, bot names."""
+"""Street Kings integration: German API, spectators, token-based reconnect, bot names."""
 import os
 import time
 import pytest
@@ -68,7 +68,7 @@ def test_spectator_cannot_post_action(s):
     assert r.status_code == 403
 
 
-# ---- Reconnect by name ----
+# ---- Secure reconnect ----
 def test_duplicate_name_while_connected_returns_409_german(s):
     r = s.post(f"{API}/rooms", json={"name": "Luca", "avatar": AV_A})
     code = r.json()["code"]
@@ -77,8 +77,8 @@ def test_duplicate_name_while_connected_returns_409_german(s):
     assert "vergeben" in r.json().get("detail", "").lower() or "vergeben" in r.text.lower()
 
 
-def test_reconnect_by_name_after_offline_takes_seat_and_hand(s):
-    # Host + Luca + bot -> start. Then Luca stops polling; wait >10s; rejoin as luca.
+def test_reconnect_requires_saved_token_and_preserves_seat_and_hand(s):
+    # Going offline must not let someone steal a seat using its public name.
     r = s.post(f"{API}/rooms", json={"name": "Host", "avatar": AV_A})
     code, host = r.json()["code"], r.json()["token"]
     r = s.post(f"{API}/rooms/{code}/join", json={"name": "Luca", "avatar": AV_B})
@@ -98,21 +98,28 @@ def test_reconnect_by_name_after_offline_takes_seat_and_hand(s):
     luca_pub = next(p for p in hv["players"] if p["name"].lower() == "luca")
     assert luca_pub["connected"] is False, "Luca should show offline"
 
-    # Rejoin with case-insensitive name
+    # Knowing the name alone is insufficient, even after disconnection.
     r = s.post(f"{API}/rooms/{code}/join", json={"name": "luca", "avatar": AV_B})
+    assert r.status_code == 409, r.text
+
+    # The legitimate device can prove ownership with its saved token.
+    r = s.post(f"{API}/rooms/{code}/join",
+               json={"name": "luca", "avatar": AV_B, "token": luca_old_tok})
     assert r.status_code == 200, r.text
     d = r.json()
     assert d.get("rejoined") is True
     assert d["seat"] == luca_seat
     new_tok = d["token"]
+    assert new_tok == luca_old_tok
     v_after = s.get(f"{API}/rooms/{code}?token={new_tok}").json()
     hand_after = [c["id"] for c in v_after["yourHand"]]
     assert set(hand_after) == set(hand_before), "Rejoined hand must match original"
 
-    # Old token becomes spectator (no longer a player)
+    # The saved token remains valid: reconnect does not revoke this device.
     v_old = s.get(f"{API}/rooms/{code}?token={luca_old_tok}").json()
-    assert v_old["isSpectator"] is True
-    assert v_old["yourHand"] == []
+    assert v_old["isSpectator"] is False
+    assert v_old["yourSeat"] == luca_seat
+    assert {c["id"] for c in v_old["yourHand"]} == set(hand_before)
 
 
 def test_new_name_after_start_rejected_409(s):

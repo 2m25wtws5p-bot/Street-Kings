@@ -1,7 +1,8 @@
-from fastapi import FastAPI, APIRouter, HTTPException
+from fastapi import FastAPI, APIRouter, HTTPException, Query
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo.errors import DuplicateKeyError
 import os
 import logging
 import asyncio
@@ -9,10 +10,11 @@ import copy
 import random
 import string
 from pathlib import Path
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, model_validator
 from typing import List, Optional, Dict, Any
 import uuid
 import time
+import weakref
 from datetime import datetime, timezone
 
 import witches_engine as eng
@@ -39,10 +41,23 @@ class PlayerScore(BaseModel):
 
 
 class GameResultCreate(BaseModel):
-    players: int
-    rounds: int
-    scores: List[PlayerScore]
-    winners: List[str]
+    players: int = Field(ge=3, le=6)
+    rounds: int = Field(ge=1)
+    scores: List[PlayerScore] = Field(min_length=3, max_length=6)
+    winners: List[str] = Field(min_length=1, max_length=6)
+
+    @model_validator(mode="after")
+    def consistent_players(self):
+        if len(self.scores) != self.players:
+            raise ValueError("Für jeden Spieler muss genau eine Wertung vorliegen")
+        # Apply new input rules here, not to PlayerScore: older stored results
+        # must remain readable even if they predate these name restrictions.
+        if any(not player.name.strip() or len(player.name) > 64 for player in self.scores):
+            raise ValueError("Spielernamen dürfen nicht leer oder länger als 64 Zeichen sein")
+        names = {player.name for player in self.scores}
+        if any(not winner or len(winner) > 64 or winner not in names for winner in self.winners):
+            raise ValueError("Gewinner müssen Spieler dieser Partie sein")
+        return self
 
 
 class GameResult(BaseModel):
@@ -78,7 +93,7 @@ async def save_game(payload: GameResultCreate):
 
 
 @api_router.get("/games/recent", response_model=List[GameResult])
-async def recent_games(limit: int = 15):
+async def recent_games(limit: int = Query(default=15, ge=1, le=100)):
     docs = await db.game_results.find({}, {"_id": 0}).sort("created_at", -1).to_list(limit)
     return docs
 
@@ -119,23 +134,28 @@ MAX_SPECTATORS = 20
 BOT_PLAY_DELAY = float(os.environ.get("BOT_PLAY_DELAY", "0.95"))
 TRICK_HOLD_SECONDS = float(os.environ.get("TRICK_HOLD_SECONDS", "2.0"))
 
-_locks: Dict[str, asyncio.Lock] = {}
+_locks: weakref.WeakValueDictionary[str, asyncio.Lock] = weakref.WeakValueDictionary()
 
 
 def _lock(code: str) -> asyncio.Lock:
-    if code not in _locks:
-        _locks[code] = asyncio.Lock()
-    return _locks[code]
+    room_lock = _locks.get(code)
+    if room_lock is None:
+        room_lock = asyncio.Lock()
+        _locks[code] = room_lock
+    # Hold a strong reference through the caller's async-with block; unused
+    # locks (including requests for missing rooms) can then be collected.
+    return room_lock
 
 
 class CreateRoom(BaseModel):
     name: str
-    avatar: Dict[str, Any]
+    avatar: Dict[str, str]
 
 
 class JoinRoom(BaseModel):
     name: str
-    avatar: Dict[str, Any]
+    avatar: Dict[str, str]
+    token: Optional[str] = None
 
 
 class WatchRoom(BaseModel):
@@ -153,7 +173,7 @@ class BotsReq(BaseModel):
 
 class ReplaceReq(BaseModel):
     token: str
-    seat: int
+    seat: int = Field(ge=0, le=5)
 
 
 class ActionReq(BaseModel):
@@ -173,14 +193,34 @@ async def _get_room(code: str):
     room = await db.rooms.find_one({"_id": code})
     if not room:
         raise HTTPException(status_code=404, detail="Raum nicht gefunden")
+    if room.get("status") == "lobby" and any(
+        player.get("seat") != seat for seat, player in enumerate(room["players"])
+    ):
+        # Older bot-removal code could leave lobby seats like [0, 2]. Repair
+        # before publishing a view; never reorder players/tokens or live hands.
+        for seat, player in enumerate(room["players"]):
+            player["seat"] = seat
+        await _save_room(room)
     return room
 
 
 async def _save_room(room):
+    previous_version = room.get("version", 0)
     room["updated_at"] = datetime.now(timezone.utc).isoformat()
     room["expire_at"] = datetime.now(timezone.utc)
-    room["version"] = room.get("version", 0) + 1
-    await db.rooms.replace_one({"_id": room["_id"]}, room, upsert=True)
+    room["version"] = previous_version + 1
+    query = {"_id": room["_id"], "version": previous_version}
+    if previous_version == 0:
+        # Keep rooms created by older deployments without a version readable.
+        query = {"_id": room["_id"], "$or": [
+            {"version": 0}, {"version": {"$exists": False}},
+        ]}
+    saved = await db.rooms.replace_one(query, room, upsert=False)
+    if saved.matched_count == 0:
+        room["version"] = previous_version
+        if not await db.rooms.find_one({"_id": room["_id"]}):
+            raise HTTPException(status_code=404, detail="Raum nicht gefunden oder abgelaufen")
+        raise HTTPException(status_code=409, detail="Der Spielstand hat sich geändert. Bitte erneut versuchen.")
 
 
 def _player_by_token(room, token):
@@ -402,35 +442,50 @@ def _redact(room, token):
 
 async def _maybe_record(room):
     if room["status"] == "gameOver" and not room.get("recorded"):
-        room["recorded"] = True
         winners = [room["players"][i]["name"] for i in eng.lowest_seats(room["scores"])]
-        await db.game_results.insert_one(GameResult(
+        # An interrupted room save can retry this operation. A stable Mongo _id
+        # makes recording once-per-match atomic, including overlapping deploys.
+        match_id = str(uuid.uuid5(uuid.NAMESPACE_URL,
+            f"street-kings:{room['_id']}:{room.get('created_at', '')}:{room.get('rematches', 0)}"))
+        result = GameResult(
+            id=match_id,
             players=room["n"],
             rounds=room.get("totalRounds", 0),
             scores=[{"name": p["name"], "score": room["scores"][p["seat"]]} for p in sorted(room["players"], key=lambda x: x["seat"])],
             winners=winners,
-        ).model_dump())
+        ).model_dump()
+        try:
+            await db.game_results.update_one({"_id": match_id}, {"$setOnInsert": result}, upsert=True)
+        except DuplicateKeyError:
+            # Concurrent upserts of the same completed match already recorded it.
+            pass
+        room["recorded"] = True
 
 
 @api_router.post("/rooms")
 async def create_room(payload: CreateRoom):
     for _ in range(10):
         code = _gen_code()
-        if not await db.rooms.find_one({"_id": code}):
-            break
-    token = str(uuid.uuid4())
-    room = {
-        "_id": code,
-        "host_token": token,
-        "status": "lobby",
-        "phase": "lobby",
-        "players": [{"token": token, "name": payload.name[:16].strip() or "Boss", "avatar": payload.avatar, "isBot": False, "seat": 0, "last_seen": time.time()}],
-        "spectators": [],
-        "created_at": datetime.now(timezone.utc).isoformat(),
-        "version": 0,
-    }
-    await db.rooms.replace_one({"_id": code}, room, upsert=True)
-    return {"code": code, "token": token, "seat": 0}
+        token = str(uuid.uuid4())
+        now = datetime.now(timezone.utc)
+        room = {
+            "_id": code,
+            "host_token": token,
+            "status": "lobby",
+            "phase": "lobby",
+            "players": [{"token": token, "name": payload.name[:16].strip() or "Boss", "avatar": payload.avatar, "isBot": False, "seat": 0, "last_seen": time.time()}],
+            "spectators": [],
+            "created_at": now.isoformat(),
+            "expire_at": now,
+            "version": 0,
+        }
+        try:
+            # _id uniqueness is the allocation lock: never replace another room.
+            await db.rooms.insert_one(room)
+        except DuplicateKeyError:
+            continue
+        return {"code": code, "token": token, "seat": 0}
+    raise HTTPException(status_code=503, detail="Kein freier Raum-Code verfügbar. Bitte erneut versuchen.")
 
 
 @api_router.post("/rooms/{code}/join")
@@ -439,21 +494,20 @@ async def join_room(code: str, payload: JoinRoom):
         room = await _get_room(code)
         if room["status"] == "gameOver":
             raise HTTPException(status_code=409, detail="Diese Runde ist bereits vorbei")
+        if payload.token:
+            existing = _player_by_token(room, payload.token)
+            if not existing or existing["isBot"]:
+                raise HTTPException(status_code=403, detail="Dein gespeicherter Spielerzugang ist nicht mehr gültig")
+            existing["last_seen"] = time.time()
+            await _save_room(room)
+            return {"code": code, "token": existing["token"], "seat": existing["seat"], "rejoined": True}
         name = payload.name[:16].strip()
         existing = next((p for p in room["players"] if not p["isBot"] and name and p["name"].lower() == name.lower()), None)
         if existing:
-            if _connected(existing):
-                raise HTTPException(status_code=409, detail="Dieser Name ist vergeben – der Spieler ist noch verbunden")
-            # reconnect: take over the abandoned seat with a fresh token
-            token = str(uuid.uuid4())
-            if room["host_token"] == existing["token"]:
-                room["host_token"] = token
-            existing["token"] = token
-            existing["last_seen"] = time.time()
-            await _save_room(room)
-            return {"code": code, "token": token, "seat": existing["seat"], "rejoined": True}
+            # Names and room codes are public, so neither proves seat ownership.
+            raise HTTPException(status_code=409, detail="Dieser Name ist vergeben. Kehre auf deinem bisherigen Gerät mit dem gespeicherten Spielerzugang zurück.")
         if room["status"] != "lobby":
-            raise HTTPException(status_code=409, detail="Das Spiel läuft bereits – schau zu oder kehre mit deinem alten Namen zurück")
+            raise HTTPException(status_code=409, detail="Das Spiel läuft bereits – schau zu oder nutze deinen gespeicherten Spielerzugang")
         if len(room["players"]) >= 6:
             raise HTTPException(status_code=409, detail="Die Crew ist voll")
         token = str(uuid.uuid4())
@@ -490,7 +544,8 @@ async def manage_bots(code: str, payload: BotsReq):
         if payload.action == "add":
             if len(room["players"]) >= 6:
                 raise HTTPException(status_code=409, detail="Die Crew ist voll")
-            used = {p["avatar"].get("key") for p in room["players"]}
+            used = {p["avatar"].get("key") for p in room["players"]
+                    if isinstance(p.get("avatar"), dict) and isinstance(p["avatar"].get("key"), str)}
             avatar = random.choice([a for a in BOT_AVATARS if a["key"] not in used] or BOT_AVATARS)
             seat = len(room["players"])
             used_names = {p["name"].strip().lower() for p in room["players"]}
@@ -501,6 +556,8 @@ async def manage_bots(code: str, payload: BotsReq):
                 if room["players"][i]["isBot"]:
                     room["players"].pop(i)
                     break
+            for seat, player in enumerate(room["players"]):
+                player["seat"] = seat
         await _save_room(room)
         return _redact(room, payload.token)
 
@@ -595,14 +652,12 @@ async def get_room(code: str, token: str = ""):
         room = await _get_room(code)
         me = _player_by_token(room, token)
         if me and not me["isBot"]:
-            now = time.time()
-            me["last_seen"] = now
-            await db.rooms.update_one({"_id": code, "players.token": token}, {"$set": {"players.$.last_seen": now}})
+            me["last_seen"] = time.time()
         before = (room.get("phase"), room.get("trickNumber"), len(room.get("trick", [])))
         if room["status"] == "playing":
             _advance_bots(room)
         after = (room.get("phase"), room.get("trickNumber"), len(room.get("trick", [])))
-        if before != after:
+        if (me and not me["isBot"]) or before != after:
             await _maybe_record(room)
             await _save_room(room)
         return _redact(room, token)
@@ -616,13 +671,14 @@ async def room_action(code: str, payload: ActionReq):
             me = _player_by_token(room, payload.token)
             if not me or me["isBot"]:
                 raise HTTPException(status_code=403, detail="Du sitzt nicht an diesem Tisch")
+            me["last_seen"] = time.time()
             me["review_until"] = time.time() + 6 if payload.reviewing and room.get("lastTrick") else 0
             await _save_room(room)
             return _redact(room, payload.token)
         if room["status"] not in ("playing",):
             raise HTTPException(status_code=409, detail="Kein laufendes Spiel")
         me = _player_by_token(room, payload.token)
-        if not me:
+        if not me or me["isBot"]:
             raise HTTPException(status_code=403, detail="Du sitzt nicht an diesem Tisch")
         seat = me["seat"]
         phase = room["phase"]
@@ -662,6 +718,7 @@ async def room_action(code: str, payload: ActionReq):
         else:
             raise HTTPException(status_code=400, detail="Unbekannte Aktion")
 
+        me["last_seen"] = time.time()
         _advance_bots(room)
         await _maybe_record(room)
         await _save_room(room)

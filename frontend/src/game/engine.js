@@ -29,12 +29,25 @@ export function shuffle(deck) {
   return a;
 }
 
+function validatePlayerCount(n) {
+  // Never silently discard/over-deal cards for a corrupted saved setup.
+  if (!Number.isInteger(n) || n < 3 || n > 6) {
+    throw new RangeError("Player count must be an integer between 3 and 6");
+  }
+}
+
 export function dealCount(n) {
+  validatePlayerCount(n);
   return 60 / n; // 3->20, 4->15, 5->12, 6->10
 }
 
 export function deal(deck, n) {
   const count = dealCount(n);
+  if (!Array.isArray(deck) || deck.length !== 60 ||
+      deck.some(card => !card || typeof card.id !== "string") ||
+      new Set(deck.map(card => card.id)).size !== 60) {
+    throw new RangeError("A deal requires exactly 60 uniquely identified cards");
+  }
   const hands = Array.from({ length: n }, () => []);
   let idx = 0;
   for (let seat = 0; seat < n; seat++) {
@@ -56,6 +69,10 @@ export function sortCards(a, b) {
 
 // Passing configuration per player count and round.
 export function passInfo(n, roundIndex) {
+  validatePlayerCount(n);
+  if (!Number.isInteger(roundIndex) || roundIndex < 0) {
+    throw new RangeError("Round index must be a nonnegative integer");
+  }
   const counts = { 3: 4, 4: 3, 5: 2, 6: 2 };
   const count = counts[n];
   let dirs;
@@ -88,6 +105,7 @@ export function legalCardIds(hand, trick) {
 
 // Returns the winning seat of a completed trick.
 export function resolveTrick(trick) {
+  if (!trick.length) throw new RangeError("Cannot resolve an empty trick");
   const leadEntry = trick.find((t) => t.card.suit != null);
   if (!leadEntry) return trick[0].seat; // all wizards -> first played wins
   const lead = leadEntry.card.suit;
@@ -219,6 +237,7 @@ function leadPref(card) {
 
 // Choose a legal card for a bot to play.
 export function botPlay(hand, trick) {
+  if (!hand.length) throw new RangeError("Cannot choose a card from an empty hand");
   const legalSet = new Set(legalCardIds(hand, trick));
   const legal = hand.filter((c) => legalSet.has(c.id));
   if (legal.length === 0) return hand[0].id;
