@@ -3,6 +3,7 @@ import { CardView, SUIT_ICON } from "./CardView";
 import { Avatar } from "./Avatar";
 import { PlayerIdentity } from "./PlayerIdentity";
 import { LastTrickButton } from "./LastTrickButton";
+import { ExchangeHistoryButton } from "./ExchangeHistoryButton";
 import { TrickCards } from "./TrickCards";
 import { SelectedCards } from "./SelectedCards";
 import { RoundScores } from "./RoundScores";
@@ -116,7 +117,7 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
         </div>
 
         {/* roster */}
-        <div className="game-roster flex flex-wrap gap-2 justify-center px-3 pb-2">
+        <div className="game-roster flex flex-wrap gap-2 justify-center px-3 pb-2" data-player-count={n}>
           {players.map((p) => {
             const i = p.seat;
             const isCurrent = phase === "playing" && i === currentSeat;
@@ -276,9 +277,11 @@ function Shell({ view, actions, onLeave, sound, setSound, setRulesOpen, setStats
       </div>
       {children}
       <LastTrickButton trick={view.lastTrick} players={view.players} winner={view.lastWinner} onReviewChange={view.isSpectator ? undefined : actions.reviewLastTrick} />
+      {!view.isSpectator && <ExchangeHistoryButton exchange={view.yourExchange} phase={view.phase} trickNumber={view.trickNumber} scopeKey={`${view.code}-${view.roundIndex}-${view.yourSeat}`} />}
       {view.players.some((p) => p.reviewingLastTrick && p.seat !== view.yourSeat) && <div className="trick-review-notice" role="status" data-testid="trick-review-notice"><Eye size={12} className="inline mr-1" />{view.players.filter((p) => p.reviewingLastTrick && p.seat !== view.yourSeat).map((p) => p.name).join(", ")} sieht letzten Stich an</div>}
       <RulesDialog open={rulesOpen} onOpenChange={setRulesOpen} />
       <StatsDialog open={statsOpen} onOpenChange={setStatsOpen} />
     </div>
   );
 }
+

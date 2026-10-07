@@ -24,7 +24,8 @@ export function TrickCards({ trick, players, n, trickKey, winner, complete, swee
     sfx.playCard(latest.card, key);
   }, [trickKey, latest]);
   const winnerX = ((winner ?? 0) - (n - 1) / 2) * 70;
-  return <div className="trick-cards flex flex-wrap gap-3 justify-center items-end" aria-live="polite" aria-label="Gespielte Karten in Reihenfolge">
+  return <div className="trick-cards flex justify-center items-end" data-player-count={n}
+    style={{ "--trick-player-count": n }} aria-live="polite" aria-label="Gespielte Karten in Reihenfolge">
     <AnimatePresence>
       {trick.map((entry, index) => {
         const player = players.find((p, i) => (p.seat ?? i) === entry.seat);
@@ -35,11 +36,11 @@ export function TrickCards({ trick, players, n, trickKey, winner, complete, swee
           animate={sweeping ? { x: winnerX, y: -85, scale: .9, opacity: 0 } : { x: 0, y: 0, rotate: 0, scale: 1, opacity: 1 }}
           exit={reduced ? { opacity: 0 } : { x: winnerX, y: -85, scale: .9, opacity: 0 }}
           transition={{ duration: reduced ? .05 : sweeping ? .48 : pose.duration, ease: [.18, .8, .25, 1], layout: { type: "spring", stiffness: 135, damping: 24 } }}>
-          <div className="played-card-label flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 border border-white/15">
+          <div className="played-card-label flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 border border-white/15" title={`${index + 1}. ${player?.name || "Spieler"}`}>
             <span className="text-amber-200 text-[10px]">{index + 1}.</span><Avatar avatar={player?.avatar} size={16} />
             <span className="text-[10px] text-slate-200 max-w-[70px] truncate" title={player?.name}>{player?.name}</span>
           </div>
-          <motion.div animate={{ rotate: reduced ? 0 : pose.tilt, y: reduced ? 0 : pose.lift }} transition={{ duration: .55, ease: [.18, .8, .25, 1] }}><CardView card={entry.card} size="md" testId={`played-trick-card-${entry.seat}`} className={complete && entry.seat === winner ? "trick-winner-card" : ""} /></motion.div>
+          <motion.div className="played-card-art" animate={{ rotate: reduced ? 0 : pose.tilt, y: reduced ? 0 : pose.lift }} transition={{ duration: .55, ease: [.18, .8, .25, 1] }}><CardView card={entry.card} size="md" testId={`played-trick-card-${entry.seat}`} className={complete && entry.seat === winner ? "trick-winner-card" : ""} /></motion.div>
         </motion.div>;
       })}
     </AnimatePresence>

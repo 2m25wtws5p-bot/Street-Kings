@@ -77,7 +77,7 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) 
       </div>
 
       {/* opponents roster */}
-      <div className="game-roster flex flex-wrap gap-2 justify-center px-3 pb-2">
+      <div className="game-roster flex flex-wrap gap-2 justify-center px-3 pb-2" data-player-count={n}>
         {players.map((p, i) => (
           <div
             key={i}
@@ -167,3 +167,4 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) 
     </div>
   );
 }
+

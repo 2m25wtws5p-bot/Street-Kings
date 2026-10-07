@@ -51,7 +51,6 @@ export function CardView({ card, size = "md", faceDown = false, selected = false
     <div className="card-print-shade" aria-hidden="true" />
     <div className="absolute inset-[3px] rounded-md border border-white/25 pointer-events-none" />
     {selected && <span className="card-selection-check" aria-hidden="true">✓</span>}
-    {card.receivedFrom && <span className="card-source" title={`Erhalten von ${card.receivedFrom}`}>↪ {card.receivedFrom}</span>}
     <div className="card-pip card-pip-top">
       <span className={`font-display font-black ${NUM[size]}`}>{numeral}</span>
       <Icon size={size === "xs" ? 9 : 12} strokeWidth={2.4} />
@@ -66,3 +65,4 @@ export function CardView({ card, size = "md", faceDown = false, selected = false
     </div>}
   </Comp>;
 }
+

@@ -12,6 +12,8 @@ import { StatsDialog } from "@/components/StatsDialog";
 import { Avatar } from "@/components/Avatar";
 import { GameHeaderButtons } from "@/components/GameHeaderButtons";
 import { LastTrickButton } from "@/components/LastTrickButton";
+import { ExchangeHistoryButton } from "@/components/ExchangeHistoryButton";
+import { localExchangeSeat } from "@/game/exchangeHistory";
 import { lowestSeats, botPass, botPlay } from "@/game/engine";
 import { recordGame } from "@/game/storage";
 import { sfx } from "@/game/sound";
@@ -23,7 +25,19 @@ export function LocalGame({ onExit, sound, setSound }) {
   const { state, actions } = useWitchesGame();
   const [rulesOpen, setRulesOpen] = useState(false);
   const [statsOpen, setStatsOpen] = useState(false);
+  const [revealedSeat, setRevealedSeat] = useState(null);
   const savedRef = useRef(false);
+
+  useEffect(() => {
+    setRevealedSeat(null);
+  }, [state.roundIndex]);
+  useEffect(() => {
+    if (state.phase === "playing" && !state.players?.[state.currentSeat]?.isBot) {
+      setRevealedSeat(state.currentSeat);
+    } else if (state.phase === "playGate" && !state.players?.[state.currentSeat]?.isBot) {
+      setRevealedSeat(null);
+    }
+  }, [state.phase, state.currentSeat, state.players]);
 
   useEffect(() => {
     if (state.phase === "setup" || state.phase === "passGate") savedRef.current = false;
@@ -67,6 +81,7 @@ export function LocalGame({ onExit, sound, setSound }) {
     (state.phase === "playGate" && state.players?.[state.currentSeat]?.isBot) ||
     (state.phase === "passGate" && state.players?.[state.passSeat]?.isBot);
   const showHeader = state.phase !== "setup" || botActing;
+  const exchangeSeat = localExchangeSeat(state, revealedSeat);
 
   return (
     <div className="grain min-h-screen">
@@ -87,6 +102,7 @@ export function LocalGame({ onExit, sound, setSound }) {
 
       {state.phase === "setup" && <SetupScreen onStart={actions.startGame} />}
       {state.phase !== "setup" && <LastTrickButton trick={state.lastTrick} players={state.players} winner={state.lastWinner} />}
+      <ExchangeHistoryButton exchange={exchangeSeat == null ? null : state.exchangeHistory?.[exchangeSeat]} phase={state.phase} trickNumber={state.trickNumber} scopeKey={`${state.roundIndex}-${exchangeSeat}`} />
 
       {state.phase === "passGate" &&
         (state.players[state.passSeat]?.isBot ? (

@@ -398,6 +398,97 @@ body {
   .game-center [data-testid^="played-trick-card-"] { width:56px; height:80px; }
 }
 
+/* Every crew has an equal seat; a four-player mobile table is a balanced 2x2. */
+.game-roster { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); width:min(100%,960px); margin-inline:auto; align-items:stretch; }
+.game-roster[data-player-count="4"] { grid-template-columns:repeat(4,minmax(0,1fr)); }
+.game-roster[data-player-count="5"] { grid-template-columns:repeat(5,minmax(0,1fr)); }
+.game-roster[data-player-count="6"] { grid-template-columns:repeat(6,minmax(0,1fr)); }
+.game-roster .crew-player,
+.game-roster .crew-player:nth-child(even) {
+  min-width:0; width:100%; min-height:48px; gap:6px; padding:6px 8px;
+  background:linear-gradient(115deg,#f2e3c5,#d7ccb7); color:#292d28;
+  border:3px solid #9b7855; border-left:5px solid #c49258;
+  border-radius:4px 8px 4px 8px; transform:none;
+  box-shadow:2px 4px 0 #08131166,inset 0 0 0 1px #fff3;
+}
+.game-roster .crew-player[data-current="true"] { border-color:#e5b63e; box-shadow:0 0 0 1px #e5b63e,2px 4px 0 #08131166,inset 0 0 0 1px #fff3; }
+.game-roster .crew-player[data-winner="true"] { border-color:#26ab72; }
+.game-roster .crew-identity { min-width:0; flex:1; }
+.game-roster .crew-name > span:first-child { min-width:0; max-width:100%; }
+
+/* Keep the complete trick on one row, including six cards on a narrow phone. */
+.trick-cards {
+  --trick-gap:12px; --trick-card-max-width:80px;
+  display:flex; flex-wrap:nowrap; justify-content:center; align-items:flex-end;
+  gap:var(--trick-gap); min-width:0; max-width:640px; margin-inline:auto;
+}
+.trick-cards .played-card {
+  flex:0 1 calc((100% - (var(--trick-player-count) - 1) * var(--trick-gap)) / var(--trick-player-count));
+  min-width:0; max-width:96px;
+}
+.trick-cards .played-card-art { min-width:0; width:min(100%,var(--trick-card-max-width)); }
+.trick-cards .played-card-art > .street-card { width:100%!important; height:auto!important; aspect-ratio:20 / 29; }
+.trick-cards .played-card-label { width:100%; min-width:0; justify-content:center; overflow:hidden; }
+.trick-cards .played-card-label > :not(:last-child) { flex-shrink:0; }
+.trick-cards .played-card-label > span:last-child { min-width:0; max-width:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+/* Private exchange history lives beside the fixed last-trick control, not on cards. */
+.exchange-history-button {
+  position:fixed; top:56px; left:10px; z-index:45; display:flex; align-items:center; gap:6px;
+  max-width:calc(50vw - 16px); min-height:36px; border:1px solid #fbbf24aa; border-radius:8px;
+  padding:8px 11px; color:#fef3c7; font-size:12px; font-weight:600;
+  background:#252017f5; box-shadow:0 3px 12px #0008;
+  transition:background-color .25s ease,box-shadow .25s ease,transform .2s ease;
+}
+.exchange-history-button svg { flex-shrink:0; }
+.exchange-history-button:not(:disabled):hover { background:#40301c; }
+.exchange-history-button:not(:disabled):active { transform:translateY(1px); }
+.exchange-history-button:disabled { opacity:.4; }
+.exchange-history-dialog { color:#e2e8f0; background:#171a21; border:1px solid #fbbf2455; border-radius:12px; padding:20px; width:min(560px,calc(100vw - 24px)); margin:auto; max-height:90dvh; overflow:auto; }
+.exchange-history-dialog::backdrop { background:#000b; }
+.exchange-history-dialog .exchange-cards { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; }
+.exchange-history-section + .exchange-history-section { margin-top:20px; }
+.exchange-history-player { margin-bottom:10px; }
+.game-table { padding-top:98px; }
+.game-center, .game-center > [data-testid="central-trick-cauldron"] { min-width:0; max-width:100%; }
+@media(max-width:639px) {
+  .game-table { padding-top:98px; }
+  .game-table > :first-child { min-height:32px; padding:3px 8px; gap:4px; }
+  .game-roster { grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; }
+  .game-roster[data-player-count="4"] { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .game-roster[data-player-count="5"], .game-roster[data-player-count="6"] { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .game-roster .crew-player, .game-roster .crew-player:nth-child(even) { padding:4px 5px; gap:4px; }
+  .game-roster[data-player-count="4"] .crew-player > :first-child { width:28px!important; height:28px!important; }
+  .game-roster[data-player-count="4"] .crew-name { font-size:12px; }
+  .game-center > [data-testid="central-trick-cauldron"] { padding:4px 0 8px; }
+  .game-center .trick-cards { --trick-gap:6px; --trick-card-max-width:64px; display:flex; max-width:100%; gap:var(--trick-gap); padding:4px 0; }
+  .trick-cards .played-card-label { padding:2px 3px; gap:2px; }
+  .trick-cards .played-card-label .street-avatar { width:12px!important; height:12px!important; }
+  .trick-cards[data-player-count="5"] .played-card-label > span,
+  .trick-cards[data-player-count="6"] .played-card-label > span { font-size:9px; }
+  .trick-cards[data-player-count="6"] { --table-pip-font:12px; --table-pip-width:13px; --table-pip-icon:6px; }
+  .trick-cards[data-player-count="6"] .street-card { --table-pip-font:12px; --table-pip-width:13px; --table-pip-icon:6px; --table-special-name:7px; --table-special-rule:5px; }
+  .game-table > div:last-child { margin-top:4px; padding:4px 8px 6px; }
+  .game-table [data-testid="trick-winner-banner"] { font-size:14px; line-height:20px; margin-bottom:4px; }
+  .game-table [data-testid="waiting-indicator"] { padding:0; }
+  .game-table [data-testid="waiting-indicator"] .compact-hand { margin-top:12px; margin-bottom:0; }
+}
+@media(max-width:639px) and (max-height:700px) {
+  .game-center .trick-cards { --trick-card-max-width:56px; }
+}
+@media(max-width:639px) and (max-height:600px) {
+  .game-roster { gap:4px; padding-top:0; padding-bottom:4px; }
+  .game-roster .crew-player, .game-roster .crew-player:nth-child(even) { min-height:40px; padding:2px 4px; border-width:2px; border-left-width:4px; }
+  .game-roster[data-player-count="4"] .crew-player > :first-child { width:22px!important; height:22px!important; }
+  .game-roster .crew-name, .game-roster[data-player-count="4"] .crew-name { font-size:10px; line-height:1; }
+  .game-roster .crew-stats { margin-top:1px; }
+  .game-center { padding-top:2px; padding-bottom:2px; }
+  .game-center > [data-testid="central-trick-cauldron"] { padding:2px 0; }
+  .game-center .trick-cards { --trick-card-max-width:48px; padding:2px 0; }
+  .trick-cards .played-card-label { padding:1px 2px; line-height:14px; }
+  .game-table .compact-hand > .street-card { height:66px; }
+}
+
 /* A stable mobile fan: selection must never cover a neighbour's number. */
 @media(max-width:639px) {
   .compact-hand { isolation:isolate; }
@@ -452,3 +543,4 @@ body {
   .score-delta { font-size:22px; }
   .round-summary .score-next { margin-top:18px; padding:12px; }
 }
+

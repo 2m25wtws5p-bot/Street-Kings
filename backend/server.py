@@ -5,6 +5,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
 import asyncio
+import copy
 import random
 import string
 from pathlib import Path
@@ -200,6 +201,7 @@ def _setup_passing(room):
     room["passCount"] = count
     room["passDir"] = d
     room["pendingSelections"] = {}
+    room["exchangeHistory"] = {}
     if count == 0 or d == 0:
         _start_tricks(room)
         return
@@ -215,16 +217,26 @@ def _apply_passes(room):
     d = room["passDir"]
     hands = [list(h) for h in room["hands"]]
     incoming = [[] for _ in range(n)]
+    names = {p["seat"]: p["name"] for p in room["players"]}
+    history = {str(seat): {"sent": [], "received": [], "sentTo": None, "receivedFrom": None}
+               for seat in range(n)}
     for seat in range(n):
         sel = set(room["pendingSelections"].get(str(seat), []))
-        source_name = next(p["name"] for p in room["players"] if p["seat"] == seat)
-        give = [{**c, "receivedFrom": source_name} for c in hands[seat] if c["id"] in sel]
+        target = eng.target_seat(seat, d, n)
+        selected = [c for c in hands[seat] if c["id"] in sel]
+        give = [{**c, "receivedFrom": names[seat]} for c in selected]
+        # Keep immutable round snapshots: playing a card must not erase the recap.
+        history[str(seat)]["sent"] = copy.deepcopy(selected)
+        history[str(seat)]["sentTo"] = names[target]
+        history[str(target)]["received"] = copy.deepcopy(give)
+        history[str(target)]["receivedFrom"] = names[seat]
         hands[seat] = [c for c in hands[seat] if c["id"] not in sel]
-        incoming[eng.target_seat(seat, d, n)].extend(give)
+        incoming[target].extend(give)
     for seat in range(n):
         hands[seat].extend(incoming[seat])
         hands[seat].sort(key=eng._sort_key)
     room["hands"] = hands
+    room["exchangeHistory"] = history
     _start_tricks(room)
 
 
@@ -376,6 +388,10 @@ def _redact(room, token):
         "passDir": room.get("passDir", 0),
         "roundResult": room.get("roundResult"),
         "yourHand": room["hands"][your_seat] if your_seat is not None else [],
+        # Only the seated viewer may see their exchange during the first 3 tricks.
+        "yourExchange": copy.deepcopy(room.get("exchangeHistory", {}).get(str(your_seat)))
+        if your_seat is not None and view["phase"] in ("playing", "trickEnd")
+        and 1 <= room.get("trickNumber", 1) <= 3 else None,
     })
     if view["phase"] == "passing":
         view["passedSeats"] = [str(seat) in room["pendingSelections"] for seat in range(n)]
@@ -681,3 +697,4 @@ async def _ensure_indexes():
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
+

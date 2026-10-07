@@ -1,4 +1,5 @@
 import { useReducer, useCallback } from "react";
+import { captureCardExchange } from "./exchangeHistory";
 import {
   makeDeck,
   shuffle,
@@ -34,6 +35,7 @@ function beginRound(base) {
     lastTrick: null,
     lastWinner: null,
     justPlayed: null,
+    exchangeHistory: Array(n).fill(null),
   };
   if (count > 0 && dir !== 0) {
     return {
@@ -120,7 +122,8 @@ function reducer(state, action) {
       if (nextSeat < state.n)
         return { ...state, pendingSelections: pending, passSeat: nextSeat, phase: "passGate" };
       const hands = applyPasses(state.hands, pending, state.passDir, state.n, state.players);
-      return startTricks({ ...state, hands, pendingSelections: pending });
+      const exchangeHistory = captureCardExchange(state.hands, pending, state.passDir, state.players);
+      return startTricks({ ...state, hands, exchangeHistory, pendingSelections: pending });
     }
     case "PLAY_CARD":
       return playCard(state, action.cardId);

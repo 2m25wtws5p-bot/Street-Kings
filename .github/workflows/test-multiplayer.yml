@@ -35,6 +35,8 @@ jobs:
         run: node frontend/scripts/test-street-sounds.cjs
       - name: Test random street portraits and nicknames
         run: node frontend/tests/identity.test.mjs
+      - name: Test private exchange history and three-trick window
+        run: node frontend/tests/exchange-history.test.mjs
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
