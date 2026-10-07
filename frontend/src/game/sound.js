@@ -105,6 +105,19 @@ function chord(delay, duration = .32, gain = .025) {
     oscillator.stop(at + duration + .02);
   });
 }
+function reminderTone(delay, frequency) {
+  const c = ac();
+  if (!c) return;
+  const at = c.currentTime + delay;
+  const oscillator = c.createOscillator();
+  oscillator.type = "sine";
+  oscillator.frequency.setValueAtTime(frequency, at);
+  const amp = envelope(c, at, .14, .075);
+  oscillator.connect(amp);
+  oscillator.onended = () => { oscillator.disconnect(); amp.disconnect(); };
+  oscillator.start(at);
+  oscillator.stop(at + .16);
+}
 const hat = (delay = 0, gain = .07) => texture(delay, .045, gain, 6500, "highpass");
 const rim = (delay = 0, gain = .13) => texture(delay, .075, gain, 1500);
 export const sfx = {
@@ -127,4 +140,14 @@ export const sfx = {
     bass(0, .3); hat(.18); rim(.37); bass(.56, .22); hat(.77); rim(.96); chord(.98, .5, .035);
   },
   reveal() { if (enabled) { texture(0, .18, .09, 1400); hat(.12, .045); } },
+  turnReminder() {
+    if (!enabled) return;
+    try {
+      // A brief rising chime, spaced ten seconds apart by the turn scheduler.
+      reminderTone(0, 660);
+      reminderTone(.17, 880);
+    } catch {
+      // A visual reminder still works when the browser refuses audio.
+    }
+  },
 };

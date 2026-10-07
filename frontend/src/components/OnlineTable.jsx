@@ -12,8 +12,11 @@ import { GameOver } from "./GameOver";
 import { GameHeaderButtons } from "./GameHeaderButtons";
 import { RulesDialog } from "./RulesDialog";
 import { StatsDialog } from "./StatsDialog";
+import { TurnStatus } from "./TurnStatus";
 import { legalCardIds, leadSuit, dealCount } from "../game/engine";
-import { Trophy, Check, Hourglass, LogOut, Copy, Eye, WifiOff, Bot } from "lucide-react";
+import { useTurnReminder } from "../game/useTurnReminder";
+import { useHandLayout } from "../game/useHandLayout";
+import { Trophy, Check, LogOut, Copy, Eye, WifiOff, Bot } from "lucide-react";
 import { sfx } from "../game/sound";
 
 export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
@@ -28,6 +31,8 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
   const spectator = view.isSpectator;
   const lead = leadSuit(trick);
   const yourTurn = !spectator && phase === "playing" && currentSeat === yourSeat;
+  const reminderCount = useTurnReminder({ enabled: yourTurn && !actions.error, turnKey: `${view.code}-${view.roundIndex}-${view.trickNumber}-${yourSeat}` });
+  const handLayout = useHandLayout(dealCount(n));
   const iPassed = view.iPassed;
   const nameOf = (seat) => players.find((p) => p.seat === seat)?.name;
 
@@ -123,7 +128,7 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
             const passed = phase === "passing" && view.passedSeats?.[i];
             const offline = !p.isBot && !p.connected;
             return (
-              <div key={i} data-testid={`opponent-seat-player-${i}`} data-current={isCurrent ? "true" : undefined} data-winner={isWinner ? "true" : undefined} className={`crew-player flex items-center gap-2 rounded-md px-2.5 py-1.5 border transition-all ${isCurrent ? "bg-amber-500/15 border-amber-400/70" : isWinner ? "bg-emerald-500/15 border-emerald-400/60" : "bg-black/30 border-white/10"} ${offline ? "opacity-60" : ""}`}>
+              <div key={i} data-testid={`opponent-seat-player-${i}`} data-current={isCurrent ? "true" : undefined} data-own-turn={yourTurn && i === yourSeat ? "true" : undefined} data-winner={isWinner ? "true" : undefined} className={`crew-player flex items-center gap-2 rounded-md px-2.5 py-1.5 border transition-all ${isCurrent ? "bg-amber-500/15 border-amber-400/70" : isWinner ? "bg-emerald-500/15 border-emerald-400/60" : "bg-black/30 border-white/10"} ${offline ? "opacity-60" : ""}`}>
                 <Avatar avatar={p.avatar} size={30} active={isCurrent} />
                 <PlayerIdentity name={p.name} heat={scores[i]} cards={handCounts[i]}>
                     {i === yourSeat && <span className="text-amber-300/80 text-[9px]">(du)</span>}
@@ -156,59 +161,66 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
         {/* bottom action area */}
         {spectator ? (
           <SpectatorBar phase={phase} currentSeat={currentSeat} lastWinner={lastWinner} nameOf={nameOf} passed={view.passedSeats} n={n} />
-        ) : phase === "trickEnd" ? (
-          <div className="trick-end-section px-4 pb-6 text-center rise-in">
-            <div className="trick-action-panel">
-              <div className="inline-flex items-center gap-2 font-display text-xl text-emerald-300" data-testid="trick-winner-banner">
-                <Trophy size={20} /> {nameOf(lastWinner)} kassiert den Stich!
-              </div>
-              {lastWinner === yourSeat || view.isHost ? (
-                <button disabled={!trickReady || actions.busy} onClick={actions.continueTrick} data-testid="btn-continue-trick" className="game-action-button">
-                  {trickReady ? "Einsammeln & weiter" : "Stich ansehen…"}
-                </button>
+        ) : (
+          <div className="turn-hand-zone game-hand-section px-2 pb-4" data-testid={phase === "passing" && !iPassed ? "passing-hand-container" : yourTurn ? "active-player-hand-container" : "own-hand-container"}>
+            <div className="turn-action-slot">
+              {phase === "passing" ? (
+                <div className="game-hand-instructions text-center font-serif-fancy text-slate-300/80" data-testid="passing-phase-instructions">
+                  {iPassed ? <span data-testid="waiting-indicator">Deal besiegelt! Warten auf die anderen Crews… ({(view.passedSeats || []).filter(Boolean).length}/{n})</span> : <>
+                  Wähle <b className="text-amber-300">{view.passCount}</b> Karte{view.passCount > 1 ? "n" : ""} zum Weitergeben an{" "}
+                  <span className="text-amber-200 font-semibold font-display">{nameOf(view.passTarget)}</span>
+                  <span className="font-mono-stat text-amber-300 text-sm ml-2" data-testid="passing-phase-selected-count">{selected.length}/{view.passCount}</span>
+                  </>}
+                </div>
               ) : (
-                <p className="font-serif-fancy text-slate-300/70 italic">Warten, bis {nameOf(lastWinner)} den Stich einsammelt…</p>
+                <TurnStatus
+                  state={phase === "trickEnd" ? "complete" : yourTurn ? "active" : "waiting"}
+                  title={phase === "trickEnd" ? "STICH BEENDET" : yourTurn ? "DU BIST DRAN" : "DU WARTEST"}
+                  subtitle={phase === "trickEnd" ? (
+                    <span className="inline-flex items-center gap-2 text-emerald-300" data-testid="trick-winner-banner"><Trophy size={18} /> {nameOf(lastWinner)} kassiert den Stich!</span>
+                  ) : yourTurn ? "Karte wählen · nochmal tippen zum Spielen" : (
+                    <span data-testid="waiting-indicator">{nameOf(currentSeat)} ist am Zug.</span>
+                  )}
+                  reminderCount={reminderCount}
+                  confirming={!!armed}
+                >
+                  <span className={`game-play-hint text-amber-400/80 text-sm ${armed ? "" : "invisible"}`} aria-hidden={!armed} data-testid="game-play-confirmation-hint">Nochmal tippen, um sie zu legen</span>
+                  {phase === "trickEnd" && (
+                    <div className="trick-action-panel">
+                      {lastWinner === yourSeat || view.isHost ? (
+                        <button disabled={!trickReady || actions.busy} onClick={actions.continueTrick} data-testid="btn-continue-trick" className="game-action-button">
+                          {trickReady ? "Einsammeln & weiter" : "Stich ansehen…"}
+                        </button>
+                      ) : (
+                        <p className="font-serif-fancy text-slate-300/70 italic">Warten, bis {nameOf(lastWinner)} den Stich einsammelt…</p>
+                      )}
+                    </div>
+                  )}
+                </TurnStatus>
               )}
             </div>
-            <Waiting yourHand={yourHand} text="" />
-          </div>
-        ) : phase === "passing" ? (
-          iPassed ? (
-            <Waiting yourHand={yourHand} text={`Deal besiegelt! Warten auf die anderen Crews… (${view.passedSeats.filter(Boolean).length}/${n})`} />
-          ) : (
-            <div className="game-hand-section px-2 pb-4" data-testid="passing-hand-container">
-              <div className="game-hand-instructions text-center font-serif-fancy text-slate-300/80" data-testid="passing-phase-instructions">
-                Wähle <b className="text-amber-300">{view.passCount}</b> Karte{view.passCount > 1 ? "n" : ""} zum Weitergeben an{" "}
-                <span className="text-amber-200 font-semibold font-display">{nameOf(view.passTarget)}</span>
-                <span className="font-mono-stat text-amber-300 text-sm ml-2" data-testid="passing-phase-selected-count">{selected.length}/{view.passCount}</span>
-              </div>
-              <div className="compact-hand flex flex-wrap justify-center gap-1.5 sm:gap-2 max-w-5xl mx-auto">
-                {yourHand.map((card) => (
-                  <CardView key={card.id} card={card} size="md" selected={selected.includes(card.id)} onClick={() => toggleSelect(card.id)} testId={`pass-card-item-${card.id}`} />
-                ))}
-              </div>
-              <div className="game-hand-actions text-center">
+            <div ref={handLayout.ref} style={handLayout.style} className="turn-hand-grid compact-hand flex flex-wrap justify-center gap-1.5 sm:gap-2 max-w-5xl mx-auto" data-testid="own-hand-grid" data-initial-count={dealCount(n)}>
+              {yourHand.map((card) => (
+                <CardView
+                  key={card.id}
+                  card={card}
+                  size="md"
+                  selected={phase === "passing" && !iPassed ? selected.includes(card.id) : yourTurn && armed === card.id}
+                  dim={yourTurn && !legal.has(card.id)}
+                  onClick={phase === "passing" && !iPassed ? () => toggleSelect(card.id) : yourTurn ? () => clickPlay(card) : undefined}
+                  testId={phase === "passing" ? `pass-card-item-${card.id}` : `hand-card-item-${card.id}`}
+                />
+              ))}
+            </div>
+            {phase === "passing" && (
+              <div className={`game-hand-actions text-center ${iPassed ? "invisible" : ""}`} aria-hidden={!!iPassed}>
                 <SelectedCards hand={yourHand} selected={selected} count={view.passCount} onRemove={toggleSelect} />
-                <button disabled={actions.busy || selected.length !== view.passCount} onClick={() => { sfx.playCard(); actions.pass(selected); }} data-testid="btn-confirm-card-pass" className="game-action-button">
+                <button disabled={iPassed || actions.busy || selected.length !== view.passCount} onClick={() => { sfx.playCard(); actions.pass(selected); }} data-testid="btn-confirm-card-pass" className="game-action-button">
                   Deal besiegeln
                 </button>
               </div>
-            </div>
-          )
-        ) : yourTurn ? (
-          <div className="game-hand-section px-2 pb-4" data-testid="active-player-hand-container">
-            <div className="game-hand-instructions text-center font-serif-fancy text-slate-300/80">
-              <span className="text-amber-200 font-semibold font-display">Dein Zug</span>, spiel deine Karte
-              <span className={`game-play-hint text-amber-400/80 text-sm ${armed ? "" : "invisible"}`} aria-hidden={!armed} data-testid="game-play-confirmation-hint">Nochmal tippen, um sie zu legen</span>
-            </div>
-            <div className="compact-hand flex flex-wrap justify-center gap-1.5 sm:gap-2 max-w-5xl mx-auto">
-              {yourHand.map((card) => (
-                <CardView key={card.id} card={card} size="md" selected={armed === card.id} dim={!legal.has(card.id)} onClick={() => clickPlay(card)} testId={`hand-card-item-${card.id}`} />
-              ))}
-            </div>
+            )}
           </div>
-        ) : (
-          <Waiting text={`Warten, bis ${nameOf(currentSeat)} spielt…`} yourHand={yourHand} />
         )}
       </div>
     </Shell>
@@ -226,23 +238,6 @@ function SpectatorBar({ phase, currentSeat, lastWinner, nameOf, passed = [], n }
         <Eye size={14} /> Du schaust zu
       </div>
       <div className="font-serif-fancy text-slate-300/70 italic text-lg" data-testid="spectator-status-text">{text}</div>
-    </div>
-  );
-}
-
-function Waiting({ text, yourHand }) {
-  return (
-    <div className="px-4 pb-10 text-center rise-in" data-testid="waiting-indicator">
-      {text && <div className="font-serif-fancy text-slate-300/70 italic text-lg mb-3 flex items-center justify-center gap-2">
-        <Hourglass size={18} className="text-amber-300 candle-flicker" /> {text}
-      </div>}
-      {yourHand && (
-        <div className="compact-hand flex flex-wrap justify-center gap-1 max-w-4xl mx-auto opacity-80">
-          {yourHand.map((c) => (
-            <CardView key={c.id} card={c} size="sm" />
-          ))}
-        </div>
-      )}
     </div>
   );
 }

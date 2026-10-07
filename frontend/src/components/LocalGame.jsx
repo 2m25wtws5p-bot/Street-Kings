@@ -25,6 +25,14 @@ export function LocalGame({ onExit, sound, setSound }) {
   const [statsOpen, setStatsOpen] = useState(false);
   const [revealedSeat, setRevealedSeat] = useState(null);
   const savedRef = useRef(false);
+  const humanSeats = (state.players || []).flatMap((player, seat) => player.isBot ? [] : [seat]);
+  const soloHumanSeat = humanSeats.length === 1 ? humanSeats[0] : null;
+  const reveal = actions.reveal;
+
+  useEffect(() => {
+    // No handover gate is necessary when only one person uses the device.
+    if (state.phase === "playGate" && state.currentSeat === soloHumanSeat) reveal();
+  }, [state.phase, state.currentSeat, soloHumanSeat, reveal]);
 
   useEffect(() => {
     setRevealedSeat(null);
@@ -110,13 +118,11 @@ export function LocalGame({ onExit, sound, setSound }) {
         ))}
       {state.phase === "passing" && <PassingScreen state={state} onConfirm={actions.confirmPass} />}
 
-      {state.phase === "playGate" && !state.players[state.currentSeat]?.isBot && (
+      {state.phase === "playGate" && !state.players[state.currentSeat]?.isBot && soloHumanSeat == null && (
           <PassGate player={state.players[state.currentSeat]} headline="Dein Zug" onReveal={actions.reveal} ctaPrefix="Karten zeigen" note="Die Straße ruft. Nimm das Gerät und spiel im Geheimen…" />
         )}
-      {(state.phase === "playing" || state.phase === "trickEnd" || (state.phase === "playGate" && state.players[state.currentSeat]?.isBot)) && (
-        <div className="sm:pt-10">
-          <PlayTable state={state} onPlay={actions.playCard} onContinueTrick={actions.continueTrick} hideHand={state.players[state.currentSeat]?.isBot} />
-        </div>
+      {(state.phase === "playing" || state.phase === "trickEnd" || (state.phase === "playGate" && (state.players[state.currentSeat]?.isBot || soloHumanSeat != null))) && (
+        <PlayTable state={state} onPlay={actions.playCard} onContinueTrick={actions.continueTrick} hideHand={state.players[state.currentSeat]?.isBot} displaySeat={soloHumanSeat} />
       )}
 
       {state.phase === "roundScores" && (

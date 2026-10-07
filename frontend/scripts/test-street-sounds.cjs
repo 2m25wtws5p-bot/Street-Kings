@@ -1,6 +1,7 @@
 const assert = require('node:assert/strict');
 let voices = 0, disconnects = 0;
 const targets = [];
+const starts = [], stops = [];
 class Param {
   setValueAtTime(value) { assert(Number.isFinite(value)); }
   linearRampToValueAtTime(value) { assert(Number.isFinite(value)); }
@@ -12,8 +13,8 @@ class Node {
   constructor() { for (const key of ['gain','frequency','detune','playbackRate','Q','threshold','knee','ratio','attack','release']) this[key] = new Param(); }
   connect() {}
   disconnect() { disconnects++; }
-  start(at) { assert(at >= 0); voices++; }
-  stop(at) { assert(at > 0); this.onended?.(); }
+  start(at) { assert(at >= 0); starts.push(at); voices++; }
+  stop(at) { assert(at > 0); stops.push(at); this.onended?.(); }
 }
 class AudioContext {
   constructor() { this.currentTime = 1; this.sampleRate = 48000; this.state = 'suspended'; this.destination = {}; }
@@ -41,6 +42,12 @@ assert.equal(voices - before, 4);
 before = voices;
 sfx.playCard({special:true}, 'one-card');
 assert.equal(voices, before, 'Polling/rerenders must not replay the same card cue');
+before = voices;
+const reminderStart = starts.length, reminderStop = stops.length;
+sfx.turnReminder();
+assert.equal(voices - before, 2, 'Turn reminder is a soft two-note cue');
+assert(Math.max(...stops.slice(reminderStop)) - Math.min(...starts.slice(reminderStart)) <= .5, 'Turn reminder must be brief');
+before = voices;
 setSoundEnabled(false);
 assert.equal(isSoundEnabled(), false);
 for (const cue of Object.keys(sfx)) sfx[cue]();
@@ -51,4 +58,15 @@ assert.equal(isSoundEnabled(), true);
 assert(targets.at(-1) > 0 && targets.at(-1) <= .8);
 delete sandbox.window;
 sfx.playCard();
-console.log('PASS: all street cues, bounded envelopes, node cleanup, mute/unmute and card-cue deduplication');
+sfx.turnReminder();
+assert.equal(voices, before, 'No browser audio means silent reminders');
+for (const window of [
+  {},
+  { AudioContext: class { constructor() { throw new Error('Audio unavailable'); } } },
+  { AudioContext: class extends AudioContext { createOscillator() { throw new Error('Audio restricted'); } } },
+]) {
+  const restricted = { window, process: { env: {} } };
+  vm.runInNewContext(source + '\n;globalThis.audioApi = { sfx };', restricted);
+  assert.doesNotThrow(() => restricted.audioApi.sfx.turnReminder(), 'Refused audio must not interrupt visual reminders');
+}
+console.log('PASS: all street cues, brief turn reminder, node cleanup, mute/unmute, refused audio and card-cue deduplication');

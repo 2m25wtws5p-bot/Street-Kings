@@ -4,11 +4,13 @@ import { LeadSuitIndicator } from "./LeadSuitIndicator";
 import { Avatar } from "./Avatar";
 import { PlayerIdentity } from "./PlayerIdentity";
 import { TrickCards } from "./TrickCards";
+import { TurnStatus } from "./TurnStatus";
+import { useTurnReminder } from "../game/useTurnReminder";
+import { useHandLayout } from "../game/useHandLayout";
 import { legalCardIds, leadSuit, dealCount } from "../game/engine";
-import { Trophy } from "lucide-react";
 import { sfx } from "../game/sound";
 
-export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) {
+export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false, displaySeat = null }) {
   const { n, players, hands, scores, trick, trickNumber, currentSeat, phase, lastWinner } = state;
   const [armed, setArmed] = useState(null);
   const [sweeping, setSweeping] = useState(false);
@@ -27,8 +29,15 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) 
     if (isTrickEnd) sfx.winTrick();
   }, [isTrickEnd]);
 
-  const hand = !isTrickEnd ? hands[currentSeat] : [];
-  const legal = !isTrickEnd ? new Set(legalCardIds(hand, trick)) : new Set();
+  // Only solo-vs-bots has one persistent owner. Hot-seat hands remain private.
+  const persistentHand = Number.isInteger(displaySeat);
+  const handSeat = persistentHand ? displaySeat : currentSeat;
+  const hand = hands[handSeat] || [];
+  const canPlay = phase === "playing" && !hideHand && currentSeat === handSeat;
+  const faceDown = !persistentHand && (hideHand || isTrickEnd);
+  const legal = canPlay ? new Set(legalCardIds(hand, trick)) : new Set();
+  const reminderCount = useTurnReminder({ enabled: canPlay, turnKey: `${state.roundIndex}-${trickNumber}-${currentSeat}` });
+  const handLayout = useHandLayout(totalTricks);
   const active = players[currentSeat];
   useEffect(() => {
     setReady(false);
@@ -39,6 +48,7 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) 
   useEffect(() => () => clearTimeout(sweepTimer.current), []);
 
   const clickCard = (card) => {
+    if (!canPlay) return;
     if (!legal.has(card.id)) return;
     if (armed === card.id) {
       sfx.playCard(card, `${state.roundIndex}-${trickNumber}-${currentSeat}-${card.id}`);
@@ -58,7 +68,7 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) 
   };
 
   return (
-    <div className="game-table min-h-screen coven-bg flex flex-col">
+    <div className="game-table min-h-screen coven-bg flex flex-col" data-phase={phase}>
       {/* header row */}
       <div className="game-table-status flex items-center justify-between px-4 pt-3 pb-2">
         <div className="font-mono-stat text-xs text-slate-300/70">
@@ -74,6 +84,7 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) 
             key={i}
             data-testid={`opponent-seat-player-${i}`}
             data-current={!isTrickEnd && i === currentSeat ? "true" : undefined}
+            data-own-turn={canPlay && i === handSeat ? "true" : undefined}
             data-winner={isTrickEnd && i === lastWinner ? "true" : undefined}
             className={`crew-player flex items-center gap-2 rounded-md px-2.5 py-1.5 border transition-all ${
               !isTrickEnd && i === currentSeat
@@ -103,57 +114,28 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) 
         </div>
       </div>
 
-      {/* trick end banner OR active hand OR bot thinking */}
-      {isTrickEnd ? (
-        <div className="trick-end-section px-4 pb-6 text-center rise-in">
-          <div className="trick-action-panel">
-            <div className="inline-flex items-center gap-2 font-display text-xl text-emerald-300" data-testid="trick-winner-banner">
-              <Trophy size={20} /> {players[lastWinner].name} kassiert den Stich!
-            </div>
-            <button
-              onClick={handleContinue}
-              disabled={sweeping || !ready}
-              data-testid="btn-continue-trick"
-              className="game-action-button"
-            >
-              {ready ? "Einsammeln & weiter" : "Stich ansehen…"}
-            </button>
-          </div>
+      {/* One hand footprint for a human turn, bot wait and completed trick. */}
+      <div className="turn-hand-zone game-hand-section px-2 pb-4" data-testid={canPlay ? "active-player-hand-container" : "own-hand-container"}>
+        <div className="turn-action-slot">
+          <TurnStatus state={isTrickEnd ? "complete" : canPlay ? "active" : "waiting"}
+            title={isTrickEnd ? `${players[lastWinner].name} kassiert den Stich!` : canPlay ? "DU BIST DRAN" : "DU WARTEST"}
+            subtitle={isTrickEnd ? "Der Stich ist komplett." : canPlay ? `${active.name}, wähle deine Karte.` : `${active.name} ist am Zug.`}
+            reminderCount={reminderCount} confirming={!!armed}>
+            <span className={`game-play-hint text-amber-400/80 text-sm ${canPlay && armed ? "" : "invisible"}`} aria-hidden={!armed} data-testid="game-play-confirmation-hint">Nochmal tippen, um sie zu legen</span>
+            {isTrickEnd && <div className="trick-action-panel">
+              <button onClick={handleContinue} disabled={sweeping || !ready} data-testid="btn-continue-trick" className="game-action-button">
+                {ready ? "Einsammeln & weiter" : "Stich ansehen…"}
+              </button>
+            </div>}
+            {!canPlay && !isTrickEnd && <span data-testid="bot-thinking" className="turn-wait-note">Deine Karten bleiben hier liegen.</span>}
+          </TurnStatus>
         </div>
-      ) : hideHand ? (
-        <div className="px-4 pb-10 text-center rise-in" data-testid="bot-thinking">
-          <div className="font-serif-fancy text-slate-300/70 italic text-lg mb-3">
-            <span className="font-display text-amber-200 not-italic">{active.name}</span> überlegt seinen Zug…
-          </div>
-          <div className="flex justify-center -space-x-6">
-            {hand.slice(0, 8).map((c, i) => (
-              <div key={i} className="candle-flicker" style={{ animationDelay: `${i * 0.15}s` }}>
-                <CardView faceDown size="sm" />
-              </div>
-            ))}
-          </div>
+        <div className="turn-hand-grid compact-hand flex flex-wrap justify-center gap-1.5 sm:gap-2 max-w-5xl mx-auto" ref={handLayout.ref} style={handLayout.style} data-initial-count={totalTricks} data-testid="own-hand-grid">
+          {hand.map((card) => <CardView key={card.id} card={card} size="md" faceDown={faceDown}
+            selected={canPlay && armed === card.id} dim={canPlay && !legal.has(card.id)}
+            onClick={canPlay ? () => clickCard(card) : undefined} testId={`hand-card-item-${card.id}`} />)}
         </div>
-      ) : (
-        <div className="game-hand-section px-2 pb-4" data-testid="active-player-hand-container">
-          <div className="game-hand-instructions text-center font-serif-fancy text-slate-300/80">
-            <span className="text-amber-200 font-semibold font-display">{active.name}</span>, spiel deine Karte
-            <span className={`game-play-hint text-amber-400/80 text-sm ${armed ? "" : "invisible"}`} aria-hidden={!armed} data-testid="game-play-confirmation-hint">Nochmal tippen, um sie zu legen</span>
-          </div>
-          <div className="compact-hand flex flex-wrap justify-center gap-1.5 sm:gap-2 max-w-5xl mx-auto">
-            {hand.map((card) => (
-              <CardView
-                key={card.id}
-                card={card}
-                size="md"
-                selected={armed === card.id}
-                dim={!legal.has(card.id)}
-                onClick={() => clickCard(card)}
-                testId={`hand-card-item-${card.id}`}
-              />
-            ))}
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 }

@@ -171,7 +171,7 @@ test("the online deal respects both the limit and a pending action", () => {
 test("local play still arms on first tap, ignores illegal cards and plays on second tap", () => {
   let armed = null;
   const played = [];
-  const click = () => callback(local, "clickCard", { armed, legal: new Set(["A", "B"]), state: { roundIndex: 0 }, trickNumber: 1, currentSeat: 0, sfx: { select() {}, playCard() {} }, onPlay: id => played.push(id), setArmed: id => { armed = id; } });
+  const click = () => callback(local, "clickCard", { canPlay: true, armed, legal: new Set(["A", "B"]), state: { roundIndex: 0 }, trickNumber: 1, currentSeat: 0, sfx: { select() {}, playCard() {} }, onPlay: id => played.push(id), setArmed: id => { armed = id; } });
   click()({ id: "A" });
   assert.equal(armed, "A");
   assert.deepEqual(played, []);

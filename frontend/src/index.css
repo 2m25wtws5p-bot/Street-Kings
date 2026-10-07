@@ -568,6 +568,88 @@ body {
   .game-table[data-phase="passing"] .game-center { display:none; }
 }
 
+/* A single, bottom-anchored hand footprint throughout each round. */
+.game-table > div.turn-hand-zone {
+  width:100%; flex:0 0 auto; margin-top:0; padding:0 8px 16px;
+  animation:none;
+}
+.turn-action-slot {
+  height:132px; display:flex; align-items:center; justify-content:center;
+  padding:0 8px 18px; box-sizing:border-box;
+}
+.game-table[data-phase="passing"] .turn-action-slot { height:64px; }
+.turn-hand-grid.compact-hand {
+  --hand-card-width:80px; --hand-row-gap:26px; --hand-column-gap:8px; --hand-columns:0;
+  width:100%; max-width:1024px; margin:18px auto 0;
+  gap:var(--hand-row-gap) var(--hand-column-gap); align-items:flex-start; align-content:flex-start;
+}
+.turn-hand-grid.compact-hand > * { width:var(--hand-card-width); }
+.turn-hand-grid.compact-hand > .street-card:not([data-selected="true"]):hover { transform:none; }
+.turn-status-card {
+  position:relative; isolation:isolate; width:min(100%,420px); min-width:0;
+  display:flex; flex-direction:column; align-items:center; gap:2px; padding:7px 12px;
+  color:#423e34; background:linear-gradient(115deg,#e1dfd0,#c6c7bb);
+  border:2px solid #777d6a; border-left:5px solid #777d6a;
+  border-radius:5px 10px 5px 7px; box-shadow:2px 4px 0 #07121099;
+  text-align:center;
+}
+.turn-status-card[data-state="active"] {
+  color:#362710; background:linear-gradient(115deg,#fff0b5,#edcb77);
+  border-color:#edbc46; border-left-color:#ffe79a;
+  box-shadow:0 0 0 2px #231f14,0 0 18px #e7b54433,2px 4px 0 #07121099;
+}
+.turn-status-card[data-state="complete"] { background:linear-gradient(115deg,#e2ead2,#cbd8c6); border-color:#699b78; color:#244c37; }
+.turn-status-title { max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:25px; font-weight:900; line-height:28px; }
+.turn-status-card[data-state="active"] .turn-status-title::before { content:"▶"; margin-right:8px; font-size:18px; }
+.turn-status-subtitle { width:100%; min-height:18px; line-height:18px; font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.turn-status-subtitle > span { max-width:100%; color:inherit; }
+.turn-status-details { display:grid; place-items:center; width:100%; height:48px; min-width:0; }
+.turn-status-details > * { grid-area:1 / 1; max-width:100%; }
+.turn-status-details .game-play-hint { color:inherit; font-weight:600; }
+.turn-status-details .trick-action-panel { gap:0; margin:0; width:100%; min-width:0; }
+.turn-status-details .trick-action-panel p { max-width:100%; font-size:11px; line-height:16px; color:inherit; }
+.turn-status-details .game-action-button { min-height:44px; padding:7px 18px; font-size:19px; }
+.turn-wait-note { font-size:11px; }
+.turn-reminder-message { color:#754a12; font-size:13px; font-weight:800; }
+.turn-status-card [data-testid="waiting-indicator"] { padding:0; }
+.turn-reminder-announcement { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+.turn-reminder-pulse { position:absolute; inset:-5px; z-index:-1; border:3px solid #ffe9a1; border-radius:9px 14px 9px 11px; pointer-events:none; animation:turn-reminder-pulse 1.4s ease-out both; }
+@keyframes turn-reminder-pulse { 0% { opacity:1; box-shadow:0 0 0 1px #f1c05e; } 60% { opacity:.8; box-shadow:0 0 0 7px #f1c05e66; } 100% { opacity:0; box-shadow:0 0 0 10px #f1c05e00; } }
+.game-roster .crew-player[data-own-turn="true"] { border-color:#f5cc61; background:linear-gradient(115deg,#fff0b5,#ebd192); box-shadow:0 0 0 2px #3c341e,0 0 12px #e7b54444,2px 4px 0 #08131166; }
+@media(max-width:639px) {
+  .game-table > div.turn-hand-zone { margin-top:0; padding:0 8px 10px; }
+  .turn-action-slot { height:118px; padding:0 4px 14px; }
+  .game-table[data-phase="passing"] .turn-action-slot { height:54px; }
+  .turn-status-card { padding:5px 9px; }
+  .turn-status-title { font-size:22px; line-height:24px; }
+  .turn-status-subtitle { font-size:11px; }
+  .turn-status-details { height:44px; }
+  .turn-hand-grid.compact-hand {
+    --hand-card-width:64px; --hand-row-gap:22px; --hand-column-gap:0px; --hand-columns:10;
+    display:grid; grid-template-columns:repeat(9,minmax(0,1fr)) var(--hand-card-width);
+    grid-auto-rows:calc(var(--hand-card-width) * 1.45); align-items:start; align-content:start;
+    width:100%; max-width:520px; margin:16px auto 0; gap:var(--hand-row-gap) 0;
+  }
+}
+@media(max-width:639px) and (max-height:700px) {
+  .turn-hand-grid.compact-hand { --hand-card-width:54px; --hand-row-gap:16px; }
+}
+@media(max-width:639px) and (max-height:600px) {
+  .game-table[data-phase="passing"] .turn-action-slot { height:44px; }
+  .turn-hand-grid.compact-hand { --hand-card-width:46px; }
+  .game-table > div.turn-hand-zone { padding-bottom:6px; }
+  .turn-action-slot { height:90px; padding-bottom:4px; }
+  .turn-status-card { padding:3px 8px; }
+  .turn-status-title { font-size:20px; line-height:22px; }
+  .turn-status-subtitle { min-height:16px; line-height:16px; font-size:10px; }
+  .turn-status-details { height:36px; }
+  .turn-status-details .game-action-button { min-height:34px; padding:5px 14px; font-size:16px; }
+  .turn-reminder-message { font-size:11px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .turn-reminder-pulse { animation:none; opacity:1; box-shadow:0 0 0 2px #f1c05e; }
+}
+
 /* Abrechnung: paper scorecards, printed ink and worn suit-colored details. */
 .round-summary { padding-top:64px; padding-bottom:24px; }
 .round-summary h2 { font-family:"Permanent Marker","Barlow Condensed",sans-serif; }
