@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { CardView } from "./CardView";
 import { SelectedCards } from "./SelectedCards";
+import { PassingProgress } from "./PassingProgress";
 import { Avatar } from "./Avatar";
-import { targetSeat } from "../game/engine";
+import { targetSeat, dealCount } from "../game/engine";
+import { useHandLayout } from "../game/useHandLayout";
 import { ArrowRight, Handshake } from "lucide-react";
 import { sfx } from "../game/sound";
 
@@ -12,6 +14,7 @@ export function PassingScreen({ state, onConfirm }) {
   const target = players[targetSeat(passSeat, passDir, n)];
   const hand = hands[passSeat];
   const [selected, setSelected] = useState([]);
+  const handLayout = useHandLayout(dealCount(n));
 
   const toggle = (id) => {
     setSelected((prev) => {
@@ -32,7 +35,7 @@ export function PassingScreen({ state, onConfirm }) {
           <ArrowRight className="text-amber-400" />
           <Avatar avatar={target.avatar} size={38} />
         </div>
-        <h2 className="font-display text-2xl gold-text">Der Deal</h2>
+        <h2 className="font-display text-2xl gold-text">Der Deal <span className="text-sm ml-2" data-testid="passing-phase-selected-count">{selected.length}/{passCount}</span></h2>
         <p className="font-serif-fancy text-slate-300/80 text-base" data-testid="passing-phase-instructions">
           <span className="text-amber-200 font-semibold">{me.name}</span>, wähle{" "}
           <b className="text-amber-300">{passCount}</b> Karte{passCount > 1 ? "n" : ""} zum Weitergeben an{" "}
@@ -40,8 +43,10 @@ export function PassingScreen({ state, onConfirm }) {
         </p>
       </div>
 
+      <PassingProgress players={players} passedSeats={players.map((_, seat) => Boolean(state.pendingSelections?.[seat]?.length))} yourSeat={passSeat} />
+
       <div className="game-hand-section flex-1 flex items-center justify-center">
-        <div className="compact-hand flex flex-wrap justify-center gap-2 max-w-4xl">
+        <div ref={handLayout.ref} style={handLayout.style} className="turn-hand-grid compact-hand flex flex-wrap justify-center gap-2 max-w-4xl" data-testid="own-hand-grid" data-initial-count={dealCount(n)}>
           {hand.map((card) => (
             <CardView
               key={card.id}
@@ -57,9 +62,6 @@ export function PassingScreen({ state, onConfirm }) {
 
       <div className="game-hand-actions flex flex-col items-center">
         <SelectedCards hand={hand} selected={selected} count={passCount} onRemove={toggle} />
-        <div className="font-mono-stat text-sm text-amber-300" data-testid="passing-phase-selected-count">
-          {selected.length} / {passCount} gewählt
-        </div>
         <button
           disabled={!done}
           onClick={() => {

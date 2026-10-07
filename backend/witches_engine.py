@@ -69,12 +69,12 @@ def pass_info(n, round_index):
     _validate_player_count(n)
     if type(round_index) is not int or round_index < 0:
         raise ValueError("Round index must be a nonnegative integer")
-    counts = {3: 4, 4: 3, 5: 2, 6: 2}
+    counts = {3: 4, 4: 3, 5: 3, 6: 2}
     count = counts[n]
     if n in (3, 5):
         dirs = [1, -1]
     else:
-        dirs = [1, -1, n // 2, 0]
+        dirs = [1, -1, n // 2]
     d = dirs[round_index % len(dirs)]
     return count, d
 
@@ -117,7 +117,7 @@ def resolve_trick(trick):
     return winner["seat"]
 
 
-def score_round(piles):
+def score_round(piles, previous_scores=None):
     n = len(piles)
     results = [
         {"fireCards": 0, "fireWitch": False, "water": False, "pygmy": False, "earth": False, "air": False, "total": 0, "moon": False}
@@ -140,12 +140,21 @@ def score_round(piles):
             name = "Patin-Takeover"
         else:
             name = "Takeover"
+        projected = None if previous_scores is None else [score + (0 if seat == shooter else spell) for seat, score in enumerate(previous_scores)]
+        spell_withheld = projected is not None and is_game_over(projected) and any(seat != shooter for seat in lowest_seats(projected))
         for seat, pile in enumerate(piles):
-            if seat == shooter:
-                results[seat] = {"fireCards": 13, "fireWitch": True, "water": has_water, "pygmy": has_pygmy, "earth": False, "air": False, "total": 0, "moon": True}
-            else:
-                results[seat] = {"fireCards": 0, "fireWitch": False, "water": False, "pygmy": False, "earth": False, "air": False, "total": spell, "moon": False, "spellVictim": True}
-        return {"results": results, "shooter": shooter, "spellName": name}
+            results[seat] = {
+                "fireCards": sum(c["suit"] == "RED" and c["special"] != "fire" for c in pile),
+                "fireWitch": any(c["special"] == "fire" for c in pile),
+                "water": any(c["special"] == "water" for c in pile),
+                "pygmy": any(c["special"] == "pygmy" for c in pile),
+                "earth": any(c["special"] == "earth" for c in pile),
+                "air": any(c["special"] == "air" for c in pile),
+                "total": (-min(previous_scores[seat], spell) if seat == shooter else 0) if spell_withheld else (0 if seat == shooter else spell),
+                "moon": seat == shooter,
+                "spellVictim": seat != shooter,
+            }
+        return {"results": results, "shooter": shooter, "spellName": name, "spellPoints": spell, "spellWithheld": spell_withheld}
 
     for seat, pile in enumerate(piles):
         red_pts = len([c for c in pile if c["suit"] == "RED" and c["special"] != "fire"])
@@ -158,10 +167,12 @@ def score_round(piles):
         if fire_witch:
             base = min(base * 2, 15)
         total = base
-        if water and not air:
+        if water:
             total += 5
-        if pygmy and not air:
+        if pygmy:
             total += 10
+        if air:
+            total = 0
         if earth:
             total = max(total - 5, 0)
         results[seat] = {"fireCards": red_pts, "fireWitch": fire_witch, "water": water, "pygmy": pygmy, "earth": earth, "air": air, "total": total, "moon": False}

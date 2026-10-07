@@ -89,7 +89,7 @@ export const SPECIALS = {
     label: "Fixer",
     short: "NEUTRALISIERT",
     tag: "#00E5FF",
-    desc: "Ein mächtiger Problemlöser mit hervorragenden Kontakten (Cash 11). Lässt die Hitze von Informant (+5) und Patin (+10) verschwinden, wenn du ihn hältst.",
+    desc: "Ein mächtiger Problemlöser mit hervorragenden Kontakten (Cash 11). Neutralisiert die gesamte Hitze deiner gesammelten Stiche, einschließlich roter Karten, Informant und Patin. Bei einem Takeover gelten dessen Sonderregeln.",
   },
   pygmy: {
     key: "pygmy",

@@ -9,19 +9,21 @@ export function useOnlineGame(code, token) {
   const [error, setError] = useState(null);
   const [actionError, setActionError] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [chatBusy, setChatBusy] = useState(false);
+  const [chatError, setChatError] = useState(null);
   const viewIdentity = useRef(null);
   const session = useRef(null);
   // Change identity during render: even a response that settles before effects
   // run must not reveal another token's hand (including the same room code).
   if (!session.current || session.current.code !== code || session.current.token !== token) {
-    session.current = { code, token, version: -1, polling: false, action: false, disposed: false, presence: null, presenceSending: null };
+    session.current = { code, token, version: -1, polling: false, action: false, chat: false, lastChatAt: null, disposed: false, presence: null, presenceSending: null };
   }
   const identity = session.current;
   const current = useCallback((request) => session.current === request && !request.disposed, []);
 
   useEffect(() => {
     identity.disposed = false;
-    setView(null); setError(null); setActionError(null); setBusy(false);
+    setView(null); setError(null); setActionError(null); setBusy(false); setChatBusy(false); setChatError(null);
     return () => {
       identity.disposed = true;
       identity.pollController?.abort();
@@ -92,6 +94,37 @@ export function useOnlineGame(code, token) {
     }
   }, [identity, current, acceptView, poll]);
 
+  // Chat has its own submission lock. A slow send cannot stop a card action,
+  // abort polling, or overwrite a newer table received from another request.
+  const sendChat = useCallback(async (text) => {
+    const request = identity;
+    if (!current(request) || !request.code || !request.token || request.chat) return false;
+    const message = typeof text === "string" ? text.replace(/\r\n|[\r\n\t\u2028\u2029]/g, " ").trim() : "";
+    if (!message || Array.from(message).length > 140) {
+      setChatError("Schreib eine Nachricht mit höchstens 140 Zeichen.");
+      return false;
+    }
+    if (request.lastChatAt != null && Date.now() - request.lastChatAt < 1500) {
+      setChatError("Warte kurz vor deiner nächsten Nachricht (1,5 Sekunden).");
+      return false;
+    }
+    const sentAt = Date.now();
+    request.chat = true; setChatBusy(true); setChatError(null);
+    try {
+      const value = await roomApi.chat(request.code, request.token, message);
+      if (!current(request)) return false;
+      request.lastChatAt = sentAt;
+      acceptView(value, request);
+      return true;
+    } catch (failure) {
+      if (current(request)) setChatError(onlineErrorMessage(failure));
+      return false;
+    } finally {
+      request.chat = false;
+      if (current(request)) setChatBusy(false);
+    }
+  }, [identity, current, acceptView]);
+
   const doAction = (payload, presence = false) => runAction((room, auth) => roomApi.action(room, auth, payload), presence);
   const reviewLastTrick = (reviewing) => {
     const request = identity;
@@ -110,7 +143,7 @@ export function useOnlineGame(code, token) {
   };
   return {
     view: viewIdentity.current === identity ? view : null,
-    error, actionError, busy, poll,
+    error, actionError, busy, poll, chatBusy, chatError, sendChat,
     dismissActionError: () => setActionError(null),
     pass: (cards) => doAction({ type: "pass", cards }),
     play: (cardId) => doAction({ type: "play", cardId }),

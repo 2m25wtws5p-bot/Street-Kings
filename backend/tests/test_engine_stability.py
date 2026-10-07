@@ -1,8 +1,4 @@
-"""Pure-engine invariants, seeded complete games, and real Python/JS parity.
-
-This freezes the repository's current rule decisions; it does not claim to
-authenticate them against an original external Witches rulebook.
-"""
+"""Original Witches PDF rule fixtures, seeded games, and Python/JS parity."""
 import copy
 import json
 from pathlib import Path
@@ -45,7 +41,51 @@ def expected_winner(trick):
                key=lambda entry: entry["card"]["value"])["seat"]
 
 
-def simulate_round(n, seed, round_index):
+def pdf_takeover_fixtures():
+    """Explicit PDF examples: ordinary spells, endgame exception, ties, zero.
+
+    Scenario expectations are declared independently of score_round. Every
+    fixture uses the complete physical deck, with blue/yellow witches at the
+    shooter to verify that a takeover preserves its value and capture flags.
+    """
+    variants = [(["GREEN-11"], 20, "Takeover"),
+                (["GREEN-12"], 25, "Patin-Takeover"),
+                (["GREEN-11", "GREEN-12"], 30, "Großer Takeover")]
+    for n in range(3, 7):
+        for shooter in range(n):
+            others = [seat for seat in range(n) if seat != shooter]
+            for green_ids, spell, spell_name in variants:
+                captured = {card["id"] for card in DECK if card["suit"] == "RED"}
+                captured.update([*green_ids, "YELLOW-11", "BLUE-11"])
+                piles = [[] for _ in range(n)]
+                piles[shooter] = [card for card in DECK if card["id"] in captured]
+                remaining = [card for card in DECK if card["id"] not in captured]
+                for index, card in enumerate(remaining):
+                    piles[others[index % len(others)]].append(card)
+                scenarios = [
+                    # name, shooter score, lowest opponent, threshold opponent,
+                    # any additional opponents, expected withholding
+                    ("ordinary", 10, 20, 25, 20, False),
+                    ("projected69", 60, 0, 69 - spell, 0, False),
+                    ("endingShooterWins", 5, 0, 70 - spell, 0, False),
+                    ("endingOpponentWins", 60, 0, 70 - spell, 0, True),
+                    ("endingTie", spell + 10, 10, 70 - spell, 20, True),
+                    ("zeroFloor", spell, 0, 70 - spell, 10, True),
+                ]
+                for label, own, low, threshold, extra, withheld in scenarios:
+                    scores = [extra] * n
+                    scores[shooter] = own
+                    scores[others[0]] = low
+                    scores[others[1]] = threshold
+                    deltas = [0 if withheld or seat == shooter else spell for seat in range(n)]
+                    if withheld:
+                        deltas[shooter] = -spell
+                    yield {"label": f"{n}p-seat{shooter}-{spell}-{label}", "piles": piles,
+                           "previousScores": scores, "shooter": shooter, "spell": spell,
+                           "spellName": spell_name, "withheld": withheld, "deltas": deltas}
+
+
+def simulate_round(n, seed, round_index, previous_scores=None):
     hands = eng.deal(seeded_deck(seed), n)
     piles = [[] for _ in range(n)]
     count, direction = eng.pass_info(n, round_index)
@@ -85,8 +125,10 @@ def simulate_round(n, seed, round_index):
         piles[leader].extend(entry["card"] for entry in trick)
         assert_conservation(hands, piles)
     assert not any(hands)
-    score = eng.score_round(piles)
-    assert all(isinstance(row["total"], int) and 0 <= row["total"] <= 30 for row in score["results"])
+    score = eng.score_round(piles, previous_scores)
+    assert all(isinstance(row["total"], int) and -30 <= row["total"] <= 30 for row in score["results"])
+    if previous_scores is not None:
+        assert all(old + row["total"] >= 0 for old, row in zip(previous_scores, score["results"]))
     return {"plays": plays, "winners": winners, "score": score}
 
 
@@ -116,7 +158,7 @@ class EngineStabilityTests(unittest.TestCase):
             random.setstate(old_state)
 
     def test_dealing_passing_cycles_and_inverse_mapping(self):
-        cycles = {3: [1, -1], 4: [1, -1, 2, 0], 5: [1, -1], 6: [1, -1, 3, 0]}
+        cycles = {3: [1, -1], 4: [1, -1, 2], 5: [1, -1], 6: [1, -1, 3]}
         for n, directions in cycles.items():
             deck = seeded_deck(n)
             before = copy.deepcopy(deck)
@@ -126,7 +168,7 @@ class EngineStabilityTests(unittest.TestCase):
             assert_conservation(hands, [])
             for round_index in range(16):
                 count, direction = eng.pass_info(n, round_index)
-                self.assertEqual(count, {3: 4, 4: 3, 5: 2, 6: 2}[n])
+                self.assertEqual(count, {3: 4, 4: 3, 5: 3, 6: 2}[n])
                 self.assertEqual(direction, directions[round_index % len(directions)])
                 self.assertEqual(len({eng.target_seat(seat, direction, n) for seat in range(n)}), n)
                 for seat in range(n):
@@ -170,14 +212,40 @@ class EngineStabilityTests(unittest.TestCase):
                         self.assertTrue(result["results"][1]["moon"])
                     else:
                         expected = min(15, count * 2) if fire else count
-                        if not air:
-                            expected += (5 if water else 0) + (10 if pygmy else 0)
+                        expected += (5 if water else 0) + (10 if pygmy else 0)
+                        if air:
+                            expected = 0
                         if earth:
                             expected = max(0, expected - 5)
                         self.assertEqual(result["shooter"], -1)
                         self.assertEqual(result["results"][1]["total"], expected)
                         self.assertEqual(result["results"][1]["fireCards"], count)
                         self.assertFalse(result["results"][1]["moon"])
+
+    def test_pdf_takeover_endgame_exception_ties_floor_and_capture_flags(self):
+        for fixture in pdf_takeover_fixtures():
+            with self.subTest(case=fixture["label"]):
+                before = copy.deepcopy(fixture)
+                result = eng.score_round(fixture["piles"], fixture["previousScores"])
+                self.assertEqual(fixture, before)
+                assert_conservation([], fixture["piles"])
+                self.assertEqual(result["shooter"], fixture["shooter"])
+                self.assertEqual(result["spellName"], fixture["spellName"])
+                self.assertEqual(result["spellPoints"], fixture["spell"])
+                self.assertEqual(result["spellWithheld"], fixture["withheld"])
+                self.assertEqual([row["total"] for row in result["results"]], fixture["deltas"])
+                totals = [old + delta for old, delta in zip(fixture["previousScores"], fixture["deltas"])]
+                self.assertTrue(all(total >= 0 for total in totals))
+                if fixture["label"].endswith("zeroFloor"):
+                    self.assertEqual(totals[fixture["shooter"]], 0)
+                for seat, row in enumerate(result["results"]):
+                    pile = fixture["piles"][seat]
+                    self.assertEqual(row["fireCards"], sum(c["suit"] == "RED" and c["special"] != "fire" for c in pile))
+                    for flag, special in (("fireWitch", "fire"), ("water", "water"),
+                                          ("pygmy", "pygmy"), ("earth", "earth"), ("air", "air")):
+                        self.assertEqual(row[flag], any(c["special"] == special for c in pile))
+                    self.assertEqual(row["moon"], seat == fixture["shooter"])
+                    self.assertEqual(row["spellVictim"], seat != fixture["shooter"])
 
     def test_threshold_and_tied_winners(self):
         self.assertFalse(eng.is_game_over([0, 69, 20]))
@@ -199,7 +267,7 @@ class EngineStabilityTests(unittest.TestCase):
                     scores = [0] * n
                     round_index = 0
                     while not eng.is_game_over(scores) and round_index < 200:
-                        result = simulate_round(n, n * 100000 + seed * 1000 + round_index, round_index)
+                        result = simulate_round(n, n * 100000 + seed * 1000 + round_index, round_index, scores)
                         scores = [old + row["total"] for old, row in zip(scores, result["score"]["results"])]
                         round_index += 1
                     self.assertLess(round_index, 200)
@@ -226,7 +294,9 @@ class EngineStabilityTests(unittest.TestCase):
     @unittest.skipUnless(shutil.which("node"), "Cross-engine parity requires Node.js")
     def test_python_javascript_cross_engine_parity(self):
         rng = random.Random(981731)
-        corpus = {"passing": [], "tricks": [], "choices": [], "piles": [], "rounds": []}
+        corpus = {"passing": [], "tricks": [], "choices": [], "piles": [], "rounds": [],
+                  "scoreHistories": [{"piles": fixture["piles"], "previousScores": fixture["previousScores"]}
+                                     for fixture in pdf_takeover_fixtures()]}
         for n in range(3, 7):
             corpus["passing"].extend([[n, round_index] for round_index in range(16)])
             corpus["rounds"].extend([[n, n * 1000 + seed, seed] for seed in range(8)])
@@ -254,6 +324,8 @@ class EngineStabilityTests(unittest.TestCase):
             "choices": [{"legal": eng.legal_card_ids(row["hand"], row["trick"]), "play": eng.bot_play(row["hand"], row["trick"]),
                          "pass": eng.bot_pass(row["hand"], row["count"])} for row in corpus["choices"]],
             "scoring": [eng.score_round(piles) for piles in corpus["piles"]],
+            "scoringWithHistory": [eng.score_round(row["piles"], row["previousScores"])
+                                   for row in corpus["scoreHistories"]],
             "rounds": [simulate_round(n, seed, round_index) for n, seed, round_index in corpus["rounds"]],
         }
         script = Path(__file__).resolve().parents[2] / "frontend" / "tests" / "engine-stability.test.mjs"

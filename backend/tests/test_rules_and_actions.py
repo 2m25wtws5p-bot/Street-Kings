@@ -36,7 +36,7 @@ def test_make_deck_specials_mapping():
 def test_pass_info_counts():
     assert eng.pass_info(3, 0)[0] == 4
     assert eng.pass_info(4, 0)[0] == 3
-    assert eng.pass_info(5, 0)[0] == 2
+    assert eng.pass_info(5, 0)[0] == 3
     assert eng.pass_info(6, 0)[0] == 2
 
 
@@ -111,6 +111,10 @@ def test_score_round_normal_scoring():
 
     # pygmy + air -> 0
     assert eng.score_round([[pygmy, air], [], []])["results"][0]["total"] == 0
+
+    # The blue witch clears the complete pile, including red/fire points.
+    assert eng.score_round([[red2, red3, air], [], []])["results"][0]["total"] == 0
+    assert eng.score_round([[red2, red3, fire, water, pygmy, air], [], []])["results"][0]["total"] == 0
 
     # earth -5 min 0 (alone -> 0)
     assert eng.score_round([[earth], [], []])["results"][0]["total"] == 0

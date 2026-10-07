@@ -6,10 +6,10 @@ import test from "node:test";
 // These checks do NOT simulate browser layout. Actual card/button intersections,
 // hand coordinates and responsive dimensions are verified separately in a browser.
 const source = (path) => readFile(new URL(`../src/${path}`, import.meta.url), "utf8");
-const [cssSource, card, preview, local, online, passing, indicator] = await Promise.all([
+const [cssSource, card, preview, local, online, passing, indicator, chatStyles] = await Promise.all([
   source("index.css"), source("components/CardView.jsx"), source("components/SelectedCards.jsx"),
   source("components/PlayTable.jsx"), source("components/OnlineTable.jsx"),
-  source("components/PassingScreen.jsx"), source("components/LeadSuitIndicator.jsx"),
+  source("components/PassingScreen.jsx"), source("components/LeadSuitIndicator.jsx"), source("components/chat.css"),
 ]);
 
 // Read individual declarations independent of whitespace or property order.
@@ -69,6 +69,20 @@ test("short online exchange screens prioritize cards and actions over the empty 
   assert.equal(finalProperty('.game-table[data-phase="playing"] .game-center', "display"), undefined);
 });
 
+test("local exchange uses the responsive fan without a full-height readiness row", () => {
+  assert.match(passing, /useHandLayout\(dealCount\(n\)\)/);
+  assert.match(passing, /ref=\{handLayout\.ref\} style=\{handLayout\.style\}/);
+  assert.match(passing, /turn-hand-grid compact-hand/);
+  assert.match(chatStyles, /\.passing-progress\s*\{\s*flex:0 0 auto;/);
+  assert.match(chatStyles, /\.game-table-status\s*>\s*\.passing-progress\s*\{\s*flex-basis:100%;/);
+});
+
+test("larger desktop cards require both a wide and a tall viewport", () => {
+  assert.match(cssSource, /@media\(min-width:1280px\) and \(min-height:800px\)\s*\{\s*\.turn-hand-grid\.compact-hand\s*\{\s*--hand-card-width:96px;/);
+  assert.match(cssSource, /@media\(min-width:1440px\) and \(min-height:950px\)\s*\{\s*\.turn-hand-grid\.compact-hand\s*\{\s*--hand-card-width:104px;/);
+  assert.match(cssSource, /@media\(min-width:640px\) and \(max-height:650px\)[\s\S]*?--trick-card-max-width:42px;/);
+});
+
 test("playing has no conditional preview row and keeps its confirmation hint mounted", () => {
   assert.doesNotMatch(local, /<SelectedCards\b/);
   // Online still uses one preview in the exchange phase, not below an armed card.
@@ -110,7 +124,7 @@ test("local and online deal/collect controls share the action-button presentatio
 });
 
 test("the compact room code is a single unshadowed non-wrapping text label", () => {
-  const roomCode = online.match(/<button\b[^>]*data-testid="btn-copy-room-link"[\s\S]*?<\/button>/);
+  const roomCode = online.match(/<button\b(?:(?!<\/button>)[\s\S])*?data-testid="btn-copy-room-code"[\s\S]*?<\/button>/);
   assert.ok(roomCode);
   assert.doesNotMatch(roomCode[0], /\bgold-text\b/);
   assert.match(roomCode[0], /room-code-text/);

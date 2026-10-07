@@ -1,0 +1,53 @@
+/* Scoped chat, copying and readiness styles. */
+.host-crown { display:inline-block; flex-shrink:0; vertical-align:middle; filter:drop-shadow(0 1px 1px #6c461977); }
+.crew-chat-identity, .lobby-player-identity { position:relative; flex:1; min-width:0; }
+.lobby-player-name { display:flex; align-items:center; gap:4px; min-width:0; }
+.lobby-player-name > span:first-child { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.chat-bubble { position:absolute; left:0; top:calc(100% + 5px); z-index:47; width:max-content; max-width:min(220px,65vw); max-height:150px; overflow:hidden; padding:7px 10px; border:2px solid #514331; border-radius:3px 10px 10px 10px; color:#282f2d; background:#fff0c8; box-shadow:2px 3px 0 #07121188; font:600 13px/1.35 "Barlow Condensed",sans-serif; white-space:pre-wrap; overflow-wrap:anywhere; pointer-events:none; }
+.chat-bubble::before { content:""; position:absolute; top:-6px; left:9px; width:8px; height:8px; background:#fff0c8; border-left:2px solid #514331; border-top:2px solid #514331; transform:rotate(45deg); }
+.game-roster .crew-player:last-child .chat-bubble { left:auto; right:0; }
+.chat-toggle-button { position:fixed; top:100px; right:10px; z-index:45; display:flex; align-items:center; gap:6px; padding:7px 11px; border:1px solid #edbd67; border-radius:8px; color:#fff0c5; background:#3d382cf5; box-shadow:0 3px 12px #0008; font-size:12px; font-weight:600; }
+.chat-toggle-button:hover { background:#51442e; }
+.chat-toggle-inline { position:static; width:30px; height:30px; justify-content:center; padding:0; box-shadow:none; }
+.chat-toggle-inline > span { display:none; }
+.chat-dialog { width:min(440px,calc(100vw - 24px)); max-height:min(720px,calc(100dvh - 32px)); margin:auto; padding:18px; border:2px solid #bd9e63; border-radius:10px; color:#ede6d4; background:#1a2422; box-shadow:5px 8px 0 #071211aa; }
+.chat-dialog::backdrop { background:#070b10b8; }
+.chat-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
+.chat-heading h2 { color:#f9dc8d; font-size:20px; }
+.chat-room-code { font-family:monospace; font-size:13px; color:#aebbac; }
+.chat-close-button { display:grid; place-items:center; width:32px; height:32px; border:1px solid #ffffff33; border-radius:5px; }
+.chat-transcript { min-height:150px; height:min(320px,35dvh); overflow:auto; overscroll-behavior:contain; padding-right:5px; scrollbar-width:thin; }
+.chat-message { width:92%; margin-bottom:10px; padding:8px 10px; border:1px solid #ffffff22; border-radius:3px 9px 9px 9px; background:#273331; }
+.chat-message-own { margin-left:auto; background:#3b3928; border-color:#d8b66b55; }
+.chat-message-meta { display:flex; align-items:baseline; justify-content:space-between; gap:8px; color:#e8cb87; font-size:11px; line-height:1.3; }
+.chat-message-meta span { min-width:0; overflow-wrap:anywhere; font-weight:700; }
+.chat-message-meta time { flex-shrink:0; color:#a7b6ad; font-size:10px; }
+.chat-message p { margin-top:3px; font-size:14px; line-height:1.35; white-space:pre-wrap; overflow-wrap:anywhere; }
+.chat-empty { padding:30px 12px; color:#c2cabc; text-align:center; font-size:14px; }
+.chat-quick-emojis { display:grid; grid-template-columns:repeat(8,minmax(0,1fr)); gap:4px; margin:10px 0; }
+.chat-quick-emojis button { border:1px solid #ffffff20; border-radius:5px; padding:5px 0; font-size:21px; background:#ffffff08; }
+.chat-quick-emojis button:hover { border-color:#e8c66b; background:#ffffff12; }
+.chat-compose textarea { display:block; resize:none; width:100%; padding:9px 10px; border:1px solid #b2a78766; border-radius:5px; color:#f0ecd8; background:#101c1a; outline:none; font-size:14px; line-height:1.4; }
+.chat-compose textarea:focus { border-color:#f2ca68; }
+.chat-compose-footer { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:6px; }
+.chat-compose-footer > span { color:#aebbac; font-family:monospace; font-size:11px; }
+.chat-compose-footer button { display:flex; align-items:center; gap:6px; padding:7px 13px; border:1px solid #eac565; border-radius:5px; background:#d9b35c; color:#192321; font-size:13px; font-weight:700; }
+.chat-dialog button:disabled { opacity:.45; cursor:default; }
+.chat-spectator-note { padding:10px 0; color:#d1c9ae; font-size:13px; }
+.chat-error { margin-top:10px; color:#f9aca0; font-size:13px; }
+.chat-retention-note { margin-top:10px; color:#8da395; font-size:10px; }
+.room-invite-link-button { display:inline-flex; align-items:center; justify-content:center; gap:5px; margin-top:8px; color:#f0d294; font-size:12px; }
+.room-link-icon-button { display:grid; place-items:center; width:30px; height:30px; border:1px solid #ffffff26; border-radius:6px; background:#0006; color:#ecd5a3; }
+.room-link-icon-button:hover { border-color:#e9be68; }
+.room-copy-feedback { min-height:20px; margin-top:5px; color:#f4d594; font-size:12px; }
+.passing-progress { flex:0 0 auto; width:100%; color:#bccabd; font-size:11px; line-height:1.3; }
+.game-table-status > .passing-progress { flex-basis:100%; }
+.passing-progress-summary { display:block; margin-bottom:4px; color:#e8cc8a; font-family:"Barlow Condensed",sans-serif; font-weight:700; }
+.passing-progress-players { display:flex; flex-wrap:wrap; gap:4px; }
+.passing-player-status { display:inline-flex; align-items:center; gap:4px; min-width:0; max-width:100%; padding:3px 6px; border:1px solid #74867b55; border-radius:4px; background:#12211b99; }
+.passing-player-status.is-ready { color:#b6edc1; border-color:#55b87b88; }
+.passing-player-status.is-waiting { color:#dfd1a6; border-color:#bba46366; }
+.passing-player-status svg, .passing-player-status > span:last-child { flex-shrink:0; }
+.passing-player-name { max-width:130px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+@media(max-width:420px) { .online-room-header { padding-left:6px; padding-right:6px; } .online-room-header > div:first-child { gap:5px; } .online-room-header > div:last-child { gap:4px; } .online-room-header > div:first-child > button:not(.room-code-button), .online-room-header > div:last-child > button { width:30px; height:30px; } .online-room-header .room-code-button { padding-left:5px; padding-right:5px; } .chat-dialog { padding:12px; } .chat-message { width:96%; } .chat-quick-emojis { gap:2px; } .chat-quick-emojis button { font-size:19px; } .host-crown { width:14px; height:14px; } .passing-player-name { max-width:82px; } .passing-progress { font-size:10px; } .passing-player-status { padding:2px 4px; } }
+@media(max-height:600px) { .chat-dialog { padding:10px 14px; } .chat-transcript { min-height:70px; height:30dvh; } .chat-heading { margin-bottom:7px; } .chat-quick-emojis { margin:5px 0; } .chat-retention-note { margin-top:5px; } }

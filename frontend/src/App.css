@@ -1,3 +1,7 @@
 .App {
-    min-height: 100vh;
+    height: var(--app-height, 100dvh);
+    min-height: 0;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
 }

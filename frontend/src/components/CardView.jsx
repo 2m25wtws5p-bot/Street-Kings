@@ -13,6 +13,7 @@ const INK = { RED: "#a3232c", YELLOW: "#704600", BLUE: "#1655a6", GREEN: "#14654
 const PAPER = { RED: "#ffe5dc", YELLOW: "#fff0b8", BLUE: "#dceeff", GREEN: "#d8f3df" };
 // Presentation only: gameplay and scoring remain in the engines.
 export const CARD_IMPACT = { fire: "risk", water: "risk", pygmy: "risk", earth: "help", air: "help", wizard: "neutral" };
+const HAND_EFFECT = { fire: "×2", water: "+5", pygmy: "+10", earth: "−5", air: "Ø", wizard: "0" };
 
 function CardBack({ sizeCls, className }) {
   return <div className={`${sizeCls} street-card-back shrink-0 rounded-lg relative overflow-hidden ${className}`} aria-label="Verdeckte Karte">
@@ -59,6 +60,7 @@ export function CardView({ card, size = "md", faceDown = false, selected = false
     {!special && size !== "xs" && <div className="card-suit-stamp" aria-hidden="true"><Icon size={12} strokeWidth={2} /></div>}
     {size !== "xs" && !special && <div className="card-pip card-pip-bottom rotate-180"><span className={`font-display font-black ${NUM[size]}`}>{numeral}</span><Icon size={12} strokeWidth={2.4} /></div>}
     {special && <div className="card-special-stamp" title={effect} aria-hidden="true"><ImpactIcon size={size === "xs" ? 10 : 14} strokeWidth={2.2}/></div>}
+    {special && <span className="card-hand-effect" aria-hidden="true"><ImpactIcon size={9} /><b>{HAND_EFFECT[card.special]}</b></span>}
     {special && size !== "xs" && <div className="card-special-banner">
       <div className="font-display card-special-name">{special.label}</div>
       <div className="card-special-rule">{special.short}</div>

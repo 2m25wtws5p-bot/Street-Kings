@@ -34,7 +34,7 @@ def exchange(state):
 
 class ExchangeHistoryTests(unittest.TestCase):
     def test_every_supported_pass_direction_records_the_actual_cards_and_people(self):
-        cycles = {3: [1, -1], 4: [1, -1, 2, 0], 5: [1, -1], 6: [1, -1, 3, 0]}
+        cycles = {3: [1, -1], 4: [1, -1, 2], 5: [1, -1], 6: [1, -1, 3]}
         for n, directions in cycles.items():
             for round_index, direction in enumerate(directions):
                 with self.subTest(players=n, direction=direction):
@@ -42,11 +42,7 @@ class ExchangeHistoryTests(unittest.TestCase):
                     original = copy.deepcopy(state["hands"])
                     exchange(state)
                     self.assertEqual(state["passDir"], direction)
-                    if direction == 0:
-                        self.assertEqual(state["exchangeHistory"], {})
-                        self.assertEqual(state["hands"], original)
-                        self.assertIsNone(server._redact(state, "player-0")["yourExchange"])
-                        continue
+                    self.assertEqual(state["passCount"], {3: 4, 4: 3, 5: 3, 6: 2}[n])
                     for seat in range(n):
                         target = server.eng.target_seat(seat, direction, n)
                         source = next(i for i in range(n)
@@ -143,15 +139,16 @@ class ExchangeHistoryTests(unittest.TestCase):
                     self.assertEqual(len(history["received"]), state["passCount"])
                 self.assertEqual(server._redact(state, "player-0")["yourExchange"], state["exchangeHistory"]["0"])
 
-    def test_next_round_resets_old_history_including_rounds_without_passing(self):
-        for round_index in (0, 2):
+    def test_next_round_resets_old_history_and_never_skips_passing(self):
+        for round_index in range(6):
             with self.subTest(round_index=round_index):
                 state = exchange(room(4, round_index))
                 self.assertTrue(state["exchangeHistory"])
                 server._do_next_round(state)
                 self.assertEqual(state["exchangeHistory"], {})
                 self.assertIsNone(server._redact(state, "player-0")["yourExchange"])
-                self.assertEqual(state["phase"], "playing" if round_index == 2 else "passing")
+                self.assertEqual(state["phase"], "passing")
+                self.assertEqual(state["passDir"], [1, -1, 2][(round_index + 1) % 3])
 
 
 class ExchangeResetActionTests(unittest.IsolatedAsyncioTestCase):

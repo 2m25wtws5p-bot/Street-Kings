@@ -53,6 +53,11 @@ export function validateRoomView(view) {
     typeof exchange === "object" && !Array.isArray(exchange) &&
     optionalCards(exchange.sent) && optionalCards(exchange.received) &&
     optionalName(exchange.sentTo) && optionalName(exchange.receivedFrom));
+  const chatValid = messages => messages == null || (Array.isArray(messages) && messages.length <= 30 &&
+    messages.every(message => message && typeof message.id === "string" && message.id.length > 0 &&
+      seatValid(message.seat) && typeof message.name === "string" && typeof message.text === "string" &&
+      Array.from(message.text).length > 0 && Array.from(message.text).length <= 140 &&
+      Number.isSafeInteger(message.createdAt) && message.createdAt >= 0 && message.createdAt <= 8640000000000000));
   const valid = view && typeof view === "object" && typeof view.code === "string" &&
     ["lobby", "playing", "gameOver"].includes(view.status) &&
     Number.isInteger(view.n) && view.n >= (view.status === "lobby" ? 1 : 3) && view.n <= 6 &&
@@ -62,6 +67,7 @@ export function validateRoomView(view) {
     (view.yourSeat == null || seatValid(view.yourSeat)) &&
     (view.spectators == null || (Array.isArray(view.spectators) && view.spectators.every(name => typeof name === "string"))) &&
     exchangeValid(view.yourExchange) &&
+    chatValid(view.chatMessages) &&
     (view.status === "lobby" || (
       ["passing", "playing", "trickEnd", "roundScores", "gameOver"].includes(view.phase) &&
       Array.isArray(view.scores) && view.scores.length === view.n && view.scores.every(Number.isFinite) &&
@@ -105,6 +111,7 @@ export const roomApi = {
   replace: (code, token, seat) => client.post(`${API}/rooms/${code}/replace`, { token, seat }).then(roomResponse),
   rematch: (code, token) => client.post(`${API}/rooms/${code}/rematch`, { token }).then(roomResponse),
   action: (code, token, payload) => client.post(`${API}/rooms/${code}/action`, { token, ...payload }).then(roomResponse),
+  chat: (code, token, text) => client.post(`${API}/rooms/${code}/chat`, { token, text }).then(roomResponse),
 };
 
 export function normalizeRecentGames(value) {

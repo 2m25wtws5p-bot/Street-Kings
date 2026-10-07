@@ -1,10 +1,11 @@
 const assert = require('node:assert/strict');
 let voices = 0, disconnects = 0;
 const targets = [];
+const sweeps = [];
 const starts = [], stops = [];
 class Param {
   setValueAtTime(value) { assert(Number.isFinite(value)); }
-  linearRampToValueAtTime(value) { assert(Number.isFinite(value)); }
+  linearRampToValueAtTime(value) { assert(Number.isFinite(value)); sweeps.push(value); }
   exponentialRampToValueAtTime(value) { assert(value > 0 && Number.isFinite(value)); }
   cancelScheduledValues() {}
   setTargetAtTime(value) { targets.push(value); }
@@ -31,8 +32,8 @@ const path = require('node:path');
 const vm = require('node:vm');
 const sandbox = { window: { AudioContext }, process: { env: {} } };
 const source = fs.readFileSync(path.join(__dirname, '../src/game/sound.js'), 'utf8').replace(/^export /gm, '');
-vm.runInNewContext(source + '\n;globalThis.audioApi = { sfx, setSoundEnabled, isSoundEnabled };', sandbox);
-const { sfx, setSoundEnabled, isSoundEnabled } = sandbox.audioApi;
+vm.runInNewContext(source + '\n;globalThis.audioApi = { sfx, setSoundEnabled, isSoundEnabled, unlockSound, installSoundUnlock };', sandbox);
+const { sfx, setSoundEnabled, isSoundEnabled, unlockSound, installSoundUnlock } = sandbox.audioApi;
 for (const cue of Object.keys(sfx)) sfx[cue]();
 assert(voices > 20);
 assert(disconnects >= voices * 2, 'Transient audio nodes must be disconnected');
@@ -45,8 +46,19 @@ assert.equal(voices, before, 'Polling/rerenders must not replay the same card cu
 before = voices;
 const reminderStart = starts.length, reminderStop = stops.length;
 sfx.turnReminder();
-assert.equal(voices - before, 2, 'Turn reminder is a soft two-note cue');
-assert(Math.max(...stops.slice(reminderStop)) - Math.min(...starts.slice(reminderStart)) <= .5, 'Turn reminder must be brief');
+assert.equal(voices - before, 1, 'Turn reminder uses one bounded siren voice');
+assert(Math.max(...stops.slice(reminderStop)) - Math.min(...starts.slice(reminderStart)) <= 1.2, 'Siren must stop promptly');
+assert.deepEqual(sweeps.filter(value => value >= 560).slice(-6), [940,560,940,560,940,560], 'Police siren alternates high and low');
+before = voices;
+unlockSound();
+assert.equal(voices - before, 1, 'iOS unlock starts a silent buffer in the gesture');
+const listeners = new Map();
+const target = {addEventListener:(event, fn) => listeners.set(event, fn), removeEventListener:(event) => listeners.delete(event)};
+const cleanup = installSoundUnlock(target);
+assert.deepEqual([...listeners.keys()], ['pointerdown','touchend','keydown']);
+listeners.get('touchend')();
+cleanup();
+assert.equal(listeners.size, 0, 'Gesture listeners are cleaned up');
 before = voices;
 setSoundEnabled(false);
 assert.equal(isSoundEnabled(), false);
@@ -69,4 +81,11 @@ for (const window of [
   vm.runInNewContext(source + '\n;globalThis.audioApi = { sfx };', restricted);
   assert.doesNotThrow(() => restricted.audioApi.sfx.turnReminder(), 'Refused audio must not interrupt visual reminders');
 }
-console.log('PASS: all street cues, brief turn reminder, node cleanup, mute/unmute, refused audio and card-cue deduplication');
+const blocked = { window: { AudioContext: class extends AudioContext { resume() { return Promise.resolve(); } } }, process: { env: {} } };
+vm.runInNewContext(source + '\n;globalThis.audioApi = { sfx, unlockSound };', blocked);
+before = voices;
+for (let poll = 0; poll < 20; poll++) { blocked.audioApi.sfx.playCard(); blocked.audioApi.sfx.turnReminder(); }
+assert.equal(voices, before, 'Suspended audio must never accumulate a polling/reminder backlog');
+blocked.audioApi.unlockSound();
+assert.equal(voices, before + 1, 'Only a silent gesture-unlock source may start on a suspended context');
+console.log('PASS: street cues, police siren, gesture/iOS unlock, cleanup, mute and refused audio');

@@ -100,9 +100,10 @@ function continueTrick(state) {
   if (state.phase !== "trickEnd") return state;
   const handsEmpty = state.hands.every((h) => h.length === 0);
   if (handsEmpty) {
-    const { results, shooter, spellName } = scoreRound(state.piles);
+    const roundResult = scoreRound(state.piles, state.scores);
+    const { results } = roundResult;
     const scores = state.scores.map((s, i) => s + results[i].total);
-    return { ...state, phase: "roundScores", roundResult: { results, shooter, spellName }, scores, totalRounds: state.totalRounds + 1 };
+    return { ...state, phase: "roundScores", roundResult, scores, totalRounds: state.totalRounds + 1 };
   }
   const winner = state.lastWinner;
   return { ...state, phase: "playGate", leader: winner, currentSeat: winner, trick: [], trickNumber: state.trickNumber + 1 };

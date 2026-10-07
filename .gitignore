@@ -18,6 +18,8 @@ node_modules/
 
 # Testing
 /coverage
+/.qa/
+/rule-reference-*.png
 
 # Next.js
 /.next/

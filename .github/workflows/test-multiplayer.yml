@@ -43,6 +43,10 @@ jobs:
         run: node frontend/tests/engine-stability.test.mjs
       - name: Test session races, persistence and local flow regression
         run: node frontend/tests/stability.test.mjs
+      - name: Test colored score explanations and PDF takeover accounting
+        run: node --test frontend/tests/score-explanation.test.mjs
+      - name: Test chat privacy, message expiry and invitation copying
+        run: node --test frontend/tests/chat.test.mjs
       - name: Test stable card layout contracts and selection controls
         run: node frontend/tests/layout.test.mjs
       - name: Test constant hand footprints and private local turns

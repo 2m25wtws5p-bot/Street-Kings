@@ -2,11 +2,16 @@ import React, { useEffect, useRef, useState } from "react";
 import { AVATARS, randomAvatarIndex } from "../game/constants";
 import { Avatar } from "./Avatar";
 import { OnlineTable } from "./OnlineTable";
+import { ChatPanel } from "./ChatPanel";
+import { ChatBubble } from "./ChatBubble";
+import { HostCrown } from "./HostCrown";
+import { hostSeat } from "../game/chat";
+import { copyText, invitationLink } from "../game/clipboard";
 import { roomApi, onlineErrorMessage } from "../game/api";
 import { useOnlineGame } from "../game/useOnlineGame";
 import { sfx } from "../game/sound";
 import { loadRoomSession, saveRoomSession, clearRoomSession } from "../game/storage";
-import { Wifi, Plus, LogIn, ArrowLeft, Copy, Crown, Bot, Play, UserPlus, Loader, Eye, WifiOff } from "lucide-react";
+import { Wifi, Plus, LogIn, ArrowLeft, Copy, Link, Bot, Play, UserPlus, Loader, Eye, WifiOff } from "lucide-react";
 
 function setUrlRoom(code) {
   try {
@@ -180,7 +185,7 @@ function CreateJoin({ initialCode, onExit, onSession }) {
             <button onClick={() => { const chosen = randomAvatarIndex(avatarIdx); setAvatarIdx(chosen); sfx.select(); }} data-testid="btn-cycle-avatar" title="Zufälliges Spielerbild" aria-label="Zufälliges Spielerbild">
               <Avatar avatar={avatar} size={48} active />
             </button>
-            <input value={name} onChange={(e) => setName(e.target.value)} maxLength={16} placeholder="Dein Straßenname" data-testid="input-online-name" className="flex-1 min-w-0 bg-black/40 border border-white/10 focus:border-amber-400/60 rounded-lg px-3 py-2.5 text-slate-50 placeholder:text-slate-400/40 outline-none font-serif-fancy text-lg" />
+            <input value={name} onChange={(e) => setName(e.target.value)} maxLength={24} placeholder="Dein Straßenname" data-testid="input-online-name" className="flex-1 min-w-0 bg-black/40 border border-white/10 focus:border-amber-400/60 rounded-lg px-3 py-2.5 text-slate-50 placeholder:text-slate-400/40 outline-none font-serif-fancy text-lg" />
           </div>
 
           <p className="text-slate-300/70 text-xs -mt-2 mb-4">Tippe auf das Gesicht für ein zufälliges Spielerbild. Dein Name bleibt erhalten.</p>
@@ -220,16 +225,16 @@ function CreateJoin({ initialCode, onExit, onSession }) {
 }
 
 function Lobby({ view, actions, onLeave }) {
-  const [copyError, setCopyError] = useState("");
-  const copyLink = async () => {
-    const url = `${window.location.origin}${window.location.pathname}?room=${view.code}`;
-    try {
-      if (!navigator.clipboard) throw new Error("Clipboard unavailable");
-      await navigator.clipboard.writeText(url);
-      setCopyError(""); sfx.select();
-    } catch {
-      setCopyError("Kopieren ist in diesem Browser gesperrt. Teile stattdessen den Raum-Code.");
-    }
+  const [copyMessage, setCopyMessage] = useState("");
+  useEffect(() => {
+    if (!copyMessage) return;
+    const timer = setTimeout(() => setCopyMessage(""), 3000);
+    return () => clearTimeout(timer);
+  }, [copyMessage]);
+  const copyRoom = async (link = false) => {
+    const copied = await copyText(link ? invitationLink(view.code) : view.code);
+    setCopyMessage(copied ? (link ? "Einladungslink kopiert!" : "Raum-Code kopiert!") : `Kopieren ist gesperrt. Dein Raum-Code: ${view.code}`);
+    if (copied) sfx.select();
   };
   const n = view.players.length;
   const canStart = n >= 3 && n <= 6;
@@ -244,11 +249,12 @@ function Lobby({ view, actions, onLeave }) {
         <div className="text-center mb-6 rise-in">
           <h1 className="font-display text-3xl gold-text mb-2">Die Crew sammelt sich</h1>
           <p className="font-serif-fancy text-slate-300/70 mb-3">Teile diesen Code, damit Freunde beitreten können:</p>
-          <button onClick={copyLink} data-testid="btn-copy-room-link" className="inline-flex items-center gap-2 font-mono-stat text-3xl tracking-[0.3em] gold-text bg-black/40 border border-amber-400/40 rounded-md px-6 py-3 hover:border-amber-400 transition-colors">
+          <button onClick={() => copyRoom()} data-testid="btn-copy-room-code" aria-label={`Raum-Code ${view.code} kopieren`} className="inline-flex items-center gap-2 font-mono-stat text-3xl tracking-[0.3em] gold-text bg-black/40 border border-amber-400/40 rounded-md px-6 py-3 hover:border-amber-400 transition-colors">
             {view.code} <Copy size={18} className="text-amber-300" />
           </button>
-          <p className="text-slate-400/50 text-xs mt-2">Tippe auf den Code, um den Einladungslink zu kopieren</p>
-          {copyError && <p role="status" className="text-amber-200 text-xs mt-2">{copyError}</p>}
+          <p className="text-slate-400/50 text-xs mt-2">Tippe auf den Code, um ihn zu kopieren.</p>
+          <button type="button" onClick={() => copyRoom(true)} data-testid="btn-copy-room-link" className="room-invite-link-button"><Link size={13} aria-hidden="true" /> Einladungslink kopieren</button>
+          <p role="status" className="room-copy-feedback" data-testid="room-copy-status">{copyMessage}</p>
         </div>
 
         <div className="panel rounded-lg p-4 rise-in">
@@ -270,10 +276,12 @@ function Lobby({ view, actions, onLeave }) {
             {view.players.map((p) => (
               <div key={p.seat} data-testid={`lobby-player-${p.seat}`} className="flex items-center gap-3 rounded-lg bg-black/30 px-3 py-2 border border-white/10">
                 <Avatar avatar={p.avatar} size={36} />
-                <span className="font-display text-slate-100 flex-1">{p.name}{p.seat === view.yourSeat && <span className="text-amber-300/80 text-xs ml-1">(du)</span>}</span>
+                <div className="lobby-player-identity">
+                  <span className="lobby-player-name font-display text-slate-100"><span title={p.name}>{p.name}</span>{p.seat === hostSeat(view) && <HostCrown />}{p.seat === view.yourSeat && <span className="text-amber-300/80 text-xs ml-1">(du)</span>}</span>
+                  <ChatBubble messages={view.chatMessages} seat={p.seat} />
+                </div>
                 {p.isBot && <span className="text-[10px] font-display uppercase tracking-wider text-slate-400/70 flex items-center gap-1"><Bot size={12} /> KI</span>}
                 {!p.isBot && !p.connected && <WifiOff size={13} className="text-red-400" title="Offline" data-testid={`lobby-player-offline-${p.seat}`} />}
-                {p.seat === 0 && <Crown size={15} className="text-amber-400" />}
               </div>
             ))}
             {Array.from({ length: Math.max(0, 3 - n) }).map((_, i) => (
@@ -303,6 +311,7 @@ function Lobby({ view, actions, onLeave }) {
             <p className="text-center font-serif-fancy text-slate-300/70 italic py-3">Warten, bis der Host das Spiel startet…</p>
           )}
         </div>
+        <ChatPanel view={view} actions={actions} />
       </div>
     </div>
   );

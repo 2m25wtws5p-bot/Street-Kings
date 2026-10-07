@@ -6,7 +6,7 @@ const configuredVolume = Number(process.env.REACT_APP_SFX_VOLUME);
 const volume = Number.isFinite(configuredVolume) && configuredVolume > 0 ? Math.min(configuredVolume, .8) : .48;
 const vary = (base, amount = .08) => base * (1 + (Math.random() * 2 - 1) * amount);
 
-function ac() {
+function ac(allowSuspended = false) {
   if (!enabled || typeof window === "undefined") return null;
   try {
     if (!ctx || ctx.state === "closed") {
@@ -27,8 +27,10 @@ function ac() {
       const data = noise.getChannelData(0);
       for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
     }
-    if (ctx.state === "suspended") ctx.resume().catch(() => {});
-    return ctx;
+    if (ctx.state !== "running") ctx.resume().catch(() => {});
+    // Don't queue timer/polling cues on a frozen context after page recovery.
+    // Otherwise they all play together when the first real gesture resumes it.
+    return ctx.state === "running" || allowSuspended ? ctx : null;
   } catch {
     // Audio restrictions must never interrupt a turn.
     return null;
@@ -42,6 +44,28 @@ export function setSoundEnabled(value) {
   }
 }
 export function isSoundEnabled() { return enabled; }
+
+// iOS requires resume and a started source synchronously in a user gesture.
+export function unlockSound() {
+  const c = ac(true);
+  if (!c) return;
+  try {
+    const source = c.createBufferSource();
+    source.buffer = c.createBuffer(1, 1, c.sampleRate);
+    source.connect(master);
+    source.onended = () => source.disconnect();
+    source.start(c.currentTime);
+    source.stop(c.currentTime + .005);
+  } catch { /* Refused audio must not affect gameplay. */ }
+}
+export function installSoundUnlock(target = typeof document === "undefined" ? null : document) {
+  if (!target) return () => {};
+  const unlock = () => unlockSound();
+  // Safari can suspend audio again after a background switch.
+  const events = ["pointerdown", "touchend", "keydown"];
+  events.forEach(event => target.addEventListener(event, unlock, { capture: true, passive: true }));
+  return () => events.forEach(event => target.removeEventListener(event, unlock, true));
+}
 
 function envelope(c, at, duration, gain) {
   const node = c.createGain();
@@ -105,18 +129,22 @@ function chord(delay, duration = .32, gain = .025) {
     oscillator.stop(at + duration + .02);
   });
 }
-function reminderTone(delay, frequency) {
+function policeSiren() {
   const c = ac();
   if (!c) return;
-  const at = c.currentTime + delay;
+  const at = c.currentTime;
   const oscillator = c.createOscillator();
   oscillator.type = "sine";
-  oscillator.frequency.setValueAtTime(frequency, at);
-  const amp = envelope(c, at, .14, .075);
+  oscillator.frequency.setValueAtTime(560, at);
+  // Original, moderate-volume hi-lo siren; no recorded samples.
+  for (let step = 1; step <= 6; step++) {
+    oscillator.frequency.linearRampToValueAtTime(step % 2 ? 940 : 560, at + step * .16);
+  }
+  const amp = envelope(c, at, 1.05, .12);
   oscillator.connect(amp);
   oscillator.onended = () => { oscillator.disconnect(); amp.disconnect(); };
   oscillator.start(at);
-  oscillator.stop(at + .16);
+  oscillator.stop(at + 1.08);
 }
 const hat = (delay = 0, gain = .07) => texture(delay, .045, gain, 6500, "highpass");
 const rim = (delay = 0, gain = .13) => texture(delay, .075, gain, 1500);
@@ -143,9 +171,8 @@ export const sfx = {
   turnReminder() {
     if (!enabled) return;
     try {
-      // A brief rising chime, spaced ten seconds apart by the turn scheduler.
-      reminderTone(0, 660);
-      reminderTone(.17, 880);
+      // Spaced ten seconds apart by the existing turn scheduler.
+      policeSiren();
     } catch {
       // A visual reminder still works when the browser refuses audio.
     }

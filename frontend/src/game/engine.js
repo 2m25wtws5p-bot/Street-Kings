@@ -73,11 +73,11 @@ export function passInfo(n, roundIndex) {
   if (!Number.isInteger(roundIndex) || roundIndex < 0) {
     throw new RangeError("Round index must be a nonnegative integer");
   }
-  const counts = { 3: 4, 4: 3, 5: 2, 6: 2 };
+  const counts = { 3: 4, 4: 3, 5: 3, 6: 2 };
   const count = counts[n];
   let dirs;
   if (n === 3 || n === 5) dirs = [1, -1];
-  else dirs = [1, -1, Math.floor(n / 2), 0]; // left, right, across, none
+  else dirs = [1, -1, Math.floor(n / 2)]; // left, right, across; every round has a pass
   const dir = dirs[roundIndex % dirs.length];
   return { count, dir };
 }
@@ -119,7 +119,7 @@ export function resolveTrick(trick) {
 }
 
 // Scores a completed round. piles = array (per seat) of captured cards.
-export function scoreRound(piles) {
+export function scoreRound(piles, previousScores = null) {
   const n = piles.length;
   const results = Array.from({ length: n }, () => ({
     fireCards: 0,
@@ -148,6 +148,10 @@ export function scoreRound(piles) {
     let spellName = "Takeover";
     if (hasWater && hasPygmy) spellName = "Großer Takeover";
     else if (hasPygmy) spellName = "Patin-Takeover";
+    // Original rulebook's endgame exception: a takeover must not hand the
+    // victory to another player. Instead, deduct its value from the shooter.
+    const projected = previousScores?.map((score, seat) => score + (seat === shooter ? 0 : spell));
+    const spellWithheld = !!projected && isGameOver(projected) && lowestSeats(projected).some(seat => seat !== shooter);
     piles.forEach((pile, seat) => {
       if (seat === shooter) {
         results[seat] = {
@@ -155,26 +159,27 @@ export function scoreRound(piles) {
           fireWitch: true,
           water: hasWater,
           pygmy: hasPygmy,
-          earth: false,
-          air: false,
-          total: 0,
+          earth: pile.some(c => c.special === "earth"),
+          air: pile.some(c => c.special === "air"),
+          total: spellWithheld ? -Math.min(previousScores[seat], spell) : 0,
           moon: true,
+          spellVictim: false,
         };
       } else {
         results[seat] = {
-          fireCards: 0,
-          fireWitch: false,
-          water: false,
-          pygmy: false,
-          earth: false,
-          air: false,
-          total: spell,
+          fireCards: pile.filter(c => c.suit === "RED" && c.special !== "fire").length,
+          fireWitch: pile.some(c => c.special === "fire"),
+          water: pile.some(c => c.special === "water"),
+          pygmy: pile.some(c => c.special === "pygmy"),
+          earth: pile.some(c => c.special === "earth"),
+          air: pile.some(c => c.special === "air"),
+          total: spellWithheld ? 0 : spell,
           moon: false,
           spellVictim: true,
         };
       }
     });
-    return { results, shooter, spellName };
+    return { results, shooter, spellName, spellPoints: spell, spellWithheld };
   }
 
   piles.forEach((pile, seat) => {
@@ -187,8 +192,9 @@ export function scoreRound(piles) {
     let base = redPts;
     if (fireWitch) base = Math.min(base * 2, 15);
     let total = base;
-    if (water && !air) total += 5;
-    if (pygmy && !air) total += 10;
+    if (water) total += 5;
+    if (pygmy) total += 10;
+    if (air) total = 0;
     if (earth) total = Math.max(total - 5, 0);
     results[seat] = { fireCards: redPts, fireWitch, water, pygmy, earth, air, total, moon: false };
   });

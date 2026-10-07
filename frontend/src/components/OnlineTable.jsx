@@ -13,10 +13,16 @@ import { GameHeaderButtons } from "./GameHeaderButtons";
 import { RulesDialog } from "./RulesDialog";
 import { StatsDialog } from "./StatsDialog";
 import { TurnStatus } from "./TurnStatus";
+import { ChatPanel } from "./ChatPanel";
+import { ChatBubble } from "./ChatBubble";
+import { HostCrown } from "./HostCrown";
+import { PassingProgress } from "./PassingProgress";
+import { hostSeat } from "../game/chat";
+import { copyText, invitationLink } from "../game/clipboard";
 import { legalCardIds, leadSuit, dealCount } from "../game/engine";
 import { useTurnReminder } from "../game/useTurnReminder";
 import { useHandLayout } from "../game/useHandLayout";
-import { Trophy, Check, LogOut, Copy, Eye, WifiOff, Bot } from "lucide-react";
+import { Trophy, Check, LogOut, Copy, Link, Eye, WifiOff, Bot } from "lucide-react";
 import { sfx } from "../game/sound";
 
 export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
@@ -117,6 +123,7 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
             Runde {(view.roundIndex ?? 0) + 1} · {phase === "passing" ? "Karten werden getauscht" : `Stich ${view.trickNumber}/${dealCount(n)}`}
           </div>
           <LeadSuitIndicator suit={lead} />
+          {phase === "passing" && <PassingProgress players={players} passedSeats={view.passedSeats} yourSeat={yourSeat} />}
         </div>
 
         {/* roster */}
@@ -130,12 +137,16 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
             return (
               <div key={i} data-testid={`opponent-seat-player-${i}`} data-current={isCurrent ? "true" : undefined} data-own-turn={yourTurn && i === yourSeat ? "true" : undefined} data-winner={isWinner ? "true" : undefined} className={`crew-player flex items-center gap-2 rounded-md px-2.5 py-1.5 border transition-all ${isCurrent ? "bg-amber-500/15 border-amber-400/70" : isWinner ? "bg-emerald-500/15 border-emerald-400/60" : "bg-black/30 border-white/10"} ${offline ? "opacity-60" : ""}`}>
                 <Avatar avatar={p.avatar} size={30} active={isCurrent} />
-                <PlayerIdentity name={p.name} heat={scores[i]} cards={handCounts[i]}>
+                <div className="crew-chat-identity">
+                  <PlayerIdentity name={p.name} heat={scores[i]} cards={handCounts[i]}>
+                    {i === hostSeat(view) && <HostCrown />}
                     {i === yourSeat && <span className="text-amber-300/80 text-[9px]">(du)</span>}
                     {passed && <Check size={11} className="text-emerald-400" />}
                     {offline && <WifiOff size={11} className="text-red-400" data-testid={`player-offline-${i}`} />}
                     {p.reviewingLastTrick && <Eye size={13} className="text-amber-200" aria-label="Sieht letzten Stich an" />}
-                </PlayerIdentity>
+                  </PlayerIdentity>
+                  <ChatBubble messages={view.chatMessages} seat={i} />
+                </div>
                 {offline && view.isHost && i !== yourSeat && (
                   <button disabled={actions.busy} onClick={() => { if (window.confirm(`${p.name} durch einen KI-Gangster ersetzen?`)) actions.replaceWithBot(i); }} data-testid={`btn-replace-bot-${i}`} title="Durch KI ersetzen" className="ml-1 grid place-items-center w-7 h-7 rounded-md bg-red-950/60 border border-red-500/60 text-red-200 hover:bg-red-900/70 transition-colors disabled:opacity-40">
                     <Bot size={14} />
@@ -243,29 +254,30 @@ function SpectatorBar({ phase, currentSeat, lastWinner, nameOf, passed = [], n }
 }
 
 function Shell({ view, actions, onLeave, sound, setSound, setRulesOpen, setStatsOpen, rulesOpen, statsOpen, children }) {
-  const [copyError, setCopyError] = useState("");
-  const copyLink = async () => {
-    const url = `${window.location.origin}${window.location.pathname}?room=${view.code}`;
-    try {
-      if (!navigator.clipboard) throw new Error("Clipboard unavailable");
-      await navigator.clipboard.writeText(url);
-      setCopyError("");
-      sfx.select();
-    } catch {
-      setCopyError("Kopieren ist gesperrt. Teile stattdessen den Raum-Code.");
-    }
+  const [copyMessage, setCopyMessage] = useState("");
+  useEffect(() => {
+    if (!copyMessage) return;
+    const timer = setTimeout(() => setCopyMessage(""), 3000);
+    return () => clearTimeout(timer);
+  }, [copyMessage]);
+  const copyRoom = async (link = false) => {
+    const copied = await copyText(link ? invitationLink(view.code) : view.code);
+    setCopyMessage(copied ? (link ? "Einladungslink kopiert!" : "Raum-Code kopiert!") : `Kopieren ist gesperrt. Dein Raum-Code: ${view.code}`);
+    if (copied) sfx.select();
   };
   const specCount = view.spectators?.length || 0;
   return (
     <div className="grain min-h-screen">
-      <div className="fixed top-0 inset-x-0 z-40 flex items-center justify-between px-4 py-2 bg-gradient-to-b from-[#0d0f13]/98 to-transparent">
+      <div className="online-room-header fixed top-0 inset-x-0 z-40 flex items-center justify-between px-4 py-2 bg-gradient-to-b from-[#0d0f13]/98 to-transparent">
         <div className="flex items-center gap-2">
           <button onClick={() => { if (window.confirm("Diesen Raum verlassen?")) onLeave(); }} data-testid="btn-leave-room" className="grid place-items-center w-9 h-9 rounded-lg bg-black/40 border border-white/10 text-amber-200 hover:border-amber-400/60 transition-colors">
             <LogOut size={16} />
           </button>
-          <button onClick={copyLink} data-testid="btn-copy-room-link" aria-label={`Einladungslink für Raum ${view.code} kopieren`} className="room-code-button flex items-center gap-1.5 rounded-lg px-2 py-1.5 bg-black/40 border border-white/10 hover:border-amber-400/60 transition-colors">
+          <button onClick={() => copyRoom()} data-testid="btn-copy-room-code" aria-label={`Raum-Code ${view.code} kopieren`} className="room-code-button flex items-center gap-1.5 rounded-lg px-2 py-1.5 bg-black/40 border border-white/10 hover:border-amber-400/60 transition-colors">
             <Copy size={13} aria-hidden="true" /> <span className="room-code-text">{view.code}</span>
           </button>
+          <button type="button" onClick={() => copyRoom(true)} data-testid="btn-copy-room-link" aria-label={`Einladungslink für Raum ${view.code} kopieren`} title="Einladungslink kopieren" className="room-link-icon-button"><Link size={14} aria-hidden="true" /></button>
+          <ChatPanel view={view} actions={actions} inline />
           {specCount > 0 && (
             <span className="hidden sm:inline-flex items-center gap-1 text-[11px] text-slate-400/70 font-mono-stat" data-testid="spectator-count">
               <Eye size={12} /> {specCount}
@@ -275,7 +287,7 @@ function Shell({ view, actions, onLeave, sound, setSound, setRulesOpen, setStats
         <GameHeaderButtons sound={sound} setSound={setSound} onRules={() => setRulesOpen(true)} onStats={() => setStatsOpen(true)} />
       </div>
       {children}
-      {copyError && <button type="button" role="status" onClick={() => setCopyError("")} className="fixed bottom-3 inset-x-3 z-50 mx-auto max-w-md panel rounded-lg p-3 text-sm text-amber-200">{copyError} · Schließen</button>}
+      {copyMessage && <button type="button" role="status" onClick={() => setCopyMessage("")} data-testid="room-copy-status" className="fixed bottom-3 inset-x-3 z-50 mx-auto max-w-md panel rounded-lg p-3 text-sm text-amber-200">{copyMessage}</button>}
       <LastTrickButton trick={view.lastTrick} players={view.players} winner={view.lastWinner} onReviewChange={view.isSpectator ? undefined : actions.reviewLastTrick} />
       {!view.isSpectator && <ExchangeHistoryButton exchange={view.yourExchange} phase={view.phase} trickNumber={view.trickNumber} scopeKey={`${view.code}-${view.roundIndex}-${view.yourSeat}`} />}
       {view.players.some((p) => p.reviewingLastTrick && p.seat !== view.yourSeat) && <div className="trick-review-notice" role="status" data-testid="trick-review-notice"><Eye size={12} className="inline mr-1" />{view.players.filter((p) => p.reviewingLastTrick && p.seat !== view.yourSeat).map((p) => p.name).join(", ")} sieht letzten Stich an</div>}

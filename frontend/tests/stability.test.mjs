@@ -52,14 +52,16 @@ test("leaving an invitation clears both the URL and the next online entry", () =
   }
 });
 
-test("displayed help describes token recovery and red-card-only Kingpin heat", async () => {
+test("displayed help describes token recovery, red-only Kingpin and continuous PDF passing", async () => {
   const rules = await source("components/RulesDialog.jsx");
   const { SPECIALS } = await import(constantsUrl);
   assert.match(SPECIALS.fire.desc, /roten Karten/);
   assert.doesNotMatch(SPECIALS.fire.desc, /gesamte Hitze/);
-  assert.match(rules, /gespeicherter Spielerzugang/);
+  assert.match(rules, /gespeicherte Zugang stellt deinen Platz wieder her/);
   assert.doesNotMatch(rules, /demselben Namen<\/b> wieder bei/);
-  assert.match(rules, /eine Runde ohne Tausch/);
+  assert.match(rules, /Es gibt keine Runde ohne Tausch/);
+  assert.match(rules, /\[5, 12, 3,/);
+  assert.match(rules, /Neutralisiert die gesamte Hitze aus deinen Stichen/);
 });
 
 function memoryStorage(value) {

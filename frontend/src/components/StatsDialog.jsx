@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "./ui/dialog";
 import { loadStats, clearStats } from "../game/storage";
 import { Trophy, Siren, ScrollText, Trash2, Crown } from "lucide-react";
 import { gameApi } from "../game/api";
@@ -21,77 +21,51 @@ export function StatsDialog({ open, onOpenChange }) {
   }, [open]);
 
   const players = Object.entries(stats.players || {})
-    .map(([name, r]) => ({ name, ...r, avg: r.games ? (r.totalFire / r.games).toFixed(1) : 0 }))
+    .map(([name, record]) => ({ name, ...record, avg: record.games ? (record.totalFire / record.games).toFixed(1) : 0 }))
     .sort((a, b) => b.wins - a.wins || a.avg - b.avg);
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="panel max-w-xl max-h-[85vh] overflow-y-auto border-amber-500/30" data-testid="stats-dialog">
-        <DialogHeader>
-          <DialogTitle className="font-display text-2xl gold-text flex items-center gap-2">
-            <ScrollText className="text-amber-400" /> Die Akte
-          </DialogTitle>
-        </DialogHeader>
+  return <Dialog open={open} onOpenChange={onOpenChange}>
+    <DialogContent className="street-dialog stats-dialog w-[calc(100vw-1.5rem)] max-w-xl max-h-[88dvh] overflow-y-auto p-4 sm:p-6" data-testid="stats-dialog">
+      <DialogHeader className="street-dialog-header pr-6">
+        <p className="street-dialog-kicker font-display text-xs tracking-[0.2em] font-bold">Street Kings · Crew-Statistik</p>
+        <DialogTitle className="street-dialog-title font-display text-3xl flex items-center gap-2"><ScrollText size={28} aria-hidden="true" />Die Akte</DialogTitle>
+        <DialogDescription className="street-dialog-description text-sm">Deine abgeschlossenen Partien auf diesem Gerät. Weniger Hitze ist besser.</DialogDescription>
+      </DialogHeader>
 
-        <div className="grid grid-cols-3 gap-3 my-2">
-          <Stat icon={<Trophy size={18} />} label="Spiele" value={stats.gamesPlayed || 0} />
-          <Stat icon={<ScrollText size={18} />} label="Runden" value={stats.roundsPlayed || 0} />
-          <Stat icon={<Siren size={18} />} label="Wenigste Hitze" value={stats.lowestScore ?? "—"} />
-        </div>
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
+        <Stat icon={<Trophy size={21} />} label="Spiele" value={stats.gamesPlayed || 0} />
+        <Stat icon={<ScrollText size={21} />} label="Runden" value={stats.roundsPlayed || 0} />
+        <Stat icon={<Siren size={21} />} label="Wenigste Hitze" value={stats.lowestScore ?? "—"} />
+      </div>
 
-        <h3 className="font-display text-amber-300 text-sm mt-3 mb-1">Rangliste der Crews</h3>
-        {players.length === 0 ? (
-          <p className="text-slate-300/60 text-sm py-3 text-center">Noch keine Spiele in der Akte. Spiel eine Partie!</p>
-        ) : (
-          <div className="space-y-1.5">
-            {players.map((p, i) => (
-              <div key={p.name} className="flex items-center justify-between rounded-lg bg-black/30 px-3 py-2 border border-white/10" data-testid={`stats-player-${p.name}`}>
-                <div className="flex items-center gap-2">
-                  {i === 0 && <Crown size={15} className="text-amber-400" />}
-                  <span className="font-display text-slate-100 text-sm">{p.name}</span>
-                </div>
-                <div className="flex items-center gap-4 font-mono-stat text-xs text-slate-300/80">
-                  <span className="text-amber-300">{p.wins} Siege</span>
-                  <span>{p.games} Spiele</span>
-                  <span>Ø {p.avg} Hitze</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+      <section>
+        <h3 className="font-display text-xl font-bold mb-2">Rangliste der Crews</h3>
+        {players.length === 0 ? <div className="stats-empty rounded-md p-5 text-center"><Crown size={30} className="mx-auto mb-2" aria-hidden="true" /><p className="font-display text-lg font-bold">Die Akte ist noch leer</p><p className="text-sm mt-1">Nach deiner ersten abgeschlossenen Partie steht hier die Crew-Rangliste.</p></div> : <ol className="space-y-2">
+          {players.map((p, i) => <li key={p.name} className="stats-crew rounded-md px-3 py-3" data-testid={`stats-player-${p.name}`}>
+            <div className="flex items-center gap-2 min-w-0"><span className="stats-place font-display font-bold text-lg w-6 shrink-0">{i + 1}.</span>{i === 0 && <Crown size={18} className="shrink-0" aria-label="Führende Crew" />}<span className="font-display text-lg font-bold truncate">{p.name}</span></div>
+            <div className="stats-crew-metrics grid grid-cols-3 gap-2 mt-2 text-xs"><span><strong className="font-mono-stat">{p.wins}</strong> Siege</span><span><strong className="font-mono-stat">{p.games}</strong> Spiele</span><span><strong className="font-mono-stat">{p.avg}</strong> Ø Hitze</span></div>
+          </li>)}
+        </ol>}
+      </section>
 
-        {recent.length > 0 && (
-          <>
-            <h3 className="font-display text-amber-300 text-sm mt-4 mb-1">Polizeibericht (letzte Spiele weltweit)</h3>
-            <div className="space-y-1">
-              {recent.map((g, i) => (
-                <div key={i} className="text-[12px] text-slate-300/70 flex justify-between rounded bg-black/20 px-2 py-1">
-                  <span className="text-amber-200">{g.winners.join(", ")}</span>
-                  <span>{g.players} Spieler · {g.rounds} Runden</span>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
+      {recent.length > 0 && <section>
+        <h3 className="font-display text-xl font-bold mb-1">Die Straße spricht</h3>
+        <p className="text-xs mb-2">Zuletzt abgeschlossene Online-Partien, weltweit.</p>
+        <div className="space-y-2">{recent.map((game, i) => <div key={game.id || i} className="stats-recent rounded-md px-3 py-2 text-sm">
+          <div className="flex items-start gap-2"><Trophy size={15} className="shrink-0 mt-0.5" aria-hidden="true" /><span className="font-semibold break-words min-w-0">{game.winners.join(", ")}</span></div>
+          <p className="text-xs mt-1 ml-[23px]">{game.players} Crews · {game.rounds} Runden</p>
+        </div>)}</div>
+      </section>}
 
-        <button
-          onClick={() => setStats(clearStats())}
-          className="mt-4 flex items-center gap-1.5 text-xs text-slate-400/60 hover:text-red-300 transition-colors mx-auto"
-          data-testid="btn-clear-stats"
-        >
-          <Trash2 size={13} /> Lokale Akte löschen
-        </button>
-      </DialogContent>
-    </Dialog>
-  );
+      <button onClick={() => setStats(clearStats())} className="stats-clear rounded-md px-3 py-2 flex items-center justify-center gap-2 text-xs font-semibold mx-auto" data-testid="btn-clear-stats"><Trash2 size={14} aria-hidden="true" />Lokale Akte löschen</button>
+    </DialogContent>
+  </Dialog>;
 }
 
 function Stat({ icon, label, value }) {
-  return (
-    <div className="rounded-md bg-black/30 border border-amber-500/20 p-3 text-center">
-      <div className="text-amber-400 grid place-items-center mb-1">{icon}</div>
-      <div className="font-display text-xl text-amber-100">{value}</div>
-      <div className="text-[11px] uppercase tracking-wider text-slate-300/60">{label}</div>
-    </div>
-  );
+  return <div className="stats-metric rounded-md p-2 sm:p-3 text-center">
+    <div className="grid place-items-center mb-1" aria-hidden="true">{icon}</div>
+    <div className="font-display text-3xl font-bold">{value}</div>
+    <div className="text-[10px] sm:text-[11px] uppercase font-bold tracking-wide">{label}</div>
+  </div>;
 }

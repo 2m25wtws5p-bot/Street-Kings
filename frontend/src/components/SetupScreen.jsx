@@ -166,7 +166,7 @@ export function SetupScreen({ onStart }) {
                     nx[i] = e.target.value;
                     setNames(nx);
                   }}
-                  maxLength={16}
+                  maxLength={24}
                   placeholder={isBotSeat(i) ? botNames[i] : `${AVATARS[avatars[i]].label} ${i + 1}`}
                   data-testid={`input-player-name-${i}`}
                   className="flex-1 min-w-0 bg-black/40 border border-white/10 focus:border-amber-400/60 rounded-lg px-3 py-2.5 text-slate-50 placeholder:text-slate-400/40 outline-none transition-colors font-serif-fancy text-lg"

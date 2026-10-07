@@ -15,6 +15,7 @@ from typing import List, Optional, Dict, Any
 import uuid
 import time
 import weakref
+import unicodedata
 from datetime import datetime, timezone
 
 import witches_engine as eng
@@ -131,6 +132,10 @@ BOT_NAMES = [
 ]
 OFFLINE_AFTER = 10.0  # seconds without a poll -> player counts as disconnected
 MAX_SPECTATORS = 20
+MAX_PLAYER_NAME_LENGTH = 24
+MAX_CHAT_LENGTH = 140
+MAX_CHAT_MESSAGES = 30
+CHAT_COOLDOWN_SECONDS = 1.5
 BOT_PLAY_DELAY = float(os.environ.get("BOT_PLAY_DELAY", "0.95"))
 TRICK_HOLD_SECONDS = float(os.environ.get("TRICK_HOLD_SECONDS", "2.0"))
 
@@ -166,6 +171,11 @@ class TokenReq(BaseModel):
     token: str
 
 
+class ChatReq(BaseModel):
+    token: str
+    text: str = Field(strict=True)
+
+
 class BotsReq(BaseModel):
     token: str
     action: str  # 'add' | 'remove'
@@ -187,6 +197,10 @@ class ActionReq(BaseModel):
 def _gen_code() -> str:
     alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
     return "".join(random.choice(alphabet) for _ in range(5))
+
+
+def _display_name(name: Optional[str], fallback: str = "") -> str:
+    return (name or "").strip()[:MAX_PLAYER_NAME_LENGTH].strip() or fallback
 
 
 async def _get_room(code: str):
@@ -320,7 +334,7 @@ def _apply_play(room, card_id):
 
 def _do_continue_trick(room):
     if all(len(h) == 0 for h in room["hands"]):
-        res = eng.score_round(room["piles"])
+        res = eng.score_round(room["piles"], room["scores"])
         room["roundResult"] = res
         room["scores"] = [s + res["results"][i]["total"] for i, s in enumerate(room["scores"])]
         room["totalRounds"] = room.get("totalRounds", 0) + 1
@@ -410,6 +424,12 @@ def _redact(room, token):
         "version": room.get("version", 0),
         "trickEndedAt": room.get("trickEndedAt"),
         "trickHoldMs": int(TRICK_HOLD_SECONDS * 1000),
+        # Chat is public, but the enclosing room also contains seat tokens and
+        # private hands. Project only the message fields, including for watchers.
+        "chatMessages": [
+            {key: message[key] for key in ("id", "seat", "name", "text", "createdAt")}
+            for message in room.get("chatMessages", [])[-MAX_CHAT_MESSAGES:]
+        ],
     }
     if room["status"] == "lobby":
         return view
@@ -473,8 +493,9 @@ async def create_room(payload: CreateRoom):
             "host_token": token,
             "status": "lobby",
             "phase": "lobby",
-            "players": [{"token": token, "name": payload.name[:16].strip() or "Boss", "avatar": payload.avatar, "isBot": False, "seat": 0, "last_seen": time.time()}],
+            "players": [{"token": token, "name": _display_name(payload.name, "Boss"), "avatar": payload.avatar, "isBot": False, "seat": 0, "last_seen": time.time()}],
             "spectators": [],
+            "chatMessages": [],
             "created_at": now.isoformat(),
             "expire_at": now,
             "version": 0,
@@ -501,7 +522,7 @@ async def join_room(code: str, payload: JoinRoom):
             existing["last_seen"] = time.time()
             await _save_room(room)
             return {"code": code, "token": existing["token"], "seat": existing["seat"], "rejoined": True}
-        name = payload.name[:16].strip()
+        name = _display_name(payload.name)
         existing = next((p for p in room["players"] if not p["isBot"] and name and p["name"].lower() == name.lower()), None)
         if existing:
             # Names and room codes are public, so neither proves seat ownership.
@@ -525,10 +546,40 @@ async def watch_room(code: str, payload: WatchRoom):
         if len(specs) >= MAX_SPECTATORS:
             raise HTTPException(status_code=409, detail="Zu viele Zuschauer")
         token = f"spec-{uuid.uuid4()}"
-        name = (payload.name or "")[:16].strip() or f"Zuschauer {len(specs) + 1}"
+        name = _display_name(payload.name, f"Zuschauer {len(specs) + 1}")
         specs.append({"token": token, "name": name})
         await _save_room(room)
         return {"code": code, "token": token, "seat": None, "spectator": True}
+
+
+@api_router.post("/rooms/{code}/chat")
+async def room_chat(code: str, payload: ChatReq):
+    async with _lock(code):
+        room = await _get_room(code)
+        me = _player_by_token(room, payload.token)
+        if not me or me["isBot"]:
+            raise HTTPException(status_code=403, detail="Nur Spieler am Tisch können chatten")
+        if room["status"] not in ("lobby", "playing", "gameOver"):
+            raise HTTPException(status_code=409, detail="In diesem Raum ist kein Chat verfügbar")
+        # Keep messages on one line. Joiners/variation selectors used by emoji
+        # remain valid; C0/C1 controls and Unicode line separators do not.
+        if any(unicodedata.category(char) in ("Cc", "Cs", "Zl", "Zp") for char in payload.text):
+            raise HTTPException(status_code=400, detail="Chat-Nachrichten dürfen keine Steuerzeichen enthalten")
+        text = payload.text.strip()
+        if not text or len(text) > MAX_CHAT_LENGTH:
+            raise HTTPException(status_code=400, detail=f"Chat-Nachrichten müssen 1 bis {MAX_CHAT_LENGTH} Zeichen enthalten")
+        now = time.time()
+        if "last_chat_at" in me and now - me["last_chat_at"] < CHAT_COOLDOWN_SECONDS:
+            raise HTTPException(status_code=429, detail="Bitte warte kurz vor der nächsten Nachricht", headers={"Retry-After": "2"})
+        message = {"id": str(uuid.uuid4()), "seat": me["seat"], "name": me["name"],
+                   "text": text, "createdAt": int(now * 1000)}
+        room["chatMessages"] = (room.get("chatMessages", []) + [message])[-MAX_CHAT_MESSAGES:]
+        me["last_chat_at"] = now
+        me["last_seen"] = now
+        # Use the same lock/version check as game actions. A concurrent server
+        # save cannot overwrite a played card, and chat never advances bots.
+        await _save_room(room)
+        return _redact(room, payload.token)
 
 
 @api_router.post("/rooms/{code}/bots")
@@ -555,6 +606,11 @@ async def manage_bots(code: str, payload: BotsReq):
             for i in range(len(room["players"]) - 1, 0, -1):
                 if room["players"][i]["isBot"]:
                     room["players"].pop(i)
+                    # Lobby seats compact after a bot leaves. Existing human
+                    # bubbles must move with their players to the new seats.
+                    for message in room.get("chatMessages", []):
+                        if message["seat"] > i:
+                            message["seat"] -= 1
                     break
             for seat, player in enumerate(room["players"]):
                 player["seat"] = seat
@@ -609,7 +665,7 @@ async def replace_with_bot(code: str, payload: ReplaceReq):
             raise HTTPException(status_code=409, detail="Spieler ist noch verbunden")
         target["isBot"] = True
         target["token"] = f"bot-{uuid.uuid4()}"
-        target["name"] = f"{target['name'][:12]} (KI)"
+        target["name"] = f"{target['name'][:MAX_PLAYER_NAME_LENGTH - 5].rstrip()} (KI)"
         seat = target["seat"]
         if room["phase"] == "passing" and str(seat) not in room["pendingSelections"]:
             room["pendingSelections"][str(seat)] = eng.bot_pass(room["hands"][seat], room["passCount"])
@@ -640,6 +696,9 @@ async def rematch_room(code: str, payload: TokenReq):
         room["lastWinner"] = None
         room["roundResult"] = None
         room["rematches"] = room.get("rematches", 0) + 1
+        room["chatMessages"] = []
+        for player in room["players"]:
+            player.pop("last_chat_at", None)
         _setup_passing(room)
         _advance_bots(room)
         await _save_room(room)

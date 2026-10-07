@@ -1,6 +1,6 @@
 import React from "react";
-import streetFaces from "../assets/avatars/street-faces.webp";
-import extraFaces from "../assets/avatars/street-faces-extra.webp";
+import streetFaces from "../assets/avatars/street-faces-comic.webp";
+import extraFaces from "../assets/avatars/street-faces-extra-comic.webp";
 
 const MAP = {
   boss: "0% 0%",
