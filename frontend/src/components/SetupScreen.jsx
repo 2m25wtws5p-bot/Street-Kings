@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { AVATARS, BOT_NAMES } from "../game/constants";
+import { AVATARS, randomAvatarIndex, randomBotName } from "../game/constants";
 import { Avatar } from "./Avatar";
 import { Siren, Users, Play, Bot, User } from "lucide-react";
 import { sfx } from "../game/sound";
@@ -11,29 +11,78 @@ const PRESETS = [
   { n: 6, label: "Ganze Stadt" },
 ];
 
+// A bigger portrait collection must not increase the six-seat game limit.
+const MAX_PLAYERS = 6;
+
+function shuffledAvatarIndices() {
+  const indices = AVATARS.map((_, i) => i);
+  for (let i = indices.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [indices[i], indices[j]] = [indices[j], indices[i]];
+  }
+  return indices;
+}
+
+function makeBotDefaults(customNames = []) {
+  const used = customNames.map((name) => name.trim()).filter(Boolean);
+  return Array.from({ length: MAX_PLAYERS }, () => {
+    const name = randomBotName(used);
+    used.push(name);
+    return name;
+  });
+}
+
 export function SetupScreen({ onStart }) {
   const [count, setCount] = useState(4);
-  const [names, setNames] = useState(() => AVATARS.map((a) => ""));
-  const [avatars, setAvatars] = useState(() => AVATARS.map((_, i) => i));
-  const [bots, setBots] = useState(() => AVATARS.map(() => false));
+  const [names, setNames] = useState(() => Array(MAX_PLAYERS).fill(""));
+  const [avatars, setAvatars] = useState(() => shuffledAvatarIndices().slice(0, MAX_PLAYERS));
+  const [bots, setBots] = useState(() => Array(MAX_PLAYERS).fill(false));
+  // Typed names stay separate from generated defaults, so rerolls never erase them.
+  const [botNames, setBotNames] = useState(() => makeBotDefaults());
 
   const setCountSafe = (c) => {
     setCount(c);
     sfx.select();
   };
 
-  const cycleAvatar = (idx) => {
+  const isBotSeat = (idx) => idx > 0 && bots[idx];
+
+  const rerollBotName = (idx) => {
+    const used = names.map((name, i) => name.trim() || (bots[i] ? botNames[i] : ""));
+    used.push(botNames[idx]);
+    const chosen = randomBotName(used);
+    setBotNames((prev) => prev.map((name, i) => (i === idx ? chosen : name)));
+  };
+
+  const randomizeAvatar = (idx) => {
+    const available = AVATARS.map((_, index) => index).filter(index => !avatars.includes(index));
+    const chosen = available.length ? available[Math.floor(Math.random() * available.length)] : randomAvatarIndex(avatars[idx]);
     setAvatars((prev) => {
       const next = [...prev];
-      next[idx] = (next[idx] + 1) % AVATARS.length;
+      next[idx] = chosen;
       return next;
     });
+    if (isBotSeat(idx) && !names[idx].trim()) rerollBotName(idx);
+    sfx.select();
+  };
+
+  const soloPreset = () => {
+    const shuffled = shuffledAvatarIndices().filter((index) => index !== avatars[0]);
+    setAvatars([avatars[0], ...shuffled.slice(0, MAX_PLAYERS - 1)]);
+    setBotNames(makeBotDefaults(names));
+    setBots(Array.from({ length: MAX_PLAYERS }, (_, i) => i !== 0));
+    sfx.select();
+  };
+
+  const toggleBot = (idx) => {
+    if (!bots[idx] && !names[idx].trim()) rerollBotName(idx);
+    setBots((prev) => prev.map((isBot, i) => (i === idx ? !isBot : isBot)));
     sfx.select();
   };
 
   const start = () => {
     const players = Array.from({ length: count }, (_, i) => ({
-      name: (names[i] || "").trim() || (i > 0 && bots[i] ? BOT_NAMES[i % BOT_NAMES.length] : `${AVATARS[avatars[i]].label} ${i + 1}`),
+      name: (names[i] || "").trim() || (isBotSeat(i) ? botNames[i] : `${AVATARS[avatars[i]].label} ${i + 1}`),
       avatar: AVATARS[avatars[i]],
       isBot: i === 0 ? false : bots[i],
     }));
@@ -82,14 +131,14 @@ export function SetupScreen({ onStart }) {
             </div>
             <div className="flex gap-2">
               <button
-                onClick={() => { setBots(AVATARS.map((_, i) => i !== 0)); sfx.select(); }}
+                onClick={soloPreset}
                 data-testid="btn-preset-solo"
                 className="text-xs font-display rounded-lg px-3 py-1.5 bg-amber-500/15 border border-amber-400/50 text-amber-200 hover:bg-amber-500/25 transition-colors"
               >
                 Solo gegen KI
               </button>
               <button
-                onClick={() => { setBots(AVATARS.map(() => false)); sfx.select(); }}
+                onClick={() => { setBots(Array(MAX_PLAYERS).fill(false)); sfx.select(); }}
                 data-testid="btn-preset-all-human"
                 className="text-xs font-display rounded-lg px-3 py-1.5 bg-black/30 border border-white/10 text-slate-300 hover:border-slate-400/60 transition-colors"
               >
@@ -102,8 +151,9 @@ export function SetupScreen({ onStart }) {
             {Array.from({ length: count }, (_, i) => (
               <div key={i} className="flex items-center gap-3 rise-in" style={{ animationDelay: `${0.05 * i}s` }}>
                 <button
-                  onClick={() => cycleAvatar(i)}
-                  title="Avatar wechseln"
+                  onClick={() => randomizeAvatar(i)}
+                  title={isBotSeat(i) && !names[i].trim() ? "Zufälliges Spielerbild und KI-Name" : "Zufälliges Spielerbild (eigener Name bleibt erhalten)"}
+                  aria-label={isBotSeat(i) && !names[i].trim() ? "Zufälliges Spielerbild und KI-Name" : "Zufälliges Spielerbild"}
                   data-testid={`btn-avatar-${i}`}
                   className="shrink-0"
                 >
@@ -117,9 +167,9 @@ export function SetupScreen({ onStart }) {
                     setNames(nx);
                   }}
                   maxLength={16}
-                  placeholder={i > 0 && bots[i] ? BOT_NAMES[i % BOT_NAMES.length] : `${AVATARS[avatars[i]].label} ${i + 1}`}
+                  placeholder={isBotSeat(i) ? botNames[i] : `${AVATARS[avatars[i]].label} ${i + 1}`}
                   data-testid={`input-player-name-${i}`}
-                  className="flex-1 bg-black/40 border border-white/10 focus:border-amber-400/60 rounded-lg px-3 py-2.5 text-slate-50 placeholder:text-slate-400/40 outline-none transition-colors font-serif-fancy text-lg"
+                  className="flex-1 min-w-0 bg-black/40 border border-white/10 focus:border-amber-400/60 rounded-lg px-3 py-2.5 text-slate-50 placeholder:text-slate-400/40 outline-none transition-colors font-serif-fancy text-lg"
                 />
                 {i === 0 ? (
                   <span className="shrink-0 w-16 text-center text-[11px] font-display uppercase tracking-wider text-amber-300/80">
@@ -128,7 +178,7 @@ export function SetupScreen({ onStart }) {
                 ) : (
                   <button
                     type="button"
-                    onClick={() => { const nx = [...bots]; nx[i] = !nx[i]; setBots(nx); sfx.select(); }}
+                    onClick={() => toggleBot(i)}
                     data-testid={`btn-toggle-bot-${i}`}
                     className={`shrink-0 w-16 flex flex-col items-center gap-0.5 rounded-lg py-1.5 border text-[10px] font-display transition-all ${
                       bots[i]
@@ -143,6 +193,10 @@ export function SetupScreen({ onStart }) {
               </div>
             ))}
           </div>
+
+          <p className="mt-3 text-xs text-slate-300/70">
+            Gesicht antippen: zufälliges Bild, bei KI auch ein neuer Straßenname. Selbst eingegebene Namen bleiben erhalten.
+          </p>
 
           <button
             onClick={start}

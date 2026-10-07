@@ -98,7 +98,21 @@ BOT_AVATARS = [
     {"key": "boss", "label": "Boss", "icon": "crown", "color": "#C084FC"},
     {"key": "dealer", "label": "Dealer", "icon": "banknote", "color": "#F472B6"},
 ]
-BOT_NAMES = ["Brooklyn Ace", "Harlem Slim", "Queens Rico", "Big Dre", "Uptown Jade", "Bronx Ghost"]
+BOT_AVATARS += [
+    {"key": f"street-{i + 1:02d}", "label": label, "color": color}
+    for i, (label, color) in enumerate(zip(
+        ["Ace", "Ruby", "Rico", "Nia", "Pops", "Jade", "Eli", "Kai", "Dre", "Lex", "Milo", "Dee"],
+        ["#D65B50", "#D59B60", "#60A87D", "#AC6572", "#789BB0", "#D5AC53", "#819DAC", "#B47E65", "#859487", "#A5A4A0", "#C29B74", "#728DA6"],
+    ))
+]
+BOT_NAMES = [
+    "Brooklyn Ace", "Harlem Slim", "Queens Rico", "Big Dre", "Uptown Jade", "Bronx Ghost",
+    "Bed-Stuy Boogie", "Coney Cash", "Eastside Eli", "Uptown Nia", "Harlem Honey", "Brooklyn Blue",
+    "Queens Vega", "Lower East Lex", "Bronx Nova", "Red Hook Ray", "Flatbush Frank", "SoHo Sage",
+    "Big Malik", "Lil Rico", "K-Town Kai", "Southside Sam", "Westside Wes", "Bushwick Bea",
+    "Harlem Dee", "Crown Hts Cruz", "LES Lou", "Uptown Milo", "Jamaica Jay", "Bed-Stuy Bree",
+    "Coney Cruz", "Queens Cash",
+]
 OFFLINE_AFTER = 10.0  # seconds without a poll -> player counts as disconnected
 MAX_SPECTATORS = 20
 BOT_PLAY_DELAY = float(os.environ.get("BOT_PLAY_DELAY", "0.95"))
@@ -461,9 +475,10 @@ async def manage_bots(code: str, payload: BotsReq):
             if len(room["players"]) >= 6:
                 raise HTTPException(status_code=409, detail="Die Crew ist voll")
             used = {p["avatar"].get("key") for p in room["players"]}
-            avatar = next((a for a in BOT_AVATARS if a["key"] not in used), BOT_AVATARS[0])
+            avatar = random.choice([a for a in BOT_AVATARS if a["key"] not in used] or BOT_AVATARS)
             seat = len(room["players"])
-            name = BOT_NAMES[seat % len(BOT_NAMES)]
+            used_names = {p["name"].strip().lower() for p in room["players"]}
+            name = random.choice([name for name in BOT_NAMES if name.lower() not in used_names])
             room["players"].append({"token": f"bot-{uuid.uuid4()}", "name": name, "avatar": avatar, "isBot": True, "seat": seat})
         elif payload.action == "remove":
             for i in range(len(room["players"]) - 1, 0, -1):

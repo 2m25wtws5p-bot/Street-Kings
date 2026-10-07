@@ -129,15 +129,23 @@ def test_new_name_after_start_rejected_409(s):
 def test_bots_use_street_names_and_avatars(s):
     r = s.post(f"{API}/rooms", json={"name": "Host", "avatar": AV_A})
     code, host = r.json()["code"], r.json()["token"]
-    allowed_keys = {"boss", "dealer", "driver", "smuggler", "hacker", "lawyer"}
-    street_names = {"Brooklyn Ace", "Harlem Slim", "Queens Rico", "Big Dre", "Uptown Jade", "Bronx Ghost"}
-    for _ in range(3):
+    allowed_keys = {"boss", "dealer", "driver", "smuggler", "hacker", "lawyer"} | {f"street-{i:02d}" for i in range(1, 13)}
+    street_names = {
+        "Brooklyn Ace", "Harlem Slim", "Queens Rico", "Big Dre", "Uptown Jade", "Bronx Ghost",
+        "Bed-Stuy Boogie", "Coney Cash", "Eastside Eli", "Uptown Nia", "Harlem Honey", "Brooklyn Blue",
+        "Queens Vega", "Lower East Lex", "Bronx Nova", "Red Hook Ray", "Flatbush Frank", "SoHo Sage",
+        "Big Malik", "Lil Rico", "K-Town Kai", "Southside Sam", "Westside Wes", "Bushwick Bea",
+        "Harlem Dee", "Crown Hts Cruz", "LES Lou", "Uptown Milo", "Jamaica Jay", "Bed-Stuy Bree",
+        "Coney Cruz", "Queens Cash",
+    }
+    for _ in range(5):
         r = s.post(f"{API}/rooms/{code}/bots", json={"token": host, "action": "add"})
         assert r.status_code == 200
     view = r.json()
     bots = [p for p in view["players"] if p["isBot"]]
-    assert len(bots) == 3
+    assert len(bots) == 5
     for b in bots:
         assert b["avatar"]["key"] in allowed_keys, b["avatar"]
         assert b["name"] in street_names, b["name"]
     assert len({b["name"] for b in bots}) == len(bots)
+    assert len({p["avatar"]["key"] for p in view["players"]}) == len(view["players"])

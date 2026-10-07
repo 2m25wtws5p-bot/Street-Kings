@@ -1,5 +1,6 @@
 import React from "react";
 import streetFaces from "../assets/avatars/street-faces.webp";
+import extraFaces from "../assets/avatars/street-faces-extra.webp";
 
 const MAP = {
   boss: "0% 0%",
@@ -12,6 +13,9 @@ const MAP = {
 
 export function Avatar({ avatar, size = 40, active = false, className = "" }) {
   const color = avatar?.color || "#94A3B8";
+  const extraIndex = /^street-(0[1-9]|1[0-2])$/.test(avatar?.key || "") ? Number(avatar.key.slice(-2)) - 1 : -1;
+  const image = extraIndex >= 0 ? extraFaces : streetFaces;
+  const position = extraIndex >= 0 ? `${(extraIndex % 3) * 50}% ${Math.floor(extraIndex / 3) * 100 / 3}%` : MAP[avatar?.key] || MAP.boss;
   return (
     <div
       role="img"
@@ -27,7 +31,7 @@ export function Avatar({ avatar, size = 40, active = false, className = "" }) {
         borderRadius: "42% 48% 40% 46%",
       }}
     >
-      <span aria-hidden="true" style={{ display: "block", width: "100%", height: "100%", backgroundImage: `url(${streetFaces})`, backgroundSize: "200% 300%", backgroundPosition: MAP[avatar?.key] || MAP.boss, borderRadius: "inherit" }} />
+      <span aria-hidden="true" style={{ display: "block", width: "100%", height: "100%", backgroundImage: `url(${image})`, backgroundSize: extraIndex >= 0 ? "300% 400%" : "200% 300%", backgroundPosition: position, borderRadius: "inherit" }} />
     </div>
   );
 }

@@ -114,8 +114,33 @@ export const AVATARS = [
   { key: "smuggler", label: "Schmuggler", icon: "package", color: "#34D399" },
   { key: "hacker", label: "Hacker", icon: "laptop", color: "#00E5FF" },
   { key: "lawyer", label: "Anwalt", icon: "briefcase", color: "#FB923C" },
+  ...Array.from({ length: 12 }, (_, index) => ({
+    key: `street-${String(index + 1).padStart(2, "0")}`,
+    label: ["Ace", "Ruby", "Rico", "Nia", "Pops", "Jade", "Eli", "Kai", "Dre", "Lex", "Milo", "Dee"][index],
+    color: ["#D65B50", "#D59B60", "#60A87D", "#AC6572", "#789BB0", "#D5AC53", "#819DAC", "#B47E65", "#859487", "#A5A4A0", "#C29B74", "#728DA6"][index],
+  })),
 ];
 
 export const WIN_THRESHOLD = 70;
 // Fictional street nicknames, shared with the server's bot defaults.
-export const BOT_NAMES = ["Brooklyn Ace", "Harlem Slim", "Queens Rico", "Big Dre", "Uptown Jade", "Bronx Ghost"];
+export const BOT_NAMES = [
+  "Brooklyn Ace", "Harlem Slim", "Queens Rico", "Big Dre", "Uptown Jade", "Bronx Ghost",
+  "Bed-Stuy Boogie", "Coney Cash", "Eastside Eli", "Uptown Nia", "Harlem Honey", "Brooklyn Blue",
+  "Queens Vega", "Lower East Lex", "Bronx Nova", "Red Hook Ray", "Flatbush Frank", "SoHo Sage",
+  "Big Malik", "Lil Rico", "K-Town Kai", "Southside Sam", "Westside Wes", "Bushwick Bea",
+  "Harlem Dee", "Crown Hts Cruz", "LES Lou", "Uptown Milo", "Jamaica Jay", "Bed-Stuy Bree",
+  "Coney Cruz", "Queens Cash",
+];
+
+// Choose a different portrait, with no repeated image on consecutive clicks.
+export function randomAvatarIndex(currentIndex, random = Math.random) {
+  const offset = 1 + Math.min(AVATARS.length - 2, Math.floor(random() * (AVATARS.length - 1)));
+  return (currentIndex + offset) % AVATARS.length;
+}
+
+export function randomBotName(usedNames = [], random = Math.random) {
+  const used = new Set(usedNames.map(name => String(name).trim().toLowerCase()));
+  const available = BOT_NAMES.filter(name => !used.has(name.toLowerCase()));
+  const pool = available.length ? available : BOT_NAMES;
+  return pool[Math.min(pool.length - 1, Math.floor(random() * pool.length))];
+}

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { AVATARS } from "../game/constants";
+import { AVATARS, randomAvatarIndex } from "../game/constants";
 import { Avatar } from "./Avatar";
 import { OnlineTable } from "./OnlineTable";
 import { roomApi, onlineErrorMessage } from "../game/api";
@@ -176,11 +176,13 @@ function CreateJoin({ initialCode, onExit, onSession }) {
 
         <div className="panel rounded-lg p-5 rise-in">
           <div className="flex items-center gap-3 mb-4">
-            <button onClick={() => { setAvatarIdx((i) => (i + 1) % AVATARS.length); sfx.select(); }} data-testid="btn-cycle-avatar" title="Avatar wechseln">
+            <button onClick={() => { const chosen = randomAvatarIndex(avatarIdx); setAvatarIdx(chosen); sfx.select(); }} data-testid="btn-cycle-avatar" title="Zufälliges Spielerbild" aria-label="Zufälliges Spielerbild">
               <Avatar avatar={avatar} size={48} active />
             </button>
-            <input value={name} onChange={(e) => setName(e.target.value)} maxLength={16} placeholder="Dein Straßenname" data-testid="input-online-name" className="flex-1 bg-black/40 border border-white/10 focus:border-amber-400/60 rounded-lg px-3 py-2.5 text-slate-50 placeholder:text-slate-400/40 outline-none font-serif-fancy text-lg" />
+            <input value={name} onChange={(e) => setName(e.target.value)} maxLength={16} placeholder="Dein Straßenname" data-testid="input-online-name" className="flex-1 min-w-0 bg-black/40 border border-white/10 focus:border-amber-400/60 rounded-lg px-3 py-2.5 text-slate-50 placeholder:text-slate-400/40 outline-none font-serif-fancy text-lg" />
           </div>
+
+          <p className="text-slate-300/70 text-xs -mt-2 mb-4">Tippe auf das Gesicht für ein zufälliges Spielerbild. Dein Name bleibt erhalten.</p>
 
           {!invited && (
             <>
