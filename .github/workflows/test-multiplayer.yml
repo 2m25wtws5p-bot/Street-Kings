@@ -41,6 +41,8 @@ jobs:
         run: node frontend/tests/engine-stability.test.mjs
       - name: Test session races, persistence and local flow regression
         run: node frontend/tests/stability.test.mjs
+      - name: Test stable card layout contracts and selection controls
+        run: node frontend/tests/layout.test.mjs
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"

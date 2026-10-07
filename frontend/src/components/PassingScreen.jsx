@@ -40,7 +40,7 @@ export function PassingScreen({ state, onConfirm }) {
         </p>
       </div>
 
-      <div className="flex-1 flex items-center justify-center">
+      <div className="game-hand-section flex-1 flex items-center justify-center">
         <div className="compact-hand flex flex-wrap justify-center gap-2 max-w-4xl">
           {hand.map((card) => (
             <CardView
@@ -55,7 +55,7 @@ export function PassingScreen({ state, onConfirm }) {
         </div>
       </div>
 
-      <div className="flex flex-col items-center gap-3 mt-4">
+      <div className="game-hand-actions flex flex-col items-center">
         <SelectedCards hand={hand} selected={selected} count={passCount} onRemove={toggle} />
         <div className="font-mono-stat text-sm text-amber-300" data-testid="passing-phase-selected-count">
           {selected.length} / {passCount} gewählt
@@ -68,11 +68,7 @@ export function PassingScreen({ state, onConfirm }) {
             setSelected([]);
           }}
           data-testid="btn-confirm-card-pass"
-          className={`rounded-md px-8 py-3.5 font-display text-lg font-bold flex items-center gap-2 transition-all ${
-            done
-              ? "text-black bg-gradient-to-r from-yellow-300 to-amber-400 glow-ring"
-              : "text-slate-400/40 bg-black/30 border border-white/10 cursor-not-allowed"
-          }`}
+          className="game-action-button"
         >
           <Handshake size={18} /> Deal besiegeln
         </button>

@@ -5,7 +5,8 @@ import { CARD_ART } from "../game/cardArt";
 
 export const SUIT_ICON = { RED: Siren, YELLOW: VenetianMask, BLUE: Banknote, GREEN: Package };
 export const SPECIAL_ICON = { fire: Crown, water: Eye, earth: Coins, air: Handshake, pygmy: Gem, wizard: Footprints };
-const SIZES = { xs: "w-11 h-[64px]", sm: "w-16 h-[92px]", md: "w-20 h-[116px]", lg: "w-[104px] h-[148px]" };
+// Width is responsive; one printed-card ratio governs every size and state.
+const SIZES = { xs: "w-11", sm: "w-16", md: "w-20", lg: "w-[104px]" };
 const NUM = { xs: "text-sm", sm: "text-lg", md: "text-2xl", lg: "text-4xl" };
 // Suit identity always wins over a special's badge color (including green 12).
 const INK = { RED: "#a3232c", YELLOW: "#704600", BLUE: "#1655a6", GREEN: "#146543" };

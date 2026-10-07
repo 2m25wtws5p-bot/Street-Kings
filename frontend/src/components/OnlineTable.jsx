@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { CardView, SUIT_ICON } from "./CardView";
+import { CardView } from "./CardView";
+import { LeadSuitIndicator } from "./LeadSuitIndicator";
 import { Avatar } from "./Avatar";
 import { PlayerIdentity } from "./PlayerIdentity";
 import { LastTrickButton } from "./LastTrickButton";
@@ -12,7 +13,6 @@ import { GameHeaderButtons } from "./GameHeaderButtons";
 import { RulesDialog } from "./RulesDialog";
 import { StatsDialog } from "./StatsDialog";
 import { legalCardIds, leadSuit, dealCount } from "../game/engine";
-import { SUITS } from "../game/constants";
 import { Trophy, Check, Hourglass, LogOut, Copy, Eye, WifiOff, Bot } from "lucide-react";
 import { sfx } from "../game/sound";
 
@@ -107,15 +107,11 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
   return (
     <Shell {...shellProps}>
       <div className="game-table min-h-screen coven-bg flex flex-col pt-10">
-        <div className="flex items-center justify-between px-4 pt-2 pb-2">
+        <div className="game-table-status flex items-center justify-between px-4 pt-2 pb-2">
           <div className="font-mono-stat text-xs text-slate-300/70">
             Runde {(view.roundIndex ?? 0) + 1} · {phase === "passing" ? "Karten werden getauscht" : `Stich ${view.trickNumber}/${dealCount(n)}`}
           </div>
-          {lead && (
-            <div className="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-display" style={{ background: `${SUITS[lead].primary}22`, border: `1px solid ${SUITS[lead].primary}66`, color: SUITS[lead].accent }} data-testid="active-lead-suit-indicator">
-              {React.createElement(SUIT_ICON[lead], { size: 14 })} Angespielt: {SUITS[lead].people}
-            </div>
-          )}
+          <LeadSuitIndicator suit={lead} />
         </div>
 
         {/* roster */}
@@ -161,13 +157,13 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
         {spectator ? (
           <SpectatorBar phase={phase} currentSeat={currentSeat} lastWinner={lastWinner} nameOf={nameOf} passed={view.passedSeats} n={n} />
         ) : phase === "trickEnd" ? (
-          <div className="px-4 pb-6 text-center rise-in">
-            <div className="inline-flex items-center gap-2 font-display text-xl text-emerald-300 mb-3" data-testid="trick-winner-banner">
-              <Trophy size={20} /> {nameOf(lastWinner)} kassiert den Stich!
-            </div>
-            <div>
+          <div className="trick-end-section px-4 pb-6 text-center rise-in">
+            <div className="trick-action-panel">
+              <div className="inline-flex items-center gap-2 font-display text-xl text-emerald-300" data-testid="trick-winner-banner">
+                <Trophy size={20} /> {nameOf(lastWinner)} kassiert den Stich!
+              </div>
               {lastWinner === yourSeat || view.isHost ? (
-                <button disabled={!trickReady || actions.busy} onClick={actions.continueTrick} data-testid="btn-continue-trick" className="rounded-md px-8 py-3 font-display font-bold text-black bg-gradient-to-r from-yellow-300 to-amber-400 glow-ring disabled:opacity-60">
+                <button disabled={!trickReady || actions.busy} onClick={actions.continueTrick} data-testid="btn-continue-trick" className="game-action-button">
                   {trickReady ? "Einsammeln & weiter" : "Stich ansehen…"}
                 </button>
               ) : (
@@ -180,8 +176,8 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
           iPassed ? (
             <Waiting yourHand={yourHand} text={`Deal besiegelt! Warten auf die anderen Crews… (${view.passedSeats.filter(Boolean).length}/${n})`} />
           ) : (
-            <div className="px-2 pb-4" data-testid="passing-hand-container">
-              <div className="text-center mb-2 font-serif-fancy text-slate-300/80" data-testid="passing-phase-instructions">
+            <div className="game-hand-section px-2 pb-4" data-testid="passing-hand-container">
+              <div className="game-hand-instructions text-center font-serif-fancy text-slate-300/80" data-testid="passing-phase-instructions">
                 Wähle <b className="text-amber-300">{view.passCount}</b> Karte{view.passCount > 1 ? "n" : ""} zum Weitergeben an{" "}
                 <span className="text-amber-200 font-semibold font-display">{nameOf(view.passTarget)}</span>
                 <span className="font-mono-stat text-amber-300 text-sm ml-2" data-testid="passing-phase-selected-count">{selected.length}/{view.passCount}</span>
@@ -191,26 +187,25 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
                   <CardView key={card.id} card={card} size="md" selected={selected.includes(card.id)} onClick={() => toggleSelect(card.id)} testId={`pass-card-item-${card.id}`} />
                 ))}
               </div>
-              <div className="text-center mt-3">
+              <div className="game-hand-actions text-center">
                 <SelectedCards hand={yourHand} selected={selected} count={view.passCount} onRemove={toggleSelect} />
-                <button disabled={actions.busy || selected.length !== view.passCount} onClick={() => { sfx.playCard(); actions.pass(selected); }} data-testid="btn-confirm-card-pass" className={`rounded-md px-8 py-3 font-display font-bold transition-all ${selected.length === view.passCount ? "text-black bg-gradient-to-r from-yellow-300 to-amber-400 glow-ring" : "text-slate-400/40 bg-black/30 border border-white/10 cursor-not-allowed"}`}>
+                <button disabled={actions.busy || selected.length !== view.passCount} onClick={() => { sfx.playCard(); actions.pass(selected); }} data-testid="btn-confirm-card-pass" className="game-action-button">
                   Deal besiegeln
                 </button>
               </div>
             </div>
           )
         ) : yourTurn ? (
-          <div className="px-2 pb-4" data-testid="active-player-hand-container">
-            <div className="text-center mb-2 font-serif-fancy text-slate-300/80">
+          <div className="game-hand-section px-2 pb-4" data-testid="active-player-hand-container">
+            <div className="game-hand-instructions text-center font-serif-fancy text-slate-300/80">
               <span className="text-amber-200 font-semibold font-display">Dein Zug</span>, spiel deine Karte
-              {armed && <span className="text-amber-400/80 text-sm"> — nochmal tippen, um sie zu legen</span>}
+              <span className={`game-play-hint text-amber-400/80 text-sm ${armed ? "" : "invisible"}`} aria-hidden={!armed} data-testid="game-play-confirmation-hint">Nochmal tippen, um sie zu legen</span>
             </div>
             <div className="compact-hand flex flex-wrap justify-center gap-1.5 sm:gap-2 max-w-5xl mx-auto">
               {yourHand.map((card) => (
                 <CardView key={card.id} card={card} size="md" selected={armed === card.id} dim={!legal.has(card.id)} onClick={() => clickPlay(card)} testId={`hand-card-item-${card.id}`} />
               ))}
             </div>
-            {armed && <SelectedCards hand={yourHand} selected={[armed]} count={1} onRemove={() => setArmed(null)} />}
           </div>
         ) : (
           <Waiting text={`Warten, bis ${nameOf(currentSeat)} spielt…`} yourHand={yourHand} />
@@ -273,8 +268,8 @@ function Shell({ view, actions, onLeave, sound, setSound, setRulesOpen, setStats
           <button onClick={() => { if (window.confirm("Diesen Raum verlassen?")) onLeave(); }} data-testid="btn-leave-room" className="grid place-items-center w-9 h-9 rounded-lg bg-black/40 border border-white/10 text-amber-200 hover:border-amber-400/60 transition-colors">
             <LogOut size={16} />
           </button>
-          <button onClick={copyLink} data-testid="btn-copy-room-link" className="font-mono-stat text-xs gold-text flex items-center gap-1.5 rounded-lg px-2 py-1.5 bg-black/40 border border-white/10 hover:border-amber-400/60 transition-colors">
-            <Copy size={13} /> {view.code}
+          <button onClick={copyLink} data-testid="btn-copy-room-link" aria-label={`Einladungslink für Raum ${view.code} kopieren`} className="room-code-button flex items-center gap-1.5 rounded-lg px-2 py-1.5 bg-black/40 border border-white/10 hover:border-amber-400/60 transition-colors">
+            <Copy size={13} aria-hidden="true" /> <span className="room-code-text">{view.code}</span>
           </button>
           {specCount > 0 && (
             <span className="hidden sm:inline-flex items-center gap-1 text-[11px] text-slate-400/70 font-mono-stat" data-testid="spectator-count">

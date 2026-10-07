@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
-import { CardView, SUIT_ICON } from "./CardView";
+import { CardView } from "./CardView";
+import { LeadSuitIndicator } from "./LeadSuitIndicator";
 import { Avatar } from "./Avatar";
 import { PlayerIdentity } from "./PlayerIdentity";
 import { TrickCards } from "./TrickCards";
-import { SelectedCards } from "./SelectedCards";
 import { legalCardIds, leadSuit, dealCount } from "../game/engine";
-import { SUITS } from "../game/constants";
 import { Trophy } from "lucide-react";
 import { sfx } from "../game/sound";
 
@@ -61,19 +60,11 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) 
   return (
     <div className="game-table min-h-screen coven-bg flex flex-col">
       {/* header row */}
-      <div className="flex items-center justify-between px-4 pt-3 pb-2">
+      <div className="game-table-status flex items-center justify-between px-4 pt-3 pb-2">
         <div className="font-mono-stat text-xs text-slate-300/70">
           Runde {state.roundIndex + 1} · Stich {trickNumber}/{totalTricks}
         </div>
-          {lead && (
-          <div
-            className="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-display"
-            style={{ background: `${SUITS[lead].primary}22`, border: `1px solid ${SUITS[lead].primary}66`, color: SUITS[lead].accent }}
-            data-testid="active-lead-suit-indicator"
-          >
-            {React.createElement(SUIT_ICON[lead], { size: 14 })} Angespielt: {SUITS[lead].people}
-          </div>
-        )}
+        <LeadSuitIndicator suit={lead} />
       </div>
 
       {/* opponents roster */}
@@ -114,16 +105,16 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) 
 
       {/* trick end banner OR active hand OR bot thinking */}
       {isTrickEnd ? (
-        <div className="px-4 pb-6 text-center rise-in">
-          <div className="inline-flex items-center gap-2 font-display text-xl text-emerald-300 mb-3" data-testid="trick-winner-banner">
-            <Trophy size={20} /> {players[lastWinner].name} kassiert den Stich!
-          </div>
-          <div>
+        <div className="trick-end-section px-4 pb-6 text-center rise-in">
+          <div className="trick-action-panel">
+            <div className="inline-flex items-center gap-2 font-display text-xl text-emerald-300" data-testid="trick-winner-banner">
+              <Trophy size={20} /> {players[lastWinner].name} kassiert den Stich!
+            </div>
             <button
               onClick={handleContinue}
               disabled={sweeping || !ready}
               data-testid="btn-continue-trick"
-              className="rounded-md px-8 py-3 font-display font-bold text-black bg-gradient-to-r from-yellow-300 to-amber-400 glow-ring disabled:opacity-60"
+              className="game-action-button"
             >
               {ready ? "Einsammeln & weiter" : "Stich ansehen…"}
             </button>
@@ -143,10 +134,10 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) 
           </div>
         </div>
       ) : (
-        <div className="px-2 pb-4" data-testid="active-player-hand-container">
-          <div className="text-center mb-2 font-serif-fancy text-slate-300/80">
+        <div className="game-hand-section px-2 pb-4" data-testid="active-player-hand-container">
+          <div className="game-hand-instructions text-center font-serif-fancy text-slate-300/80">
             <span className="text-amber-200 font-semibold font-display">{active.name}</span>, spiel deine Karte
-            {armed && <span className="text-amber-400/80 text-sm"> — nochmal tippen, um sie auf den Tisch zu legen</span>}
+            <span className={`game-play-hint text-amber-400/80 text-sm ${armed ? "" : "invisible"}`} aria-hidden={!armed} data-testid="game-play-confirmation-hint">Nochmal tippen, um sie zu legen</span>
           </div>
           <div className="compact-hand flex flex-wrap justify-center gap-1.5 sm:gap-2 max-w-5xl mx-auto">
             {hand.map((card) => (
@@ -161,7 +152,6 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false }) 
               />
             ))}
           </div>
-          {armed && <SelectedCards hand={hand} selected={[armed]} count={1} onRemove={() => setArmed(null)} />}
         </div>
       )}
     </div>
