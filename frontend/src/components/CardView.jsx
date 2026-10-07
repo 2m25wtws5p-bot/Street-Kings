@@ -1,6 +1,7 @@
 import React from "react";
 import { Siren, Banknote, Package, VenetianMask, Crown, Handshake, Coins, Eye, Gem, Footprints, TriangleAlert, ShieldCheck } from "lucide-react";
-import { SUITS, SPECIALS } from "../game/constants";
+import { useI18n } from "../i18n/I18nProvider";
+import { useGameLabels } from "../i18n/gameLabels";
 import { CARD_ART } from "../game/cardArt";
 
 export const SUIT_ICON = { RED: Siren, YELLOW: VenetianMask, BLUE: Banknote, GREEN: Package };
@@ -16,13 +17,16 @@ export const CARD_IMPACT = { fire: "risk", water: "risk", pygmy: "risk", earth: 
 const HAND_EFFECT = { fire: "×2", water: "+5", pygmy: "+10", earth: "−5", air: "Ø", wizard: "0" };
 
 function CardBack({ sizeCls, className }) {
-  return <div className={`${sizeCls} street-card-back shrink-0 rounded-lg relative overflow-hidden ${className}`} aria-label="Verdeckte Karte">
+  const { t } = useI18n();
+  return <div className={`${sizeCls} street-card-back shrink-0 rounded-lg relative overflow-hidden ${className}`} aria-label={t('cards.faceDown')}>
     <div className="absolute inset-[4px] rounded-md border border-[#e8c98c]/60" />
     <div className="absolute inset-0 grid place-items-center"><span className="street-wordmark text-[#ffe5ac] text-lg -rotate-12">SK</span></div>
   </div>;
 }
 
 export function CardView({ card, size = "md", faceDown = false, selected = false, dim = false, onClick, className = "", testId }) {
+  const { t } = useI18n();
+  const { suits: SUITS, specials: SPECIALS } = useGameLabels();
   const sizeCls = SIZES[size] || SIZES.md;
   if (faceDown || !card) return <CardBack sizeCls={sizeCls} className={className} />;
   const suit = SUITS[card.suit];
@@ -35,7 +39,7 @@ export function CardView({ card, size = "md", faceDown = false, selected = false
   const accent = suit?.primary || "#a7b3c5";
   const impact = CARD_IMPACT[card.special];
   const ImpactIcon = impact === "risk" ? TriangleAlert : impact === "help" ? ShieldCheck : SpecialIcon;
-  const effect = impact === "risk" ? "Bringt Hitze" : impact === "help" ? "Hilft gegen Hitze" : "Neutral";
+  const effect = t(impact === "risk" ? 'cards.effectRisk' : impact === "help" ? 'cards.effectHelp' : 'cards.effectNeutral');
   const numeral = isWizard ? "0" : card.value;
   const artwork = CARD_ART[card.special] || CARD_ART[card.suit];
   const Comp = onClick ? "button" : "div";
@@ -44,8 +48,8 @@ export function CardView({ card, size = "md", faceDown = false, selected = false
     data-special={special && !isWizard ? card.special : undefined}
     data-selected={selected ? "true" : undefined} aria-pressed={onClick ? selected : undefined}
     data-received-from={card.receivedFrom || undefined}
-    aria-label={`${suit?.people || "Laufjunge"} ${numeral}${special ? ` · ${special.label}: ${special.short} · ${effect}` : ""}${card.receivedFrom ? ` · von ${card.receivedFrom}` : ""}`}
-    title={card.receivedFrom ? `Erhalten von ${card.receivedFrom}` : undefined}
+    aria-label={`${suit?.people || t('cards.wizard.label')} ${numeral}${special ? ` · ${special.label}: ${special.short} · ${effect}` : ""}${card.receivedFrom ? ` · ${t('cards.from', { name: card.receivedFrom })}` : ""}`}
+    title={card.receivedFrom ? t('cards.receivedFrom', { name: card.receivedFrom }) : undefined}
     className={`${sizeCls} street-card relative shrink-0 rounded-lg overflow-hidden text-left transition-transform duration-200 ${selected ? "-translate-y-4 z-20" : ""} ${dim ? "opacity-40 saturate-50" : ""} ${onClick ? "cursor-pointer hover:-translate-y-1" : ""} ${className}`}
     style={{ "--suit-ink": ink, "--suit-paper": paper, "--suit-accent": accent, backgroundColor: paper,
       border: `3px solid ${accent}`, boxShadow: selected ? `0 0 0 2px #fff8df, 0 0 12px ${accent}66, 0 10px 20px #0008` : special ? `0 7px 15px #0007, 0 0 0 1px #10191d, 0 0 7px ${accent}33` : "0 6px 12px #0006, 0 0 0 1px #10191d" }}>
@@ -64,7 +68,7 @@ export function CardView({ card, size = "md", faceDown = false, selected = false
     {special && size !== "xs" && <div className="card-special-banner">
       <div className="font-display card-special-name">{special.label}</div>
       <div className="card-special-rule">{special.short}</div>
-      {!isWizard && <div className="card-impact-label">{impact === "risk" ? "ACHTUNG" : "SCHUTZ"}</div>}
+      {!isWizard && <div className="card-impact-label">{t(impact === "risk" ? 'cards.danger' : 'cards.protection')}</div>}
     </div>}
   </Comp>;
 }

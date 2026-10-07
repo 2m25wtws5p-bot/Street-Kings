@@ -683,6 +683,16 @@ body {
 
 /* Comic street edition: fixed table, inked paper and small graffiti accents. */
 html, body, #root { width:100%; height:100%; min-height:0; overflow:hidden; overscroll-behavior:none; }
+
+/* Personal language choices use the existing ink-and-paper street styling. */
+.language-selector { display:inline-flex; align-items:center; gap:8px; padding:7px 10px; max-width:100%; color:#f5dfb2; border:1px solid #b89155; border-radius:4px 8px 4px 6px; background:#292c24; font:600 14px/1.3 "Barlow Condensed",sans-serif; }
+.language-selector svg { flex-shrink:0; }
+.language-selector select { min-width:0; padding:3px 7px; border:1px solid #9b7855; border-radius:3px; background:#ead7ad; color:#2f3026; font:inherit; cursor:pointer; }
+.language-selector select:focus-visible { outline:2px solid #f4d180; outline-offset:2px; }
+.language-selector-compact { padding:2px 4px; margin-top:4px; font-size:12px; gap:4px; }
+.language-selector-compact svg { width:12px; height:12px; }
+.home-language-choice { display:flex; flex-direction:column; align-items:center; gap:6px; margin:0 0 24px; }
+.home-language-choice p { max-width:380px; font-size:12px; color:#becabb; text-align:center; line-height:1.4; }
 body { position:fixed; inset:0; }
 .App > .min-h-screen, .App > .min-h-screen > .min-h-screen { height:100%; min-height:0; }
 .App .min-h-screen { min-height:0; }

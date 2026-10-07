@@ -24,8 +24,10 @@ import { useTurnReminder } from "../game/useTurnReminder";
 import { useHandLayout } from "../game/useHandLayout";
 import { Trophy, Check, LogOut, Copy, Link, Eye, WifiOff, Bot } from "lucide-react";
 import { sfx } from "../game/sound";
+import { useI18n } from "../i18n/I18nProvider";
 
 export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
+  const { t } = useI18n();
   const [rulesOpen, setRulesOpen] = useState(false);
   const [statsOpen, setStatsOpen] = useState(false);
   const [selected, setSelected] = useState([]);
@@ -81,9 +83,9 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
           rematchDisabled={!view.isHost}
           onNewGame={onLeave}
           onStats={() => setStatsOpen(true)}
-          rematchLabel="Revanche"
-          newGameLabel="Hauptmenü"
-          note={view.isHost ? "Revanche startet sofort eine neue Partie mit derselben Crew in diesem Raum." : spectator ? "Warten, ob der Host eine Revanche startet…" : "Nur der Host kann die Revanche starten – bleib dran!"}
+          rematchLabel={t("online.rematch")}
+          newGameLabel={t("online.menu")}
+          note={t(view.isHost ? "online.rematchHost" : spectator ? "online.rematchSpectator" : "online.rematchPlayer")}
         />
       </Shell>
     );
@@ -120,7 +122,7 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
       <div className="game-table min-h-screen coven-bg flex flex-col pt-10" data-phase={phase}>
         <div className="game-table-status flex items-center justify-between px-4 pt-2 pb-2">
           <div className="font-mono-stat text-xs text-slate-300/70">
-            Runde {(view.roundIndex ?? 0) + 1} · {phase === "passing" ? "Karten werden getauscht" : `Stich ${view.trickNumber}/${dealCount(n)}`}
+            {t(phase === "passing" ? "online.roundPassing" : "online.roundTrick", { round: (view.roundIndex ?? 0) + 1, trick: view.trickNumber, total: dealCount(n) })}
           </div>
           <LeadSuitIndicator suit={lead} />
           {phase === "passing" && <PassingProgress players={players} passedSeats={view.passedSeats} yourSeat={yourSeat} />}
@@ -140,15 +142,15 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
                 <div className="crew-chat-identity">
                   <PlayerIdentity name={p.name} heat={scores[i]} cards={handCounts[i]}>
                     {i === hostSeat(view) && <HostCrown />}
-                    {i === yourSeat && <span className="text-amber-300/80 text-[9px]">(du)</span>}
+                    {i === yourSeat && <span className="text-amber-300/80 text-[9px]">{t("online.you")}</span>}
                     {passed && <Check size={11} className="text-emerald-400" />}
-                    {offline && <WifiOff size={11} className="text-red-400" data-testid={`player-offline-${i}`} />}
-                    {p.reviewingLastTrick && <Eye size={13} className="text-amber-200" aria-label="Sieht letzten Stich an" />}
+                    {offline && <WifiOff size={11} className="text-red-400" aria-label={t("online.offline")} data-testid={`player-offline-${i}`} />}
+                    {p.reviewingLastTrick && <Eye size={13} className="text-amber-200" aria-label={t("online.reviewing")} />}
                   </PlayerIdentity>
                   <ChatBubble messages={view.chatMessages} seat={i} />
                 </div>
                 {offline && view.isHost && i !== yourSeat && (
-                  <button disabled={actions.busy} onClick={() => { if (window.confirm(`${p.name} durch einen KI-Gangster ersetzen?`)) actions.replaceWithBot(i); }} data-testid={`btn-replace-bot-${i}`} title="Durch KI ersetzen" className="ml-1 grid place-items-center w-7 h-7 rounded-md bg-red-950/60 border border-red-500/60 text-red-200 hover:bg-red-900/70 transition-colors disabled:opacity-40">
+                  <button disabled={actions.busy} onClick={() => { if (window.confirm(t("online.replaceConfirm", { name: p.name }))) actions.replaceWithBot(i); }} data-testid={`btn-replace-bot-${i}`} title={t("online.replaceBot")} aria-label={t("online.replaceBot")} className="ml-1 grid place-items-center w-7 h-7 rounded-md bg-red-950/60 border border-red-500/60 text-red-200 hover:bg-red-900/70 transition-colors disabled:opacity-40">
                     <Bot size={14} />
                   </button>
                 )}
@@ -162,7 +164,7 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
           <div className="relative w-full max-w-2xl min-h-[200px] rounded-[40%] grid place-items-center" style={{ background: "radial-gradient(ellipse at center, rgba(239,68,68,0.10), rgba(13,15,19,0) 70%)" }} data-testid="central-trick-cauldron">
             {trick.length === 0 && phase !== "trickEnd" && (
               <p className="font-serif-fancy text-slate-400/50 italic text-lg">
-                {phase === "passing" ? "Die Crews verhandeln im Hinterzimmer…" : "Die Straße wartet auf den ersten Zug…"}
+                {t(phase === "passing" ? "online.passingEmpty" : "online.playingEmpty")}
               </p>
             )}
           <TrickCards trick={trick} players={players} n={n} trickKey={`${view.code}-${view.roundIndex}-${view.trickNumber}`} winner={lastWinner} complete={phase === "trickEnd"} />
@@ -177,33 +179,32 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
             <div className="turn-action-slot">
               {phase === "passing" ? (
                 <div className="game-hand-instructions text-center font-serif-fancy text-slate-300/80" data-testid="passing-phase-instructions">
-                  {iPassed ? <span data-testid="waiting-indicator">Deal besiegelt! Warten auf die anderen Crews… ({(view.passedSeats || []).filter(Boolean).length}/{n})</span> : <>
-                  Wähle <b className="text-amber-300">{view.passCount}</b> Karte{view.passCount > 1 ? "n" : ""} zum Weitergeben an{" "}
-                  <span className="text-amber-200 font-semibold font-display">{nameOf(view.passTarget)}</span>
+                  {iPassed ? <span data-testid="waiting-indicator">{t("online.passedWait", { count: (view.passedSeats || []).filter(Boolean).length, total: n })}</span> : <>
+                  {t("online.choosePass", { count: view.passCount, name: nameOf(view.passTarget) })}
                   <span className="font-mono-stat text-amber-300 text-sm ml-2" data-testid="passing-phase-selected-count">{selected.length}/{view.passCount}</span>
                   </>}
                 </div>
               ) : (
                 <TurnStatus
                   state={phase === "trickEnd" ? "complete" : yourTurn ? "active" : "waiting"}
-                  title={phase === "trickEnd" ? "STICH BEENDET" : yourTurn ? "DU BIST DRAN" : "DU WARTEST"}
+                  title={t(phase === "trickEnd" ? "online.trickComplete" : yourTurn ? "online.yourTurn" : "online.waiting")}
                   subtitle={phase === "trickEnd" ? (
-                    <span className="inline-flex items-center gap-2 text-emerald-300" data-testid="trick-winner-banner"><Trophy size={18} /> {nameOf(lastWinner)} kassiert den Stich!</span>
-                  ) : yourTurn ? "Karte wählen · nochmal tippen zum Spielen" : (
-                    <span data-testid="waiting-indicator">{nameOf(currentSeat)} ist am Zug.</span>
+                    <span className="inline-flex items-center gap-2 text-emerald-300" data-testid="trick-winner-banner"><Trophy size={18} /> {t("online.trickWinner", { name: nameOf(lastWinner) })}</span>
+                  ) : yourTurn ? t("online.playHint") : (
+                    <span data-testid="waiting-indicator">{t("online.playerTurn", { name: nameOf(currentSeat) })}</span>
                   )}
                   reminderCount={reminderCount}
                   confirming={!!armed}
                 >
-                  <span className={`game-play-hint text-amber-400/80 text-sm ${armed ? "" : "invisible"}`} aria-hidden={!armed} data-testid="game-play-confirmation-hint">Nochmal tippen, um sie zu legen</span>
+                  <span className={`game-play-hint text-amber-400/80 text-sm ${armed ? "" : "invisible"}`} aria-hidden={!armed} data-testid="game-play-confirmation-hint">{t("online.confirmHint")}</span>
                   {phase === "trickEnd" && (
                     <div className="trick-action-panel">
                       {lastWinner === yourSeat || view.isHost ? (
                         <button disabled={!trickReady || actions.busy} onClick={actions.continueTrick} data-testid="btn-continue-trick" className="game-action-button">
-                          {trickReady ? "Einsammeln & weiter" : "Stich ansehen…"}
+                          {t(trickReady ? "online.collect" : "online.viewTrick")}
                         </button>
                       ) : (
-                        <p className="font-serif-fancy text-slate-300/70 italic">Warten, bis {nameOf(lastWinner)} den Stich einsammelt…</p>
+                        <p className="font-serif-fancy text-slate-300/70 italic">{t("online.waitCollect", { name: nameOf(lastWinner) })}</p>
                       )}
                     </div>
                   )}
@@ -227,7 +228,7 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
               <div className={`game-hand-actions text-center ${iPassed ? "invisible" : ""}`} aria-hidden={!!iPassed}>
                 <SelectedCards hand={yourHand} selected={selected} count={view.passCount} onRemove={toggleSelect} />
                 <button disabled={iPassed || actions.busy || selected.length !== view.passCount} onClick={() => { sfx.playCard(); actions.pass(selected); }} data-testid="btn-confirm-card-pass" className="game-action-button">
-                  Deal besiegeln
+                  {t("online.confirmPass")}
                 </button>
               </div>
             )}
@@ -239,14 +240,15 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
 }
 
 function SpectatorBar({ phase, currentSeat, lastWinner, nameOf, passed = [], n }) {
+  const { t } = useI18n();
   let text;
-  if (phase === "passing") text = `Die Crews tauschen Karten… (${passed.filter(Boolean).length}/${n})`;
-  else if (phase === "trickEnd") text = `${nameOf(lastWinner)} kassiert den Stich!`;
-  else text = `${nameOf(currentSeat)} ist am Zug…`;
+  if (phase === "passing") text = t("online.spectatorPassing", { count: passed.filter(Boolean).length, total: n });
+  else if (phase === "trickEnd") text = t("online.trickWinner", { name: nameOf(lastWinner) });
+  else text = t("online.spectatorTurn", { name: nameOf(currentSeat) });
   return (
     <div className="px-4 pb-10 text-center rise-in" data-testid="spectator-bar">
       <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 bg-black/40 border border-amber-400/30 font-display text-xs uppercase tracking-wider text-amber-300 mb-3">
-        <Eye size={14} /> Du schaust zu
+        <Eye size={14} /> {t("online.spectating")}
       </div>
       <div className="font-serif-fancy text-slate-300/70 italic text-lg" data-testid="spectator-status-text">{text}</div>
     </div>
@@ -254,6 +256,7 @@ function SpectatorBar({ phase, currentSeat, lastWinner, nameOf, passed = [], n }
 }
 
 function Shell({ view, actions, onLeave, sound, setSound, setRulesOpen, setStatsOpen, rulesOpen, statsOpen, children }) {
+  const { t } = useI18n();
   const [copyMessage, setCopyMessage] = useState("");
   useEffect(() => {
     if (!copyMessage) return;
@@ -262,7 +265,7 @@ function Shell({ view, actions, onLeave, sound, setSound, setRulesOpen, setStats
   }, [copyMessage]);
   const copyRoom = async (link = false) => {
     const copied = await copyText(link ? invitationLink(view.code) : view.code);
-    setCopyMessage(copied ? (link ? "Einladungslink kopiert!" : "Raum-Code kopiert!") : `Kopieren ist gesperrt. Dein Raum-Code: ${view.code}`);
+    setCopyMessage(copied ? (link ? "online.copiedLink" : "online.copiedCode") : "online.copyBlocked");
     if (copied) sfx.select();
   };
   const specCount = view.spectators?.length || 0;
@@ -270,13 +273,13 @@ function Shell({ view, actions, onLeave, sound, setSound, setRulesOpen, setStats
     <div className="grain min-h-screen">
       <div className="online-room-header fixed top-0 inset-x-0 z-40 flex items-center justify-between px-4 py-2 bg-gradient-to-b from-[#0d0f13]/98 to-transparent">
         <div className="flex items-center gap-2">
-          <button onClick={() => { if (window.confirm("Diesen Raum verlassen?")) onLeave(); }} data-testid="btn-leave-room" className="grid place-items-center w-9 h-9 rounded-lg bg-black/40 border border-white/10 text-amber-200 hover:border-amber-400/60 transition-colors">
+          <button onClick={() => { if (window.confirm(t("online.leaveConfirm"))) onLeave(); }} data-testid="btn-leave-room" aria-label={t("online.leave")} title={t("online.leave")} className="grid place-items-center w-9 h-9 rounded-lg bg-black/40 border border-white/10 text-amber-200 hover:border-amber-400/60 transition-colors">
             <LogOut size={16} />
           </button>
-          <button onClick={() => copyRoom()} data-testid="btn-copy-room-code" aria-label={`Raum-Code ${view.code} kopieren`} className="room-code-button flex items-center gap-1.5 rounded-lg px-2 py-1.5 bg-black/40 border border-white/10 hover:border-amber-400/60 transition-colors">
+          <button onClick={() => copyRoom()} data-testid="btn-copy-room-code" aria-label={t("online.copyCode", { code: view.code })} className="room-code-button flex items-center gap-1.5 rounded-lg px-2 py-1.5 bg-black/40 border border-white/10 hover:border-amber-400/60 transition-colors">
             <Copy size={13} aria-hidden="true" /> <span className="room-code-text">{view.code}</span>
           </button>
-          <button type="button" onClick={() => copyRoom(true)} data-testid="btn-copy-room-link" aria-label={`Einladungslink für Raum ${view.code} kopieren`} title="Einladungslink kopieren" className="room-link-icon-button"><Link size={14} aria-hidden="true" /></button>
+          <button type="button" onClick={() => copyRoom(true)} data-testid="btn-copy-room-link" aria-label={t("online.copyLinkRoom", { code: view.code })} title={t("online.copyLink")} className="room-link-icon-button"><Link size={14} aria-hidden="true" /></button>
           <ChatPanel view={view} actions={actions} inline />
           {specCount > 0 && (
             <span className="hidden sm:inline-flex items-center gap-1 text-[11px] text-slate-400/70 font-mono-stat" data-testid="spectator-count">
@@ -287,10 +290,10 @@ function Shell({ view, actions, onLeave, sound, setSound, setRulesOpen, setStats
         <GameHeaderButtons sound={sound} setSound={setSound} onRules={() => setRulesOpen(true)} onStats={() => setStatsOpen(true)} />
       </div>
       {children}
-      {copyMessage && <button type="button" role="status" onClick={() => setCopyMessage("")} data-testid="room-copy-status" className="fixed bottom-3 inset-x-3 z-50 mx-auto max-w-md panel rounded-lg p-3 text-sm text-amber-200">{copyMessage}</button>}
+      {copyMessage && <button type="button" role="status" onClick={() => setCopyMessage("")} data-testid="room-copy-status" className="fixed bottom-3 inset-x-3 z-50 mx-auto max-w-md panel rounded-lg p-3 text-sm text-amber-200">{t(copyMessage, { code: view.code })}</button>}
       <LastTrickButton trick={view.lastTrick} players={view.players} winner={view.lastWinner} onReviewChange={view.isSpectator ? undefined : actions.reviewLastTrick} />
       {!view.isSpectator && <ExchangeHistoryButton exchange={view.yourExchange} phase={view.phase} trickNumber={view.trickNumber} scopeKey={`${view.code}-${view.roundIndex}-${view.yourSeat}`} />}
-      {view.players.some((p) => p.reviewingLastTrick && p.seat !== view.yourSeat) && <div className="trick-review-notice" role="status" data-testid="trick-review-notice"><Eye size={12} className="inline mr-1" />{view.players.filter((p) => p.reviewingLastTrick && p.seat !== view.yourSeat).map((p) => p.name).join(", ")} sieht letzten Stich an</div>}
+      {view.players.some((p) => p.reviewingLastTrick && p.seat !== view.yourSeat) && <div className="trick-review-notice" role="status" data-testid="trick-review-notice"><Eye size={12} className="inline mr-1" />{t("online.reviewNotice", { count: view.players.filter((p) => p.reviewingLastTrick && p.seat !== view.yourSeat).length, names: view.players.filter((p) => p.reviewingLastTrick && p.seat !== view.yourSeat).map((p) => p.name).join(", ") })}</div>}
       <RulesDialog open={rulesOpen} onOpenChange={setRulesOpen} />
       <StatsDialog open={statsOpen} onOpenChange={setStatsOpen} />
     </div>

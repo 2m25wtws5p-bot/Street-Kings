@@ -31,8 +31,13 @@ jobs:
       TRICK_HOLD_SECONDS: "0"
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
       - name: Test street sound cues and mute controls
         run: node frontend/scripts/test-street-sounds.cjs
+      - name: Test complete language catalogs and personal language preferences
+        run: node --test frontend/tests/i18n.test.mjs
       - name: Test turn reminders and inactive-tab timing
         run: node frontend/tests/turn-reminder.test.mjs
       - name: Test random street portraits and nicknames

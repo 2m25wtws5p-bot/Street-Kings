@@ -6,7 +6,16 @@ const source = async path => readFile(new URL(`../src/${path}`, import.meta.url)
 const moduleUrl = text => `data:text/javascript;base64,${Buffer.from(text).toString("base64")}`;
 const chat = await import(moduleUrl(await source("game/chat.js")));
 const clipboard = await import(moduleUrl(await source("game/clipboard.js")));
-const api = await import(moduleUrl((await source("game/api.js")).replace('import axios from "axios";', 'const axios={create:()=>({interceptors:{request:{use(){}}}})};')));
+const onlineMessagesUrl = moduleUrl(await source("i18n/messages/online.js"));
+const { de, en } = await import(onlineMessagesUrl);
+const translator = language => (key, params = {}) => {
+  const entry = (language === "en" ? en : de)[key];
+  const text = typeof entry === "object" ? entry[params.count === 1 ? "one" : "other"] : entry;
+  return (text || key).replace(/\{(\w+)\}/g, (_, name) => String(params[name] ?? ""));
+};
+const api = await import(moduleUrl((await source("game/api.js"))
+  .replace('from "../i18n/messages/online"', `from "${onlineMessagesUrl}"`)
+  .replace('import axios from "axios";', 'const axios={create:()=>({interceptors:{request:{use(){}}}})};')));
 
 test("chat limits use Unicode characters and keep complete emoji", () => {
   assert.equal(chat.CHAT_EMOJIS.length, 8);
@@ -88,9 +97,12 @@ class HookHost {
   unmount() { this.slots.forEach(slot => slot?.cleanup?.()); }
 }
 const hooks = moduleUrl('export const useState=(...a)=>globalThis.__chatHooks.useState(...a);export const useRef=(...a)=>globalThis.__chatHooks.useRef(...a);export const useCallback=(...a)=>globalThis.__chatHooks.useCallback(...a);export const useEffect=(...a)=>globalThis.__chatHooks.useEffect(...a);');
-const fakeApi = moduleUrl('export const roomApi=new Proxy({}, {get:(_,name)=>(...a)=>globalThis.__chatApi[name](...a)});export const onlineErrorMessage=e=>e?.response?.data?.detail || e.message;');
+const fakeApi = moduleUrl('export const roomApi=new Proxy({}, {get:(_,name)=>(...a)=>globalThis.__chatApi[name](...a)});export const onlineErrorMessage=(e,t)=>e?.translationKey ? t(e.translationKey) : e?.response?.data?.detail || e.message;');
+const fakeI18n = moduleUrl('export const useI18n=()=>({t:globalThis.__chatT});');
+globalThis.__chatT = translator("de");
 const { useOnlineGame } = await import(moduleUrl((await source("game/useOnlineGame.js"))
   .replace('from "react"', `from "${hooks}"`).replace('from "./api"', `from "${fakeApi}"`)
+  .replace('from "../i18n/I18nProvider"', `from "${fakeI18n}"`)
   .replaceAll("setInterval(", "globalThis.__chatSetInterval(").replaceAll("clearInterval(", "globalThis.__chatClearInterval(")));
 globalThis.__chatSetInterval = () => 1;
 globalThis.__chatClearInterval = () => {};
@@ -162,4 +174,53 @@ test("late chat responses and errors from abandoned sessions cannot leak into an
     assert.equal(host.value.view.code, "NEW"); assert.equal(host.value.chatError, null); assert.equal(host.value.chatBusy, false);
     host.unmount();
   }
+});
+
+test("online catalogs cover the same keys, variables and safe server error translations", () => {
+  assert.deepEqual(Object.keys(de).sort(), Object.keys(en).sort());
+  for (const key of Object.keys(de)) {
+    const forms = typeof de[key] === "object" ? ["one", "other"] : [null];
+    for (const form of forms) {
+      const german = form ? de[key][form] : de[key];
+      const english = form ? en[key][form] : en[key];
+      assert.ok(english.trim(), key);
+      const parameters = text => [...text.matchAll(/\{(\w+)\}/g)].map(match => match[1]).sort();
+      assert.deepEqual(parameters(german), parameters(english), key);
+    }
+  }
+  assert.equal(api.onlineErrorMessage({ response: { data: { detail: "Nicht dein Zug" } } }, translator("en")), "It is not your turn");
+  assert.equal(api.onlineErrorMessage({ response: { data: { detail: "Unbekannte geheime Fehlermeldung" } } }, translator("en")), en["error.generic"]);
+  assert.equal(api.onlineErrorMessage({ response: { status: 422, data: { detail: [{ msg: "bad" }] } } }, translator("en")), en["error.validation"]);
+  assert.equal(api.onlineErrorMessage({ response: { status: 429 } }, translator("en")), en["error.chatCooldown"]);
+  assert.equal(api.onlineErrorMessage({ code: "ONLINE_CONFIG" }, translator("en")), en["error.config"]);
+  assert.equal(api.onlineErrorMessage({ code: "ONLINE_RESPONSE" }, translator("en")), en["error.response"]);
+  assert.equal(api.onlineErrorMessage({ code: "ETIMEDOUT" }, translator("en")), en["error.timeout"]);
+  assert.equal(api.onlineErrorMessage({ code: "ERR_NETWORK" }, translator("en")), en["error.network"]);
+  assert.equal(api.onlineErrorMessage({ response: { data: { detail: "Karte nicht erlaubt" } } }), de["error.card"]);
+});
+
+test("changing language translates current chat errors without rejoining or repeating requests", async () => {
+  let polls = 0, chats = 0;
+  const pending = deferred();
+  globalThis.__chatT = translator("de");
+  globalThis.__chatApi = {
+    get: async () => { polls++; return { code: "ROOM", version: 1 }; },
+    chat: () => { chats++; return pending.promise; },
+  };
+  const host = new HookHost();
+  try {
+    host.render(); await settle(); host.render();
+    assert.equal(await host.value.sendChat("😎".repeat(141)), false);
+    host.render(); assert.equal(host.value.chatError, de["chat.invalidLength"]);
+    const hand = host.value.view;
+    globalThis.__chatT = translator("en"); host.render();
+    assert.equal(host.value.chatError, en["chat.invalidLength"]);
+    assert.equal(host.value.view, hand); assert.equal(polls, 1);
+    const send = host.value.sendChat("Hello Crew");
+    globalThis.__chatT = translator("de"); host.render();
+    pending.reject({ translationKey: "error.chatCooldown" });
+    assert.equal(await send, false); host.render();
+    assert.equal(host.value.chatError, de["error.chatCooldown"]);
+    assert.equal(chats, 1); assert.equal(polls, 1);
+  } finally { host.unmount(); globalThis.__chatT = translator("de"); }
 });

@@ -14,7 +14,10 @@ const reducerSource = (await source("game/useGame.js"))
   .replace('from "./exchangeHistory"', `from "${exchangeUrl}"`);
 const { reducer } = await import(moduleUrl(`${reducerSource}\nexport { reducer };`));
 const { botPass, botPlay } = await import(engineUrl);
-const apiSource = (await source("game/api.js")).replace('import axios from "axios";', 'const axios={create:()=>({interceptors:{request:{use(){}}}})};');
+const onlineMessagesUrl = moduleUrl(await source("i18n/messages/online.js"));
+const apiSource = (await source("game/api.js"))
+  .replace('from "../i18n/messages/online"', `from "${onlineMessagesUrl}"`)
+  .replace('import axios from "axios";', 'const axios={create:()=>({interceptors:{request:{use(){}}}})};');
 const { validateRoomView, validateRoomSession, normalizeRecentGames } = await import(moduleUrl(apiSource));
 const flowSource = await source("components/OnlineFlow.jsx");
 const urlFunction = flowSource.slice(flowSource.indexOf("function setUrlRoom"), flowSource.indexOf("export function OnlineFlow"));
@@ -54,14 +57,21 @@ test("leaving an invitation clears both the URL and the next online entry", () =
 
 test("displayed help describes token recovery, red-only Kingpin and continuous PDF passing", async () => {
   const rules = await source("components/RulesDialog.jsx");
+  const { de, en } = await import(moduleUrl(await source("i18n/messages/rules.js")));
   const { SPECIALS } = await import(constantsUrl);
   assert.match(SPECIALS.fire.desc, /roten Karten/);
   assert.doesNotMatch(SPECIALS.fire.desc, /gesamte Hitze/);
-  assert.match(rules, /gespeicherte Zugang stellt deinen Platz wieder her/);
-  assert.doesNotMatch(rules, /demselben Namen<\/b> wieder bei/);
-  assert.match(rules, /Es gibt keine Runde ohne Tausch/);
+  assert.match(rules, /t\("rules.online.restore"\)/);
+  assert.match(de["rules.online.restore"], /gespeicherte Zugang stellt deinen Platz wieder her/);
+  assert.match(en["rules.online.restore"], /saved access/);
+  assert.doesNotMatch(de["rules.online.restore"], /demselben Namen<\/b> wieder bei/);
+  assert.match(rules, /t\("rules.passing.start"\)/);
+  assert.match(de["rules.passing.start"], /Es gibt keine Runde ohne Tausch/);
+  assert.match(en["rules.passing.start"], /passed every round.*no skipped round/i);
   assert.match(rules, /\[5, 12, 3,/);
-  assert.match(rules, /Neutralisiert die gesamte Hitze aus deinen Stichen/);
+  assert.match(rules, /t\(`rules.special.\$\{key\}`\)/);
+  assert.match(de["rules.special.air"], /Neutralisiert die gesamte Hitze aus deinen Stichen/);
+  assert.match(en["rules.special.air"], /all.*Heat/i);
 });
 
 function memoryStorage(value) {
@@ -303,10 +313,12 @@ class HookHost {
   unmount() { this.slots.forEach(slot => slot?.cleanup?.()); }
 }
 const hookExports = moduleUrl('export const useState=(...a)=>globalThis.__onlineHooks.useState(...a);export const useRef=(...a)=>globalThis.__onlineHooks.useRef(...a);export const useCallback=(...a)=>globalThis.__onlineHooks.useCallback(...a);export const useEffect=(...a)=>globalThis.__onlineHooks.useEffect(...a);');
-const apiExports = moduleUrl('export const roomApi=new Proxy({}, {get:(_,name)=>(...a)=>globalThis.__roomApi[name](...a)});export const onlineErrorMessage=(e)=>e?.response?.data?.detail || e.message;');
+const apiExports = moduleUrl('export const roomApi=new Proxy({}, {get:(_,name)=>(...a)=>globalThis.__roomApi[name](...a)});export const onlineErrorMessage=(e,t)=>e?.translationKey ? t(e.translationKey) : e?.response?.data?.detail || e.message;');
+const i18nExports = moduleUrl('export const useI18n=()=>({t:key=>key});');
 const onlineSource = (await source("game/useOnlineGame.js"))
   .replace('from "react"', `from "${hookExports}"`)
   .replace('from "./api"', `from "${apiExports}"`)
+  .replace('from "../i18n/I18nProvider"', `from "${i18nExports}"`)
   .replaceAll("setInterval(", "globalThis.__onlineSetInterval(")
   .replaceAll("clearInterval(", "globalThis.__onlineClearInterval(");
 const { useOnlineGame } = await import(moduleUrl(onlineSource));

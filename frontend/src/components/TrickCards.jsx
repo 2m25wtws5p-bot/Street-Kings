@@ -3,6 +3,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { CardView } from "./CardView";
 import { Avatar } from "./Avatar";
 import { sfx } from "../game/sound";
+import { useI18n } from "../i18n/I18nProvider";
 
 function cardPose(id) {
   let seed = 0;
@@ -13,6 +14,7 @@ function cardPose(id) {
 }
 
 export function TrickCards({ trick, players, n, trickKey, winner, complete, sweeping = false }) {
+  const { t } = useI18n();
   const reduced = useReducedMotion();
   const sounded = useRef(null);
   const latest = trick[trick.length - 1];
@@ -25,7 +27,7 @@ export function TrickCards({ trick, players, n, trickKey, winner, complete, swee
   }, [trickKey, latest]);
   const winnerX = ((winner ?? 0) - (n - 1) / 2) * 70;
   return <div className="trick-cards flex justify-center items-end" data-player-count={n}
-    style={{ "--trick-player-count": n }} aria-live="polite" aria-label="Gespielte Karten in Reihenfolge">
+    style={{ "--trick-player-count": n }} aria-live="polite" aria-label={t("game.playedOrder")}>
     <AnimatePresence>
       {trick.map((entry, index) => {
         const player = players.find((p, i) => (p.seat ?? i) === entry.seat);
@@ -36,7 +38,7 @@ export function TrickCards({ trick, players, n, trickKey, winner, complete, swee
           animate={sweeping ? { x: winnerX, y: -85, scale: .9, opacity: 0 } : { x: 0, y: 0, rotate: 0, scale: 1, opacity: 1 }}
           exit={reduced ? { opacity: 0 } : { x: winnerX, y: -85, scale: .9, opacity: 0 }}
           transition={{ duration: reduced ? .05 : sweeping ? .48 : pose.duration, ease: [.18, .8, .25, 1], layout: { type: "spring", stiffness: 135, damping: 24 } }}>
-          <div className="played-card-label flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 border border-white/15" title={`${index + 1}. ${player?.name || "Spieler"}`}>
+          <div className="played-card-label flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 border border-white/15" title={`${index + 1}. ${player?.name || t("game.player")}`}>
             <span className="text-amber-200 text-[10px]">{index + 1}.</span><Avatar avatar={player?.avatar} size={16} />
             <span className="text-[10px] text-slate-200 max-w-[70px] truncate" title={player?.name}>{player?.name}</span>
           </div>

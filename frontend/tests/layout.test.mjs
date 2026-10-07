@@ -138,11 +138,51 @@ test("local and online tables use one opaque, suit-labelled lead indicator", () 
     assert.doesNotMatch(component, /SUITS\[lead\]\.primary\}22/);
   }
   assert.match(indicator, /if\s*\(!definition\)\s*return\s+null/);
-  assert.match(indicator, /aria-label=\{`Angespielt: \$\{definition\.people\}`\}/);
+  assert.match(indicator, /aria-label=\{t\("game\.ledSuit",\s*\{ suit: definition\.people \}\)\}/);
+  assert.match(indicator, /useGameLabels\(\)/, "Lead labels must use the viewer's language, not the room's language");
   const background = finalProperty(".lead-suit-indicator", "background");
   assert.ok(background, "Lead marker has an explicit printed surface");
   assert.doesNotMatch(background, /transparent|rgba\(/i);
   for (const [hex] of background.matchAll(/#[0-9a-f]{8}\b/gi)) assert.equal(hex.slice(-2).toLowerCase(), "ff", "Lead marker must not use a translucent fill");
+});
+
+test("gameplay translations keep complete matching keys, placeholders and plural forms", async () => {
+  const messages = await source("i18n/messages/game.js");
+  const { de, en } = await import(`data:text/javascript;base64,${Buffer.from(messages).toString("base64")}`);
+  assert.deepEqual(Object.keys(en).sort(), Object.keys(de).sort());
+  const placeholders = text => [...text.matchAll(/\{([a-zA-Z]+)\}/g)].map(match => match[1]).sort();
+  for (const key of Object.keys(de)) {
+    if (typeof de[key] === "string") {
+      assert.equal(typeof en[key], "string", key);
+      assert.ok(de[key].trim() && en[key].trim(), `${key} must not render an empty label`);
+      assert.deepEqual(placeholders(en[key]), placeholders(de[key]), key);
+    } else {
+      assert.deepEqual(Object.keys(de[key]).sort(), ["one", "other"]);
+      assert.deepEqual(Object.keys(en[key]).sort(), ["one", "other"]);
+      for (const form of ["one", "other"]) {
+        assert.ok(de[key][form].trim() && en[key][form].trim(), `${key}.${form}`);
+        assert.deepEqual(placeholders(en[key][form]), placeholders(de[key][form]), `${key}.${form}`);
+      }
+    }
+  }
+  assert.equal(en["game.cardCount"].one, "{count} card");
+  assert.equal(en["game.cardCount"].other, "{count} cards");
+  assert.notEqual(en["game.reminderAnnouncement"], de["game.reminderAnnouncement"]);
+});
+
+test("shared gameplay screens and accessible announcements resolve existing viewer-local keys", async () => {
+  const messages = await source("i18n/messages/game.js");
+  const { de, en } = await import(`data:text/javascript;base64,${Buffer.from(messages).toString("base64")}`);
+  for (const file of ["PlayTable", "PassingScreen", "PassGate", "GameHeaderButtons", "LastTrickButton", "ExchangeHistoryButton", "SelectedCards", "PlayerIdentity", "TrickCards", "TurnStatus", "PassingProgress", "LeadSuitIndicator", "HostCrown", "Avatar"]) {
+    const component = await source(`components/${file}.jsx`);
+    assert.match(component, /useI18n\(\)/, `${file} must use the viewer's language`);
+    for (const [, key] of component.matchAll(/\bt\("(game\.[^"]+)"/g)) {
+      assert.ok(Object.hasOwn(de, key) && Object.hasOwn(en, key), `${file}: missing ${key}`);
+    }
+  }
+  const status = await source("components/TurnStatus.jsx");
+  assert.match(status, /t\("game\.reminderAnnouncement"\)/);
+  assert.match(status, /aria-live="polite" aria-atomic="true"/);
 });
 
 // Execute the actual table event handlers too: appearance changes must preserve

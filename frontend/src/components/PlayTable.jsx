@@ -9,8 +9,10 @@ import { useTurnReminder } from "../game/useTurnReminder";
 import { useHandLayout } from "../game/useHandLayout";
 import { legalCardIds, leadSuit, dealCount } from "../game/engine";
 import { sfx } from "../game/sound";
+import { useI18n } from "../i18n/I18nProvider";
 
 export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false, displaySeat = null }) {
+  const { t } = useI18n();
   const { n, players, hands, scores, trick, trickNumber, currentSeat, phase, lastWinner } = state;
   const [armed, setArmed] = useState(null);
   const [sweeping, setSweeping] = useState(false);
@@ -72,7 +74,7 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false, di
       {/* header row */}
       <div className="game-table-status flex items-center justify-between px-4 pt-3 pb-2">
         <div className="font-mono-stat text-xs text-slate-300/70">
-          Runde {state.roundIndex + 1} · Stich {trickNumber}/{totalTricks}
+          {t("game.roundTrick", { round: state.roundIndex + 1, trick: trickNumber, total: totalTricks })}
         </div>
         <LeadSuitIndicator suit={lead} />
       </div>
@@ -108,7 +110,7 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false, di
           data-testid="central-trick-cauldron"
         >
           {trick.length === 0 && !isTrickEnd && (
-            <p className="font-serif-fancy text-slate-400/50 italic text-lg">Die Straße wartet auf den ersten Zug…</p>
+            <p className="font-serif-fancy text-slate-400/50 italic text-lg">{t("game.emptyTrick")}</p>
           )}
           <TrickCards trick={trick} players={players} n={n} trickKey={`${state.roundIndex}-${trickNumber}`} winner={lastWinner} complete={isTrickEnd} sweeping={sweeping} />
         </div>
@@ -118,16 +120,16 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false, di
       <div className="turn-hand-zone game-hand-section px-2 pb-4" data-testid={canPlay ? "active-player-hand-container" : "own-hand-container"}>
         <div className="turn-action-slot">
           <TurnStatus state={isTrickEnd ? "complete" : canPlay ? "active" : "waiting"}
-            title={isTrickEnd ? `${players[lastWinner].name} kassiert den Stich!` : canPlay ? "DU BIST DRAN" : "DU WARTEST"}
-            subtitle={isTrickEnd ? "Der Stich ist komplett." : canPlay ? `${active.name}, wähle deine Karte.` : `${active.name} ist am Zug.`}
+            title={isTrickEnd ? t("game.trickWinner", { name: players[lastWinner].name }) : canPlay ? t("game.yourTurn") : t("game.waiting")}
+            subtitle={isTrickEnd ? t("game.trickComplete") : canPlay ? t("game.chooseCard", { name: active.name }) : t("game.playerTurn", { name: active.name })}
             reminderCount={reminderCount} confirming={!!armed}>
-            <span className={`game-play-hint text-amber-400/80 text-sm ${canPlay && armed ? "" : "invisible"}`} aria-hidden={!armed} data-testid="game-play-confirmation-hint">Nochmal tippen, um sie zu legen</span>
+            <span className={`game-play-hint text-amber-400/80 text-sm ${canPlay && armed ? "" : "invisible"}`} aria-hidden={!armed} data-testid="game-play-confirmation-hint">{t("game.confirmPlay")}</span>
             {isTrickEnd && <div className="trick-action-panel">
               <button onClick={handleContinue} disabled={sweeping || !ready} data-testid="btn-continue-trick" className="game-action-button">
-                {ready ? "Einsammeln & weiter" : "Stich ansehen…"}
+                {ready ? t("game.collectContinue") : t("game.viewTrick")}
               </button>
             </div>}
-            {!canPlay && !isTrickEnd && <span data-testid="bot-thinking" className="turn-wait-note">Deine Karten bleiben hier liegen.</span>}
+            {!canPlay && !isTrickEnd && <span data-testid="bot-thinking" className="turn-wait-note">{t("game.handStays")}</span>}
           </TurnStatus>
         </div>
         <div className="turn-hand-grid compact-hand flex flex-wrap justify-center gap-1.5 sm:gap-2 max-w-5xl mx-auto" ref={handLayout.ref} style={handLayout.style} data-initial-count={totalTricks} data-testid="own-hand-grid">

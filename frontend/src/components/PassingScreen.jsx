@@ -7,8 +7,10 @@ import { targetSeat, dealCount } from "../game/engine";
 import { useHandLayout } from "../game/useHandLayout";
 import { ArrowRight, Handshake } from "lucide-react";
 import { sfx } from "../game/sound";
+import { useI18n } from "../i18n/I18nProvider";
 
 export function PassingScreen({ state, onConfirm }) {
+  const { t } = useI18n();
   const { passSeat, passCount, passDir, players, hands, n } = state;
   const me = players[passSeat];
   const target = players[targetSeat(passSeat, passDir, n)];
@@ -35,11 +37,9 @@ export function PassingScreen({ state, onConfirm }) {
           <ArrowRight className="text-amber-400" />
           <Avatar avatar={target.avatar} size={38} />
         </div>
-        <h2 className="font-display text-2xl gold-text">Der Deal <span className="text-sm ml-2" data-testid="passing-phase-selected-count">{selected.length}/{passCount}</span></h2>
+        <h2 className="font-display text-2xl gold-text">{t("game.deal")} <span className="text-sm ml-2" data-testid="passing-phase-selected-count">{selected.length}/{passCount}</span></h2>
         <p className="font-serif-fancy text-slate-300/80 text-base" data-testid="passing-phase-instructions">
-          <span className="text-amber-200 font-semibold">{me.name}</span>, wähle{" "}
-          <b className="text-amber-300">{passCount}</b> Karte{passCount > 1 ? "n" : ""} zum Weitergeben an{" "}
-          <span className="text-amber-200 font-semibold">{target.name}</span>
+          {t("game.choosePass", { name: me.name, count: passCount, target: target.name })}
         </p>
       </div>
 
@@ -72,7 +72,7 @@ export function PassingScreen({ state, onConfirm }) {
           data-testid="btn-confirm-card-pass"
           className="game-action-button"
         >
-          <Handshake size={18} /> Deal besiegeln
+          <Handshake size={18} /> {t("game.sealDeal")}
         </button>
       </div>
     </div>

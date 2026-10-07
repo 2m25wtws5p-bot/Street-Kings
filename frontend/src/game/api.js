@@ -1,4 +1,5 @@
 import axios from "axios";
+import { de as onlineGerman } from "../i18n/messages/online";
 
 const backendUrl = (process.env.REACT_APP_BACKEND_URL || "").trim().replace(/\/+$/, "");
 let configurationError = "";
@@ -25,18 +26,32 @@ client.interceptors.request.use((config) => {
   return config;
 });
 
-export function onlineErrorMessage(error) {
-  if (error?.code === "ONLINE_CONFIG") return error.message;
-  if (error?.code === "ONLINE_RESPONSE") return error.message;
+// The server remains language-neutral for room state. Translate known failures
+// on each player's device, never expose unknown/raw server text in another language.
+const defaultTranslate = (key, params = {}) => {
+  const value = onlineGerman[key];
+  const text = typeof value === "object" ? value[params.count === 1 ? "one" : "other"] : value;
+  return (text || onlineGerman["error.generic"]).replace(/\{(\w+)\}/g, (_, name) => String(params[name] ?? ""));
+};
+const serverErrorKeys = new Map(Object.entries(onlineGerman)
+  .filter(([key, value]) => key.startsWith("error.") && typeof value === "string")
+  .map(([key, value]) => [value, key]));
+export function onlineErrorMessage(error, t = defaultTranslate) {
+  if (error?.translationKey) return t(error.translationKey, error.translationParams);
+  if (error?.code === "ONLINE_CONFIG") return t("error.config");
+  if (error?.code === "ONLINE_RESPONSE") return t("error.response");
   const detail = error?.response?.data?.detail;
-  if (typeof detail === "string") return detail;
+  if (typeof detail === "string" && serverErrorKeys.has(detail)) return t(serverErrorKeys.get(detail));
+  if (typeof detail === "string" && /^Chat-Nachrichten müssen 1 bis \d+ Zeichen enthalten$/.test(detail)) return t("error.chatLength");
+  if (error?.response?.status === 429) return t("error.chatCooldown");
+  if (error?.response?.status === 422) return t("error.validation");
   if (error?.code === "ECONNABORTED" || error?.code === "ETIMEDOUT") {
-    return "Der Spielserver antwortet nicht rechtzeitig. Kostenlose Server benötigen nach einer Ruhephase etwas Zeit zum Aufwachen. Bitte versuche es noch einmal.";
+    return t("error.timeout");
   }
   if (!error?.response) {
-    return "Der Spielserver ist nicht erreichbar. Prüfe deine Verbindung; möglicherweise ist der Server offline oder blockiert die Verbindung.";
+    return t("error.network");
   }
-  return "Die Anfrage an den Spielserver ist fehlgeschlagen. Bitte versuche es noch einmal.";
+  return t("error.generic");
 }
 
 export function validateRoomView(view) {
@@ -95,6 +110,7 @@ export function validateRoomSession(session) {
       typeof session.token !== "string" || !session.token.trim()) {
     const error = new Error("Der Spielserver hat keinen gültigen Spielerzugang zurückgegeben. Bitte versuche es noch einmal.");
     error.code = "ONLINE_RESPONSE";
+    error.translationKey = "error.session";
     throw error;
   }
   return session;

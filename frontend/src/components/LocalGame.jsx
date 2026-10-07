@@ -18,9 +18,20 @@ import { lowestSeats, botPass, botPlay } from "@/game/engine";
 import { recordGame } from "@/game/storage";
 import { sfx } from "@/game/sound";
 import { Home } from "lucide-react";
+import { I18nScope, useI18n } from "../i18n/I18nProvider";
+import { localLanguageSeat } from "../i18n/localLanguage";
 
-export function LocalGame({ onExit, sound, setSound }) {
-  const { state, actions } = useWitchesGame();
+export function LocalGame(props) {
+  const game = useWitchesGame();
+  const viewerRef = useRef(null);
+  viewerRef.current = localLanguageSeat(game.state, viewerRef.current);
+  const language = game.state.players?.[viewerRef.current]?.language;
+  return <I18nScope language={language}><LocalGameView {...props} game={game} /></I18nScope>;
+}
+
+function LocalGameView({ onExit, sound, setSound, game }) {
+  const { state, actions } = game;
+  const { t, language } = useI18n();
   const [rulesOpen, setRulesOpen] = useState(false);
   const [statsOpen, setStatsOpen] = useState(false);
   const [revealedSeat, setRevealedSeat] = useState(null);
@@ -90,12 +101,12 @@ export function LocalGame({ onExit, sound, setSound }) {
   const exchangeSeat = localExchangeSeat(state, revealedSeat);
 
   return (
-    <div className="grain min-h-screen">
+    <div className="grain min-h-screen" lang={language}>
       {(showHeader || state.phase === "setup") && (
         <div className="fixed top-0 inset-x-0 z-40 flex items-center justify-between px-4 py-2 bg-gradient-to-b from-[#0d0f13]/98 to-transparent">
           <button
             onClick={() => {
-              if (window.confirm("Spiel verlassen und zum Hauptmenü zurückkehren?")) onExit();
+              if (window.confirm(t('local.leaveConfirm'))) onExit();
             }}
             data-testid="nav-brand-title"
             className="font-display text-sm gold-text flex items-center gap-1.5 hover:opacity-80"
@@ -112,14 +123,14 @@ export function LocalGame({ onExit, sound, setSound }) {
 
       {state.phase === "passGate" &&
         (state.players[state.passSeat]?.isBot ? (
-          <BotWaiting player={state.players[state.passSeat]} text="wählt Karten zum Weitergeben…" />
+          <BotWaiting player={state.players[state.passSeat]} text={t('local.botPassing')} />
         ) : (
-          <PassGate player={state.players[state.passSeat]} onReveal={actions.reveal} ctaPrefix="Karten zeigen" note="Zeit für den Deal. Achte darauf, dass niemand auf deine Karten linst…" />
+          <PassGate player={state.players[state.passSeat]} onReveal={actions.reveal} ctaPrefix={t('local.showCards')} note={t('local.passNote')} />
         ))}
       {state.phase === "passing" && <PassingScreen state={state} onConfirm={actions.confirmPass} />}
 
       {state.phase === "playGate" && !state.players[state.currentSeat]?.isBot && soloHumanSeat == null && (
-          <PassGate player={state.players[state.currentSeat]} headline="Dein Zug" onReveal={actions.reveal} ctaPrefix="Karten zeigen" note="Die Straße ruft. Nimm das Gerät und spiel im Geheimen…" />
+          <PassGate player={state.players[state.currentSeat]} headline={t('local.yourTurn')} onReveal={actions.reveal} ctaPrefix={t('local.showCards')} note={t('local.playNote')} />
         )}
       {(state.phase === "playing" || state.phase === "trickEnd" || (state.phase === "playGate" && (state.players[state.currentSeat]?.isBot || soloHumanSeat != null))) && (
         <PlayTable state={state} onPlay={actions.playCard} onContinueTrick={actions.continueTrick} hideHand={state.players[state.currentSeat]?.isBot} displaySeat={soloHumanSeat} />

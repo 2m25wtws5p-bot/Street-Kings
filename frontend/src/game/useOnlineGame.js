@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { roomApi, onlineErrorMessage } from "./api";
+import { useI18n } from "../i18n/I18nProvider";
 
 const configuredPollMs = Number(process.env.REACT_APP_GAME_POLL_MS);
 const pollMs = Number.isFinite(configuredPollMs) && configuredPollMs >= 500 ? configuredPollMs : 650;
 
 export function useOnlineGame(code, token) {
+  const { t } = useI18n();
   const [view, setView] = useState(null);
   const [error, setError] = useState(null);
   const [actionError, setActionError] = useState(null);
@@ -55,7 +57,7 @@ export function useOnlineGame(code, token) {
         setError(null);
       }
     } catch (failure) {
-      if (current(request) && !controller.signal.aborted) setError(onlineErrorMessage(failure));
+      if (current(request) && !controller.signal.aborted) setError(failure);
     } finally {
       if (request.pollController === controller) {
         request.pollController = null;
@@ -82,7 +84,7 @@ export function useOnlineGame(code, token) {
       if (!presence) setActionError(null);
       return true;
     } catch (failure) {
-      if (current(request) && !presence) setActionError(onlineErrorMessage(failure));
+      if (current(request) && !presence) setActionError(failure);
       // Keep the last good table and selection mounted; recover in the background.
       if (current(request)) poll();
       return false;
@@ -101,11 +103,11 @@ export function useOnlineGame(code, token) {
     if (!current(request) || !request.code || !request.token || request.chat) return false;
     const message = typeof text === "string" ? text.replace(/\r\n|[\r\n\t\u2028\u2029]/g, " ").trim() : "";
     if (!message || Array.from(message).length > 140) {
-      setChatError("Schreib eine Nachricht mit höchstens 140 Zeichen.");
+      setChatError({ translationKey: "chat.invalidLength" });
       return false;
     }
     if (request.lastChatAt != null && Date.now() - request.lastChatAt < 1500) {
-      setChatError("Warte kurz vor deiner nächsten Nachricht (1,5 Sekunden).");
+      setChatError({ translationKey: "chat.cooldown" });
       return false;
     }
     const sentAt = Date.now();
@@ -117,7 +119,7 @@ export function useOnlineGame(code, token) {
       acceptView(value, request);
       return true;
     } catch (failure) {
-      if (current(request)) setChatError(onlineErrorMessage(failure));
+      if (current(request)) setChatError(failure);
       return false;
     } finally {
       request.chat = false;
@@ -143,7 +145,10 @@ export function useOnlineGame(code, token) {
   };
   return {
     view: viewIdentity.current === identity ? view : null,
-    error, actionError, busy, poll, chatBusy, chatError, sendChat,
+    error: error ? onlineErrorMessage(error, t) : null,
+    actionError: actionError ? onlineErrorMessage(actionError, t) : null,
+    chatError: chatError ? onlineErrorMessage(chatError, t) : null,
+    busy, poll, chatBusy, sendChat,
     dismissActionError: () => setActionError(null),
     pass: (cards) => doAction({ type: "pass", cards }),
     play: (cardId) => doAction({ type: "play", cardId }),

@@ -1,6 +1,8 @@
 import React from "react";
 import streetFaces from "../assets/avatars/street-faces-comic.webp";
 import extraFaces from "../assets/avatars/street-faces-extra-comic.webp";
+import { useI18n } from "../i18n/I18nProvider";
+import { useGameLabels } from "../i18n/gameLabels";
 
 const MAP = {
   boss: "0% 0%",
@@ -12,6 +14,9 @@ const MAP = {
 };
 
 export function Avatar({ avatar, size = 40, active = false, className = "" }) {
+  const { t } = useI18n();
+  const { avatars } = useGameLabels();
+  const label = avatars.find((item) => item.key === avatar?.key)?.label || avatar?.label || t("game.streetPortrait");
   const color = avatar?.color || "#94A3B8";
   const extraIndex = /^street-(0[1-9]|1[0-2])$/.test(avatar?.key || "") ? Number(avatar.key.slice(-2)) - 1 : -1;
   const image = extraIndex >= 0 ? extraFaces : streetFaces;
@@ -19,7 +24,7 @@ export function Avatar({ avatar, size = 40, active = false, className = "" }) {
   return (
     <div
       role="img"
-      aria-label={`${avatar?.label || "Street"}-Porträt`}
+      aria-label={t("game.portrait", { name: label })}
       data-avatar-key={avatar?.key || "boss"}
       className={`street-avatar shrink-0 overflow-hidden transition-all ${active ? "scale-110" : ""} ${className}`}
       style={{
