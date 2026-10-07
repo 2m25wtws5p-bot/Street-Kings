@@ -366,6 +366,9 @@ body {
 /* A stable mobile fan: selection must never cover a neighbour's number. */
 @media(max-width:639px) {
   .compact-hand { isolation:isolate; }
+  /* A mirrored corner from the previous overlapping card looks like a second value. */
+  .compact-hand .card-pip-bottom { display:none!important; }
+  .compact-hand .card-pip-top { top:1px; left:1px; transform:none; }
   .compact-hand > .street-card,
   .compact-hand > .street-card:hover,
   .compact-hand > .street-card:focus-visible,
