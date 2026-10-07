@@ -563,6 +563,10 @@ body {
   .selected-card-slot { width:36px; }
   .selected-cards { min-height:53px; }
 }
+@media(max-width:639px) and (max-height:600px) {
+  /* No trick exists during passing: keep the deal action inside short viewports. */
+  .game-table[data-phase="passing"] .game-center { display:none; }
+}
 
 /* Abrechnung: paper scorecards, printed ink and worn suit-colored details. */
 .round-summary { padding-top:64px; padding-bottom:24px; }

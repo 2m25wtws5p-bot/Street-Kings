@@ -106,7 +106,7 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
 
   return (
     <Shell {...shellProps}>
-      <div className="game-table min-h-screen coven-bg flex flex-col pt-10">
+      <div className="game-table min-h-screen coven-bg flex flex-col pt-10" data-phase={phase}>
         <div className="game-table-status flex items-center justify-between px-4 pt-2 pb-2">
           <div className="font-mono-stat text-xs text-slate-300/70">
             Runde {(view.roundIndex ?? 0) + 1} · {phase === "passing" ? "Karten werden getauscht" : `Stich ${view.trickNumber}/${dealCount(n)}`}

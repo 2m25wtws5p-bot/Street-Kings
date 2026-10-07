@@ -62,6 +62,13 @@ test("special cards have no automatic vertical hand offset", () => {
   }
 });
 
+test("short online exchange screens prioritize cards and actions over the empty table", () => {
+  assert.match(online, /data-phase=\{phase\}/);
+  assert.match(cssSource, /@media\s*\(max-width:639px\)\s*and\s*\(max-height:600px\)\s*\{[^}]*\.game-table\[data-phase="passing"\]\s+\.game-center\s*\{\s*display:none;/);
+  assert.equal(finalProperty('.game-table[data-phase="passing"] .game-center', "display"), "none");
+  assert.equal(finalProperty('.game-table[data-phase="playing"] .game-center', "display"), undefined);
+});
+
 test("playing has no conditional preview row and keeps its confirmation hint mounted", () => {
   assert.doesNotMatch(local, /<SelectedCards\b/);
   // Online still uses one preview in the exchange phase, not below an armed card.
