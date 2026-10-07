@@ -125,12 +125,12 @@ def test_new_name_after_start_rejected_409(s):
     assert r.status_code == 409
 
 
-# ---- Bots have German gangster names/avatars ----
-def test_bots_use_german_gangster_avatars(s):
+# ---- Bots have American street nicknames and compatible avatar identities ----
+def test_bots_use_street_names_and_avatars(s):
     r = s.post(f"{API}/rooms", json={"name": "Host", "avatar": AV_A})
     code, host = r.json()["code"], r.json()["token"]
     allowed_keys = {"boss", "dealer", "driver", "smuggler", "hacker", "lawyer"}
-    german_names = {"Vito", "Ronny", "Kalle", "Shorty", "Dragan", "Nadja", "Ivo", "Mischa"}
+    street_names = {"Brooklyn Ace", "Harlem Slim", "Queens Rico", "Big Dre", "Uptown Jade", "Bronx Ghost"}
     for _ in range(3):
         r = s.post(f"{API}/rooms/{code}/bots", json={"token": host, "action": "add"})
         assert r.status_code == 200
@@ -139,4 +139,5 @@ def test_bots_use_german_gangster_avatars(s):
     assert len(bots) == 3
     for b in bots:
         assert b["avatar"]["key"] in allowed_keys, b["avatar"]
-        assert b["name"] in german_names, b["name"]
+        assert b["name"] in street_names, b["name"]
+    assert len({b["name"] for b in bots}) == len(bots)
