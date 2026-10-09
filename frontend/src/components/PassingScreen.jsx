@@ -1,24 +1,25 @@
-import React, { useState } from "react";
-import { CardView } from "./CardView";
+import React, { useEffect, useState } from "react";
+import { HandCards } from "./HandCards";
 import { SelectedCards } from "./SelectedCards";
 import { PassingProgress } from "./PassingProgress";
 import { Avatar } from "./Avatar";
 import { targetSeat, dealCount } from "../game/engine";
-import { useHandLayout } from "../game/useHandLayout";
 import { ArrowRight, Handshake } from "lucide-react";
 import { sfx } from "../game/sound";
 import { useI18n } from "../i18n/I18nProvider";
 
-export function PassingScreen({ state, onConfirm }) {
+export function PassingScreen({ state, onConfirm, readOnly = false }) {
   const { t } = useI18n();
   const { passSeat, passCount, passDir, players, hands, n } = state;
   const me = players[passSeat];
   const target = players[targetSeat(passSeat, passDir, n)];
   const hand = hands[passSeat];
-  const [selected, setSelected] = useState([]);
-  const handLayout = useHandLayout(dealCount(n));
+  const [draftSelected, setSelected] = useState([]);
+  const selected = readOnly ? (state.pendingSelections?.[passSeat] || []) : draftSelected;
+  useEffect(() => setSelected([]), [passSeat, state.roundIndex]);
 
   const toggle = (id) => {
+    if (readOnly) return;
     setSelected((prev) => {
       if (prev.includes(id)) return prev.filter((x) => x !== id);
       if (prev.length >= passCount) return prev;
@@ -39,40 +40,34 @@ export function PassingScreen({ state, onConfirm }) {
         </div>
         <h2 className="font-display text-2xl gold-text">{t("game.deal")} <span className="text-sm ml-2" data-testid="passing-phase-selected-count">{selected.length}/{passCount}</span></h2>
         <p className="font-serif-fancy text-slate-300/80 text-base" data-testid="passing-phase-instructions">
-          {t("game.choosePass", { name: me.name, count: passCount, target: target.name })}
+          {readOnly ? t("hand.passWaiting") : t("game.choosePass", { name: me.name, count: passCount, target: target.name })}
         </p>
+        <div className="passing-recipient" data-testid="passing-recipient">
+          <span>{t("hand.passRecipient")}</span><strong>{target.name}</strong>
+        </div>
       </div>
 
       <PassingProgress players={players} passedSeats={players.map((_, seat) => Boolean(state.pendingSelections?.[seat]?.length))} yourSeat={passSeat} />
 
       <div className="game-hand-section flex-1 flex items-center justify-center">
-        <div ref={handLayout.ref} style={handLayout.style} className="turn-hand-grid compact-hand flex flex-wrap justify-center gap-2 max-w-4xl" data-testid="own-hand-grid" data-initial-count={dealCount(n)}>
-          {hand.map((card) => (
-            <CardView
-              key={card.id}
-              card={card}
-              size="md"
-              selected={selected.includes(card.id)}
-              onClick={() => toggle(card.id)}
-              testId={`pass-card-item-${card.id}`}
-            />
-          ))}
-        </div>
+        <HandCards cards={hand} initialCount={dealCount(n)} selectedIds={selected}
+          onCardClick={readOnly ? undefined : card => toggle(card.id)} testIdPrefix="pass-card-item-"
+          interactionKey={`passing-${state.roundIndex}-${passSeat}`} />
       </div>
 
       <div className="game-hand-actions flex flex-col items-center">
-        <SelectedCards hand={hand} selected={selected} count={passCount} onRemove={toggle} />
+        <div inert={readOnly || undefined}><SelectedCards hand={hand} selected={selected} count={passCount} onRemove={toggle} /></div>
         <button
-          disabled={!done}
+          disabled={!done || readOnly}
           onClick={() => {
+            if (readOnly || !done) return;
             sfx.playCard();
             onConfirm(selected);
-            setSelected([]);
           }}
           data-testid="btn-confirm-card-pass"
           className="game-action-button"
         >
-          <Handshake size={18} /> {t("game.sealDeal")}
+          <Handshake size={18} /> {t(readOnly ? "game.waiting" : "game.sealDeal")}
         </button>
       </div>
     </div>

@@ -34,6 +34,12 @@ jobs:
         working-directory: frontend
         run: npm install --legacy-peer-deps
 
+      - name: Kartenreferenzen, Bereitschaft und private Empfangsanzeige testen
+        working-directory: frontend
+        env:
+          CI: "true"
+        run: npm test -- --watch=false --runInBand
+
       - name: Produktionsversion erstellen
         working-directory: frontend
         env:

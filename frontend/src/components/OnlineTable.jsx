@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
-import { CardView } from "./CardView";
+import { HandCards } from "./HandCards";
+import { ExchangeReveal } from "./ExchangeReveal";
+import { PlayOrder } from "./PlayOrder";
 import { LeadSuitIndicator } from "./LeadSuitIndicator";
 import { Avatar } from "./Avatar";
 import { PlayerIdentity } from "./PlayerIdentity";
@@ -21,7 +23,7 @@ import { hostSeat } from "../game/chat";
 import { copyText, invitationLink } from "../game/clipboard";
 import { legalCardIds, leadSuit, dealCount } from "../game/engine";
 import { useTurnReminder } from "../game/useTurnReminder";
-import { useHandLayout } from "../game/useHandLayout";
+import { rememberPlayedCard } from "../game/cardMotion";
 import { Trophy, Check, LogOut, Copy, Link, Eye, WifiOff, Bot } from "lucide-react";
 import { sfx } from "../game/sound";
 import { useI18n } from "../i18n/I18nProvider";
@@ -40,7 +42,6 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
   const lead = leadSuit(trick);
   const yourTurn = !spectator && phase === "playing" && currentSeat === yourSeat;
   const reminderCount = useTurnReminder({ enabled: yourTurn && !actions.error, turnKey: `${view.code}-${view.roundIndex}-${view.trickNumber}-${yourSeat}` });
-  const handLayout = useHandLayout(dealCount(n));
   const iPassed = view.iPassed;
   const nameOf = (seat) => players.find((p) => p.seat === seat)?.name;
 
@@ -48,7 +49,7 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
     setTrickReady(false);
     if (phase !== "trickEnd") return;
     // Hold the complete trick locally too, including after a slow reconnect.
-    const timer = setTimeout(() => setTrickReady(true), view.trickHoldMs ?? 2000);
+    const timer = setTimeout(() => setTrickReady(true), view.trickHoldMs ?? 1000);
     return () => clearTimeout(timer);
   }, [phase, view.roundIndex, view.trickNumber, view.trickHoldMs]);
 
@@ -69,7 +70,8 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
     return (
       <Shell {...shellProps}>
         <div className="pt-10">
-          <RoundScores state={pseudo} onNext={spectator ? null : actions.nextRound} />
+          <RoundScores state={pseudo} onNext={spectator ? null : actions.nextRound} readySeats={view.readySeats} yourSeat={yourSeat} busy={actions.busy} spectator={spectator}
+            onReplaceSeat={view.isHost && !spectator ? seat => { if (window.confirm(t("online.replaceConfirm", { name: nameOf(seat) }))) actions.replaceWithBot(seat); } : undefined} />
         </div>
       </Shell>
     );
@@ -93,6 +95,7 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
 
   // passing / playing / trickEnd
   const yourHand = view.yourHand || [];
+  const confirmedPassIds = (view.yourPassedCards || []).map(card => card.id);
   const legal = yourTurn ? new Set(legalCardIds(yourHand, trick)) : new Set();
 
   const toggleSelect = (id) => {
@@ -109,6 +112,7 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
     if (actions.busy) return;
     if (!legal.has(card.id)) return;
     if (armed === card.id) {
+      rememberPlayedCard(card.id);
       actions.play(card.id);
       setArmed(null);
     } else {
@@ -116,9 +120,16 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
       setArmed(card.id);
     }
   };
+  const dropPlay = (card) => {
+    if (actions.busy || !yourTurn || !legal.has(card.id)) return;
+    rememberPlayedCard(card.id);
+    actions.play(card.id);
+    setArmed(null);
+  };
 
   return (
     <Shell {...shellProps}>
+      {!spectator && <ExchangeReveal exchange={view.yourExchange} scopeKey={`${view.code}-${view.roundId || view.roundIndex}-${yourSeat}`} available={phase === "playing" && view.trickNumber === 1} />}
       <div className="game-table min-h-screen coven-bg flex flex-col pt-10" data-phase={phase}>
         <div className="game-table-status flex items-center justify-between px-4 pt-2 pb-2">
           <div className="font-mono-stat text-xs text-slate-300/70">
@@ -159,9 +170,10 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
           })}
         </div>
 
+        {phase !== "passing" && <PlayOrder players={players} currentSeat={phase === "playing" ? currentSeat : null} />}
         {/* table center */}
         <div className="game-center flex-1 grid place-items-center px-4 py-2">
-          <div className="relative w-full max-w-2xl min-h-[200px] rounded-[40%] grid place-items-center" style={{ background: "radial-gradient(ellipse at center, rgba(239,68,68,0.10), rgba(13,15,19,0) 70%)" }} data-testid="central-trick-cauldron">
+          <div className="relative w-full max-w-2xl min-h-[200px] rounded-[40%] grid place-items-center" style={{ background: "radial-gradient(ellipse at center, rgba(239,68,68,0.10), rgba(13,15,19,0) 70%)" }} data-card-drop-zone data-testid="central-trick-cauldron">
             {trick.length === 0 && phase !== "trickEnd" && (
               <p className="font-serif-fancy text-slate-400/50 italic text-lg">
                 {t(phase === "passing" ? "online.passingEmpty" : "online.playingEmpty")}
@@ -183,6 +195,7 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
                   {t("online.choosePass", { count: view.passCount, name: nameOf(view.passTarget) })}
                   <span className="font-mono-stat text-amber-300 text-sm ml-2" data-testid="passing-phase-selected-count">{selected.length}/{view.passCount}</span>
                   </>}
+                  {Number.isInteger(view.passTarget) && <div className="passing-recipient">{t("improvements.recipient")} <strong>{nameOf(view.passTarget)}</strong></div>}
                 </div>
               ) : (
                 <TurnStatus
@@ -211,19 +224,13 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
                 </TurnStatus>
               )}
             </div>
-            <div ref={handLayout.ref} style={handLayout.style} className="turn-hand-grid compact-hand flex flex-wrap justify-center gap-1.5 sm:gap-2 max-w-5xl mx-auto" data-testid="own-hand-grid" data-initial-count={dealCount(n)}>
-              {yourHand.map((card) => (
-                <CardView
-                  key={card.id}
-                  card={card}
-                  size="md"
-                  selected={phase === "passing" && !iPassed ? selected.includes(card.id) : yourTurn && armed === card.id}
-                  dim={yourTurn && !legal.has(card.id)}
-                  onClick={phase === "passing" && !iPassed ? () => toggleSelect(card.id) : yourTurn ? () => clickPlay(card) : undefined}
-                  testId={phase === "passing" ? `pass-card-item-${card.id}` : `hand-card-item-${card.id}`}
-                />
-              ))}
-            </div>
+            <HandCards cards={yourHand} initialCount={dealCount(n)}
+              selectedIds={phase === "passing" ? iPassed ? confirmedPassIds : selected : yourTurn && armed ? [armed] : []}
+              legalIds={legal} dimIds={yourTurn ? yourHand.filter(card => !legal.has(card.id)).map(card => card.id) : []}
+              onCardClick={phase === "passing" && !iPassed && !actions.busy ? card => toggleSelect(card.id) : yourTurn && !actions.busy ? clickPlay : undefined}
+              onCardDrop={dropPlay} canDrag={yourTurn && !actions.busy}
+              interactionKey={`${view.code}-${view.roundId || view.roundIndex}-${view.trickNumber}-${currentSeat}-${phase}-${actions.busy}`}
+              testIdPrefix={phase === "passing" ? "pass-card-item-" : "hand-card-item-"} />
             {phase === "passing" && (
               <div className={`game-hand-actions text-center ${iPassed ? "invisible" : ""}`} aria-hidden={!!iPassed}>
                 <SelectedCards hand={yourHand} selected={selected} count={view.passCount} onRemove={toggleSelect} />

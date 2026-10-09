@@ -37,6 +37,7 @@ function beginRound(base) {
     lastWinner: null,
     justPlayed: null,
     exchangeHistory: Array(n).fill(null),
+    readySeats: players.map(player => !!player.isBot),
   };
   if (count > 0 && dir !== 0) {
     return {
@@ -103,7 +104,8 @@ function continueTrick(state) {
     const roundResult = scoreRound(state.piles, state.scores);
     const { results } = roundResult;
     const scores = state.scores.map((s, i) => s + results[i].total);
-    return { ...state, phase: "roundScores", roundResult, scores, totalRounds: state.totalRounds + 1 };
+    return { ...state, phase: "roundScores", roundResult, scores, totalRounds: state.totalRounds + 1,
+      readySeats: state.players.map(player => !!player.isBot) };
   }
   const winner = state.lastWinner;
   return { ...state, phase: "playGate", leader: winner, currentSeat: winner, trick: [], trickNumber: state.trickNumber + 1 };
@@ -143,9 +145,16 @@ function reducer(state, action) {
       return playCard(state, action.cardId);
     case "CONTINUE_TRICK":
       return continueTrick(state);
-    case "NEXT_ROUND":
+    case "NEXT_ROUND": {
       if (state.phase !== "roundScores") return state;
       if (isGameOver(state.scores)) return { ...state, phase: "gameOver" };
+      // In hotseat each human confirms separately. A no-argument action is
+      // convenient only when this device represents a single human player.
+      const humans = state.players.map((player, seat) => !player.isBot ? seat : null).filter(seat => seat != null);
+      const seat = action.seat == null && humans.length === 1 ? humans[0] : action.seat;
+      if (humans.length && (!Number.isInteger(seat) || !humans.includes(seat))) return state;
+      const readySeats = state.players.map((player, index) => !!player.isBot || !!state.readySeats?.[index] || seat === index);
+      if (!readySeats.every(Boolean)) return { ...state, readySeats };
       return beginRound({
         players: state.players,
         n: state.n,
@@ -153,6 +162,7 @@ function reducer(state, action) {
         roundIndex: state.roundIndex + 1,
         totalRounds: state.totalRounds,
       });
+    }
     case "RESTART_SAME":
       if (state.phase !== "gameOver") return state;
       return beginRound({
@@ -177,7 +187,7 @@ export function useWitchesGame() {
     confirmPass: useCallback((cardIds) => dispatch({ type: "CONFIRM_PASS", cardIds }), []),
     playCard: useCallback((cardId) => dispatch({ type: "PLAY_CARD", cardId }), []),
     continueTrick: useCallback(() => dispatch({ type: "CONTINUE_TRICK" }), []),
-    nextRound: useCallback(() => dispatch({ type: "NEXT_ROUND" }), []),
+    nextRound: useCallback((seat) => dispatch({ type: "NEXT_ROUND", seat }), []),
     restartSame: useCallback(() => dispatch({ type: "RESTART_SAME" }), []),
     newGame: useCallback(() => dispatch({ type: "NEW_GAME" }), []),
   };

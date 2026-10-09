@@ -70,9 +70,9 @@ test("short online exchange screens prioritize cards and actions over the empty 
 });
 
 test("local exchange uses the responsive fan without a full-height readiness row", () => {
-  assert.match(passing, /useHandLayout\(dealCount\(n\)\)/);
-  assert.match(passing, /ref=\{handLayout\.ref\} style=\{handLayout\.style\}/);
-  assert.match(passing, /turn-hand-grid compact-hand/);
+  assert.match(passing, /<HandCards cards=\{hand\} initialCount=\{dealCount\(n\)\}/);
+  assert.match(passing, /selectedIds=\{selected\}/);
+  assert.match(passing, /onCardClick=\{readOnly \? undefined : card => toggle\(card\.id\)\}/);
   assert.match(chatStyles, /\.passing-progress\s*\{\s*flex:0 0 auto;/);
   assert.match(chatStyles, /\.game-table-status\s*>\s*\.passing-progress\s*\{\s*flex-basis:100%;/);
 });
@@ -199,7 +199,7 @@ function callback(component, name, scope) {
 test("the local deal still toggles cards and refuses selection beyond its limit", () => {
   let selected = [];
   let cues = 0;
-  const toggle = callback(passing, "toggle", { passCount: 4, sfx: { select: () => cues++ }, setSelected: update => { selected = update(selected); } });
+  const toggle = callback(passing, "toggle", { readOnly: false, passCount: 4, sfx: { select: () => cues++ }, setSelected: update => { selected = update(selected); } });
   for (const id of ["A", "B", "C", "D", "E"]) toggle(id);
   assert.deepEqual(selected, ["A", "B", "C", "D"]);
   toggle("B");
@@ -225,7 +225,7 @@ test("the online deal respects both the limit and a pending action", () => {
 test("local play still arms on first tap, ignores illegal cards and plays on second tap", () => {
   let armed = null;
   const played = [];
-  const click = () => callback(local, "clickCard", { canPlay: true, armed, legal: new Set(["A", "B"]), state: { roundIndex: 0 }, trickNumber: 1, currentSeat: 0, sfx: { select() {}, playCard() {} }, onPlay: id => played.push(id), setArmed: id => { armed = id; } });
+  const click = () => callback(local, "clickCard", { canPlay: true, armed, legal: new Set(["A", "B"]), state: { roundIndex: 0 }, trickNumber: 1, currentSeat: 0, sfx: { select() {}, playCard() {} }, rememberPlayedCard() {}, onPlay: id => played.push(id), setArmed: id => { armed = id; } });
   click()({ id: "A" });
   assert.equal(armed, "A");
   assert.deepEqual(played, []);
@@ -242,7 +242,7 @@ test("online play preserves two-tap confirmation and cannot play while busy", ()
   let armed = null;
   const played = [];
   const actions = { busy: false, play: id => played.push(id) };
-  const click = () => callback(online, "clickPlay", { armed, actions, legal: new Set(["A"]), sfx: { select() {} }, setArmed: id => { armed = id; } });
+  const click = () => callback(online, "clickPlay", { armed, actions, legal: new Set(["A"]), sfx: { select() {} }, rememberPlayedCard() {}, setArmed: id => { armed = id; } });
   click()({ id: "A" });
   assert.equal(armed, "A");
   actions.busy = true;

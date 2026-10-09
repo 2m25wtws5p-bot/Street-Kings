@@ -56,6 +56,8 @@ jobs:
         run: node frontend/tests/layout.test.mjs
       - name: Test constant hand footprints and private local turns
         run: node frontend/tests/hand-layout.test.mjs
+      - name: Test personal sorting, drag guards, receipts and sound messages
+        run: node --test frontend/tests/hand-preferences.test.mjs frontend/tests/chat-sounds.test.mjs frontend/tests/presentation-messages.test.mjs
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"

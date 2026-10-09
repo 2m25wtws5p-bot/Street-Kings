@@ -5,13 +5,14 @@ import test from "node:test";
 // Dependency-free rule/ownership contracts. These checks do not simulate a
 // browser: actual hand coordinates and intersections still need visual QA.
 const source = path => readFile(new URL(`../src/${path}`, import.meta.url), "utf8");
-const [helperSource, hook, online, localGame, localTable, status, css] = await Promise.all([
+const [helperSource, hook, online, localGame, localTable, status, css, sharedHand, sharedCss] = await Promise.all([
   source("game/handLayout.js"), source("game/useHandLayout.js"),
   source("components/OnlineTable.jsx"), source("components/LocalGame.jsx"),
   source("components/PlayTable.jsx"), source("components/TurnStatus.jsx"), source("index.css"),
+  source("components/HandCards.jsx"), source("components/HandCards.css"),
 ]);
 const moduleUrl = text => `data:text/javascript;base64,${Buffer.from(text).toString("base64")}`;
-const { reservedHandHeight } = await import(moduleUrl(helperSource));
+const { reservedHandHeight, handRowCounts, handRowGeometry } = await import(moduleUrl(helperSource));
 const desktop = { initialCount: 20, width: 1024, cardWidth: 80, rowGap: 26, columnGap: 8, columns: 0 };
 const close = (actual, expected, message) => assert.ok(Math.abs(actual - expected) < .000001, `${message}: ${actual} != ${expected}`);
 
@@ -25,17 +26,46 @@ test("desktop reserves the original deal rows through waiting and completion", (
   close(reservedHandHeight({ ...desktop, initialCount: 10 }), 116, "ten-card deal needs one desktop row");
 });
 
-test("desktop row reservation follows the available width at wrapping boundaries", () => {
-  close(reservedHandHeight({ ...desktop, width: 640 }), 400, "20 cards need three rows at 640px");
-  close(reservedHandHeight({ ...desktop, width: 871 }), 400, "nine columns still need three rows");
+test("desktop always reserves two ten-card rows even at former wrapping boundaries", () => {
+  close(reservedHandHeight({ ...desktop, width: 640 }), 258, "20 cards overlap in two rows at 640px");
+  close(reservedHandHeight({ ...desktop, width: 871 }), 258, "the original two rows remain reserved");
   close(reservedHandHeight({ ...desktop, width: 872 }), 258, "ten columns fit at their exact boundary");
   close(reservedHandHeight({ ...desktop, width: 960 }), 258, "eleven columns fit at their exact boundary");
   close(reservedHandHeight({ ...desktop, width: 1024 }), 258, "maximum desktop width reserves two rows");
   close(reservedHandHeight({ ...desktop, initialCount: 1, width: 40 }), 116, "narrow widths still reserve one card");
 });
 
+test("hands use balanced rows of at most ten and exactly ten plus ten for twenty", () => {
+  assert.deepEqual(handRowCounts(20), [10, 10]);
+  assert.deepEqual(handRowCounts(15), [8, 7]);
+  assert.deepEqual(handRowCounts(12), [6, 6]);
+  assert.deepEqual(handRowCounts(11), [6, 5]);
+  assert.deepEqual(handRowCounts(10), [10]);
+  assert.deepEqual(handRowCounts(0), []);
+  for (let count = 1; count <= 20; count++) {
+    const rows = handRowCounts(count);
+    assert.equal(rows.reduce((sum, row) => sum + row, 0), count);
+    assert.ok(Math.max(...rows) <= 10);
+    assert.ok(Math.max(...rows) - Math.min(...rows) <= 1);
+  }
+});
+
+test("row spread expands as cards leave and stops at full card visibility", () => {
+  let previous = 0;
+  for (let count = 10; count >= 2; count--) {
+    const row = handRowGeometry({ count, width: 304, cardWidth: 64, columnGap: 8 });
+    assert.ok(row.width <= 304);
+    assert.ok(row.step >= previous);
+    assert.ok(row.step <= 72);
+    previous = row.step;
+  }
+  assert.deepEqual(handRowGeometry({ count: 4, width: 304, cardWidth: 64, columnGap: 8 }), { width: 280, step: 72 });
+  assert.deepEqual(handRowGeometry({ count: 1, width: 304, cardWidth: 64, columnGap: 8 }), { width: 64, step: 0 });
+});
+
 test("mobile always reserves ten columns at every compact-card breakpoint", () => {
   const compactSizes = [
+    { cardWidth: 42, rowGap: 12, twoRows: 133.8, oneRow: 60.9 },
     { cardWidth: 64, rowGap: 22, twoRows: 207.6, oneRow: 92.8 },
     { cardWidth: 54, rowGap: 16, twoRows: 172.6, oneRow: 78.3 },
     { cardWidth: 46, rowGap: 16, twoRows: 149.4, oneRow: 66.7 },
@@ -132,7 +162,8 @@ test("local play access follows the hand owner and phase rather than visibility"
     assert.equal(expression(localTable, "faceDown", { ...fixture, persistentHand, isTrickEnd: fixture.phase === "trickEnd" }), fixture.faceDown);
   }
   assert.match(localTable, /useTurnReminder\(\s*\{\s*enabled:\s*canPlay\s*,/);
-  assert.match(localTable, /onClick=\{canPlay\s*\?\s*\(\)\s*=>\s*clickCard\(card\)\s*:\s*undefined\}/);
+  assert.match(localTable, /onCardClick=\{canPlay\s*\?\s*clickCard\s*:\s*undefined\}/);
+  assert.match(localTable, /canDrag=\{canPlay\}/);
 });
 
 test("a stale local card callback cannot select, sound or play while waiting", () => {
@@ -146,23 +177,20 @@ test("a stale local card callback cannot select, sound or play while waiting", (
   Function(...Object.keys(scope), `return (${callback});`)(...Object.values(scope))({ id: "A" });
 });
 
-test("online phases share one persistent medium-card hand map", () => {
-  assert.equal([...online.matchAll(/yourHand\.map\(/g)].length, 1);
-  assert.match(online, /yourHand\.map\(\(card\)\s*=>\s*\([\s\S]*?<CardView\b[\s\S]*?\bsize="md"/);
+test("online phases share one persistent medium-card hand component", () => {
+  assert.equal([...online.matchAll(/<HandCards\b/g)].length, 1);
+  assert.match(online, /<HandCards\b[^>]*cards=\{yourHand\}/);
+  assert.match(sharedHand, /<CardView\b[^>]*card=\{card\} size="md"/);
   assert.doesNotMatch(online, /<Waiting\b|function Waiting\b/);
-  assert.match(online, /useHandLayout\(dealCount\(n\)\)/);
-  assert.match(online, /onClick=\{phase === "passing"\s*&&\s*!iPassed\s*\?[^\n]+:\s*yourTurn\s*\?[^\n]+:\s*undefined\}/);
+  assert.match(online, /initialCount=\{dealCount\(n\)\}/);
+  assert.match(online, /onCardClick=\{phase === "passing"\s*&&\s*!iPassed\s*&&\s*!actions\.busy\s*\?[^\n]+:\s*yourTurn\s*&&\s*!actions\.busy\s*\?[^\n]+:\s*undefined\}/);
+  assert.match(online, /canDrag=\{yourTurn\s*&&\s*!actions\.busy\}/);
   assert.match(online, /const yourTurn = !spectator\s*&&\s*phase === "playing"\s*&&\s*currentSeat === yourSeat;/);
 });
 
 test("both tables keep the same measured hand and reserved confirmation hint", () => {
   for (const component of [online, localTable]) {
-    const grids = [...component.matchAll(/<div\b[^>]*data-testid="own-hand-grid"[^>]*>/g)];
-    assert.equal(grids.length, 1);
-    assert.match(grids[0][0], /turn-hand-grid compact-hand/);
-    assert.match(grids[0][0], /ref=\{handLayout\.ref\}/);
-    assert.match(grids[0][0], /style=\{handLayout\.style\}/);
-    assert.match(grids[0][0], /data-initial-count=/);
+    assert.equal([...component.matchAll(/<HandCards\b/g)].length, 1);
     assert.match(component, /className="turn-action-slot"/);
     assert.match(component, /state=\{(?:phase === "trickEnd"|isTrickEnd)\s*\?\s*"complete"\s*:\s*(?:yourTurn|canPlay)\s*\?\s*"active"\s*:\s*"waiting"\}/);
     const hint = component.match(/<span\b[^>]*data-testid="game-play-confirmation-hint"[^>]*>/);
@@ -172,7 +200,10 @@ test("both tables keep the same measured hand and reserved confirmation hint", (
     assert.match(hint[0], /aria-hidden=/);
     assert.doesNotMatch(component, /armed\s*&&\s*<span[^>]*game-play-hint/);
   }
-  assert.match(localTable, /useHandLayout\(totalTricks\)/);
+  assert.match(localTable, /initialCount=\{totalTricks\}/);
+  assert.match(sharedHand, /ref=\{layout\.ref\} style=\{layout\.style\}/);
+  assert.match(sharedHand, /data-initial-count=\{initialCount\} data-testid="own-hand-grid"/);
+  assert.match(sharedHand, /useHandLayout\(initialCount\)/);
 });
 
 // Preserve media contexts so a mobile override cannot masquerade as a desktop
@@ -205,7 +236,7 @@ function stylesheetRules(text, media = []) {
   }
   return result;
 }
-const rules = stylesheetRules(css.replace(/\/\*[\s\S]*?\*\//g, ""));
+const rules = stylesheetRules(`${css}\n${sharedCss}`.replace(/\/\*[\s\S]*?\*\//g, ""));
 const properties = (selector, media = []) => Object.assign({}, ...rules
   .filter(rule => rule.selector === selector && JSON.stringify(rule.media) === JSON.stringify(media)).map(rule => rule.properties));
 const mobile = ["@media(max-width:639px)"];
@@ -259,6 +290,13 @@ test("responsive CSS uses the same card dimensions that drive row reservation", 
   assert.equal(compact["grid-template-columns"], "repeat(9,minmax(0,1fr)) var(--hand-card-width)");
   assert.equal(compact["align-content"], "start");
   assert.equal(compact["align-items"], "start");
+  const spread = properties(".hand-cards-shell .turn-hand-grid.compact-hand.spread-hand");
+  assert.equal(spread.display, "flex");
+  assert.equal(spread["flex-direction"], "column");
+  assert.equal(spread["grid-template-columns"], "none");
+  const spreadRow = properties(".hand-cards-shell .turn-hand-grid.compact-hand.spread-hand > .spread-hand-row");
+  assert.equal(spreadRow.height, "calc(var(--hand-card-width) * 1.45)");
+  assert.equal(spreadRow.transform, "none");
   assert.equal(properties(".turn-hand-grid.compact-hand", ["@media(max-width:639px)and(max-height:700px)"])["--hand-card-width"], "54px");
   assert.equal(properties(".turn-hand-grid.compact-hand", shortMobile)["--hand-card-width"], "46px");
   assert.equal(properties('.turn-hand-grid.compact-hand > .street-card:not([data-selected="true"]):hover').transform, "none");

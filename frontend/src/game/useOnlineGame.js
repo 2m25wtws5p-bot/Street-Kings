@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { roomApi, onlineErrorMessage } from "./api";
+import { isChatSound } from "./chat";
+import { useChatSounds } from "./useChatSounds";
 import { useI18n } from "../i18n/I18nProvider";
 
 const configuredPollMs = Number(process.env.REACT_APP_GAME_POLL_MS);
@@ -98,12 +100,12 @@ export function useOnlineGame(code, token) {
 
   // Chat has its own submission lock. A slow send cannot stop a card action,
   // abort polling, or overwrite a newer table received from another request.
-  const sendChat = useCallback(async (text) => {
+  const submitChat = useCallback(async ({ text, sound }) => {
     const request = identity;
     if (!current(request) || !request.code || !request.token || request.chat) return false;
     const message = typeof text === "string" ? text.replace(/\r\n|[\r\n\t\u2028\u2029]/g, " ").trim() : "";
-    if (!message || Array.from(message).length > 140) {
-      setChatError({ translationKey: "chat.invalidLength" });
+    if (sound !== undefined ? !isChatSound(sound) : !message || Array.from(message).length > 140) {
+      setChatError({ translationKey: sound !== undefined ? "error.chatSound" : "chat.invalidLength" });
       return false;
     }
     if (request.lastChatAt != null && Date.now() - request.lastChatAt < 1500) {
@@ -113,7 +115,9 @@ export function useOnlineGame(code, token) {
     const sentAt = Date.now();
     request.chat = true; setChatBusy(true); setChatError(null);
     try {
-      const value = await roomApi.chat(request.code, request.token, message);
+      const value = sound !== undefined
+        ? await roomApi.chatSound(request.code, request.token, sound)
+        : await roomApi.chat(request.code, request.token, message);
       if (!current(request)) return false;
       request.lastChatAt = sentAt;
       acceptView(value, request);
@@ -143,17 +147,20 @@ export function useOnlineGame(code, token) {
     })().finally(() => { request.presenceSending = null; });
     return request.presenceSending;
   };
+  useChatSounds(viewIdentity.current === identity ? view : null, identity);
   return {
     view: viewIdentity.current === identity ? view : null,
     error: error ? onlineErrorMessage(error, t) : null,
     actionError: actionError ? onlineErrorMessage(actionError, t) : null,
     chatError: chatError ? onlineErrorMessage(chatError, t) : null,
-    busy, poll, chatBusy, sendChat,
+    busy, poll, chatBusy,
+    sendChat: text => submitChat({ text }),
+    sendChatSound: sound => submitChat({ sound }),
     dismissActionError: () => setActionError(null),
     pass: (cards) => doAction({ type: "pass", cards }),
     play: (cardId) => doAction({ type: "play", cardId }),
     continueTrick: () => doAction({ type: "continueTrick" }),
-    nextRound: () => doAction({ type: "nextRound" }),
+    nextRound: () => doAction({ type: "nextRound", roundId: viewIdentity.current === identity ? view?.roundId : undefined }),
     // Presence updates must not block or cancel actual game actions.
     reviewLastTrick,
     start: () => runAction(roomApi.start),

@@ -1,0 +1,28 @@
+.special-card-reference { flex:0 0 auto; width:70px; align-self:start; }
+.special-card-reference > .street-card { display:block; width:100%; aspect-ratio:20 / 29; transform:none; }
+.special-card-reference .card-art { object-fit:contain; }
+.special-card-reference-compact { width:52px; }
+.rule-special.rule-special-illustrated { display:flex; align-items:flex-start; gap:14px; }
+.rule-special-illustrated .rule-special-copy { flex:1; min-width:0; }
+.score-step.score-step-illustrated { display:flex; align-items:flex-start; gap:10px; }
+.score-step-illustrated .score-step-copy { flex:1; min-width:0; }
+.rule-scoring-illustrations { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px; }
+.round-readiness { margin-top:24px; border:1px solid #ddbb7480; border-radius:8px; padding:16px; background:#132826; color:#f4e9d2; }
+.round-readiness h3 { font-size:20px; line-height:1.25; margin:0 0 6px; }
+.round-readiness > p { font-size:13px; line-height:1.5; }
+.round-readiness-list { list-style:none; display:grid; gap:8px; margin:12px 0; padding:0; }
+.round-readiness-player { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; padding:8px 10px; border:1px solid #c9bfa850; border-radius:6px; background:#243a38; font-size:13px; }
+.round-readiness-player-name { min-width:0; overflow-wrap:anywhere; flex:1; }
+.round-readiness-status { display:inline-flex; align-items:center; gap:5px; font-weight:700; color:#ffe0a0; }
+.round-readiness-player[data-ready="true"] { border-color:#59c29488; }
+.round-readiness-player[data-ready="true"] .round-readiness-status { color:#a4f1c5; }
+.round-readiness-button { display:inline-flex; align-items:center; justify-content:center; gap:6px; border:1px solid #eac67d; border-radius:5px; padding:8px 12px; font-weight:800; background:#f3cb74; color:#172725; cursor:pointer; }
+.round-readiness-button:disabled { opacity:.6; cursor:default; }
+.round-readiness-button:focus-visible { outline:3px solid #fff0b8; outline-offset:3px; }
+.round-readiness-own-button { width:100%; min-height:44px; }
+@media(max-width:420px) {
+  .special-card-reference { width:60px; }
+  .special-card-reference-compact { width:44px; }
+  .rule-special.rule-special-illustrated { gap:10px; padding:10px; }
+  .score-step.score-step-illustrated { gap:8px; }
+}

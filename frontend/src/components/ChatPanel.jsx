@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
-import { MessageCircle, Send, X } from "lucide-react";
-import { CHAT_EMOJIS, CHAT_LIMIT, chatLength, limitChatText } from "../game/chat";
+import { MessageCircle, Send, X, Volume2 } from "lucide-react";
+import { CHAT_EMOJIS, CHAT_LIMIT, CHAT_SOUNDS, isChatSound, chatLength, limitChatText } from "../game/chat";
 import { useI18n } from "../i18n/I18nProvider";
+import { sfx, unlockSound } from "../game/sound";
+import "./TableImprovements.css";
 
 export function ChatPanel({ view, actions, inline = false }) {
   const { t, locale } = useI18n();
@@ -44,10 +46,14 @@ export function ChatPanel({ view, actions, inline = false }) {
       <div ref={transcript} className="chat-transcript" role="log" aria-label={t("chat.recent")} aria-live={open ? "polite" : "off"} aria-relevant="additions text" data-testid="chat-transcript">
         {messages.length ? messages.map(message => <div key={message.id} className={`chat-message ${message.seat === view.yourSeat ? "chat-message-own" : ""}`} data-testid={`chat-message-${message.id}`}>
           <div className="chat-message-meta"><span>{message.name}{message.seat === view.yourSeat ? t("chat.you") : ""}</span><time dateTime={new Date(message.createdAt).toISOString()}>{new Date(message.createdAt).toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })}</time></div>
-          <p>{message.text}</p>
+          {isChatSound(message.sound) ? <button type="button" className="chat-replay-sound" data-testid={`chat-replay-${message.id}`} onClick={() => { unlockSound(); sfx.chatSound(message.sound); }} aria-label={t("improvements.replaySound", { sound: t(`chat.sound.${message.sound}`) })}><Volume2 size={15} />{t(`chat.sound.${message.sound}`)}</button> : <p>{message.text}</p>}
         </div>) : <p className="chat-empty">{t("chat.empty")}</p>}
       </div>
       {canSend ? <>
+        <div className="chat-sound-choices" aria-label={t("improvements.chatSounds")}>
+          {CHAT_SOUNDS.map(sound => <button type="button" key={sound.id} disabled={actions.chatBusy} data-testid={`chat-sound-${sound.id}`} onClick={() => { unlockSound(); actions.sendChatSound(sound.id); }}><Volume2 size={14} />{t(sound.labelKey)}</button>)}
+        </div>
+        <p className="chat-sound-note">{t("improvements.soundNote")}</p>
         <div className="chat-quick-emojis" aria-label={t("chat.quick")}>
           {CHAT_EMOJIS.map(emoji => <button key={emoji} type="button" onClick={() => submit(emoji)} disabled={actions.chatBusy} aria-label={t("chat.sendEmoji", { emoji })} data-testid={`chat-emoji-${emoji}`}>{emoji}</button>)}
         </div>

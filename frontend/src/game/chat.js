@@ -2,6 +2,12 @@ export const CHAT_LIMIT = 140;
 export const CHAT_COOLDOWN_MS = 1500;
 export const CHAT_BUBBLE_MS = 7000;
 export const CHAT_EMOJIS = ["😎", "😂", "🔥", "👏", "😮", "😈", "❤️", "👍"];
+export const CHAT_SOUNDS = Object.freeze([
+  { id: "siren", labelKey: "chat.sound.siren" },
+  { id: "scratch", labelKey: "chat.sound.scratch" },
+  { id: "airhorn", labelKey: "chat.sound.airhorn" },
+]);
+export const isChatSound = value => CHAT_SOUNDS.some(sound => sound.id === value);
 
 // Match the server's Unicode character count, including emoji outside the BMP.
 export const chatLength = (value) => Array.from(value || "").length;

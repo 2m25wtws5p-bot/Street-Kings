@@ -9,8 +9,12 @@ import * as common from '../src/i18n/messages/common.js';
 import * as game from '../src/i18n/messages/game.js';
 import * as online from '../src/i18n/messages/online.js';
 import * as rules from '../src/i18n/messages/rules.js';
+import * as cardsImprovements from '../src/i18n/messages/cardsImprovements.js';
+import * as flowImprovements from '../src/i18n/messages/flowImprovements.js';
+import * as presentationImprovements from '../src/i18n/messages/presentationImprovements.js';
+import * as tableImprovements from '../src/i18n/messages/tableImprovements.js';
 
-const messages = [common, game, online, rules];
+const messages = [common, game, online, rules, cardsImprovements, flowImprovements, presentationImprovements, tableImprovements];
 const placeholders = value => [...value.matchAll(/\{(\w+)\}/g)].map(match => match[1]).sort();
 
 test('German is the explicit default, regardless of browser language', async () => {

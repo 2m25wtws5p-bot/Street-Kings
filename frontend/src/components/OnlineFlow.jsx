@@ -188,6 +188,10 @@ function CreateJoin({ initialCode, onExit, onSession }) {
 
         <div className="panel rounded-lg p-5 rise-in">
           <LanguageSelector testId="online-language-select" />
+          <div className="rounded-md border border-amber-200/30 bg-black/20 p-3 mb-4 text-xs leading-relaxed text-slate-200" data-testid="online-setup-guide">
+            <h2 className="font-display text-sm font-bold text-amber-200 mb-1">{t("improvements.setup.steps")}</h2>
+            {invited ? <p>{t("improvements.setup.invited")}</p> : <><p>{t("improvements.setup.create")}</p><p className="mt-2">{t("improvements.setup.join")}</p></>}
+          </div>
           <div className="flex items-center gap-3 mb-4">
             <button onClick={() => { const chosen = randomAvatarIndex(avatarIdx); setAvatarIdx(chosen); sfx.select(); }} data-testid="btn-cycle-avatar" title={t("online.randomAvatar")} aria-label={t("online.randomAvatar")}>
               <Avatar avatar={avatar} size={48} active />
@@ -199,9 +203,10 @@ function CreateJoin({ initialCode, onExit, onSession }) {
 
           {!invited && (
             <>
-              <button onClick={create} disabled={busy} data-testid="btn-create-room" className="w-full rounded-md py-3.5 font-display text-lg font-bold text-black bg-gradient-to-r from-yellow-300 to-amber-400 glow-ring flex items-center justify-center gap-2 disabled:opacity-60">
+              <button onClick={create} disabled={busy} aria-describedby="create-room-hint" data-testid="btn-create-room" className="w-full rounded-md py-3.5 font-display text-lg font-bold text-black bg-gradient-to-r from-yellow-300 to-amber-400 glow-ring flex items-center justify-center gap-2 disabled:opacity-60">
                 <Plus size={20} /> {t("online.create")}
               </button>
+              <p id="create-room-hint" className="text-slate-300 text-xs mt-2 text-center">{t("improvements.setup.createHint")}</p>
 
               <div className="flex items-center gap-3 my-4">
                 <div className="flex-1 h-px bg-white/10" />
@@ -211,7 +216,8 @@ function CreateJoin({ initialCode, onExit, onSession }) {
             </>
           )}
 
-          <input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} maxLength={6} placeholder={t("online.code")} aria-label={t("online.code")} data-testid="input-room-code" className="w-full bg-black/40 border border-white/10 focus:border-amber-400/60 rounded-lg px-3 py-2.5 text-amber-200 placeholder:text-slate-400/40 outline-none font-mono-stat text-lg tracking-widest text-center uppercase" />
+          <label htmlFor="online-room-code" className="block text-slate-200 text-xs mb-2">{t("improvements.setup.codeHint")}</label>
+          <input id="online-room-code" value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} maxLength={6} placeholder={t("online.code")} aria-label={t("online.code")} data-testid="input-room-code" className="w-full bg-black/40 border border-white/10 focus:border-amber-400/60 rounded-lg px-3 py-2.5 text-amber-200 placeholder:text-slate-400/40 outline-none font-mono-stat text-lg tracking-widest text-center uppercase" />
           <div className="grid grid-cols-2 gap-2 mt-2">
             <button onClick={join} disabled={busy} data-testid="btn-join-room" className={`rounded-lg py-3 font-display font-bold flex items-center justify-center gap-2 disabled:opacity-60 transition-colors ${invited ? "text-black bg-gradient-to-r from-yellow-300 to-amber-400 glow-ring" : "text-amber-100 bg-black/40 border border-white/15 hover:border-amber-400/50"}`}>
               <LogIn size={18} /> {t("online.join")}
@@ -262,18 +268,20 @@ function Lobby({ view, actions, onLeave }) {
           </button>
           <p className="text-slate-400/50 text-xs mt-2">{t("online.copyHint")}</p>
           <button type="button" onClick={() => copyRoom(true)} data-testid="btn-copy-room-link" className="room-invite-link-button"><Link size={13} aria-hidden="true" /> {t("online.copyLink")}</button>
+          <p className="text-slate-200 text-xs leading-relaxed mt-3" data-testid="room-invite-guide">{t("improvements.lobby.inviteHint")}</p>
           <p role="status" className="room-copy-feedback" data-testid="room-copy-status">{copyMessage && t(copyMessage, { code: view.code })}</p>
         </div>
 
         <div className="panel rounded-lg p-4 rise-in">
+          <p className="text-slate-200 text-xs leading-relaxed mb-4" data-testid="lobby-controls-guide">{t(view.isHost ? "improvements.lobby.hostHint" : "improvements.lobby.guestHint")}</p>
           <div className="flex items-center justify-between mb-3">
             <span className="font-display text-amber-300 text-sm">{t("online.crewCount", { count: n })}</span>
             {view.isHost && (
               <div className="flex gap-1.5">
-                <button onClick={actions.addBot} disabled={n >= 6 || actions.busy} data-testid="btn-add-bot" className="text-xs font-display rounded-lg px-3 py-1.5 bg-white/5 border border-slate-400/60 text-slate-100 hover:bg-white/10 transition-colors disabled:opacity-40 flex items-center gap-1">
+                <button onClick={actions.addBot} disabled={n >= 6 || actions.busy} title={t("improvements.lobby.addBot")} data-testid="btn-add-bot" className="text-xs font-display rounded-lg px-3 py-1.5 bg-white/5 border border-slate-400/60 text-slate-100 hover:bg-white/10 transition-colors disabled:opacity-40 flex items-center gap-1">
                   <Bot size={14} /> {t("online.addBot")}
                 </button>
-                <button onClick={actions.removeBot} disabled={actions.busy || !view.players.some(player => player.isBot)} data-testid="btn-remove-bot" className="text-xs font-display rounded-lg px-3 py-1.5 bg-black/30 border border-white/10 text-slate-300 hover:border-slate-400/60 transition-colors disabled:opacity-40">
+                <button onClick={actions.removeBot} disabled={actions.busy || !view.players.some(player => player.isBot)} title={t("improvements.lobby.removeBot")} data-testid="btn-remove-bot" className="text-xs font-display rounded-lg px-3 py-1.5 bg-black/30 border border-white/10 text-slate-300 hover:border-slate-400/60 transition-colors disabled:opacity-40">
                   {t("online.removeBot")}
                 </button>
               </div>
@@ -308,7 +316,7 @@ function Lobby({ view, actions, onLeave }) {
 
         <div className="mt-6">
           {view.isHost ? (
-            <button onClick={actions.start} disabled={!canStart || actions.busy} data-testid="btn-start-online-game" className={`w-full rounded-md py-4 font-display text-lg font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-60 ${canStart ? "text-black bg-gradient-to-r from-yellow-300 to-amber-400 glow-ring" : "text-slate-400/40 bg-black/30 border border-white/10 cursor-not-allowed"}`}>
+            <button onClick={actions.start} disabled={!canStart || actions.busy} title={t("improvements.lobby.start")} data-testid="btn-start-online-game" className={`w-full rounded-md py-4 font-display text-lg font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-60 ${canStart ? "text-black bg-gradient-to-r from-yellow-300 to-amber-400 glow-ring" : "text-slate-400/40 bg-black/30 border border-white/10 cursor-not-allowed"}`}>
               <Play size={20} /> {t(canStart ? "online.start" : "online.minimumPlayers")}
             </button>
           ) : view.isSpectator ? (

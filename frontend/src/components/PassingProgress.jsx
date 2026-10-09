@@ -1,6 +1,7 @@
 import React from "react";
 import { Check, Clock3 } from "lucide-react";
 import { useI18n } from "../i18n/I18nProvider";
+import "./TableImprovements.css";
 
 export function PassingProgress({ players, passedSeats = [], yourSeat }) {
   const { t } = useI18n();
@@ -14,7 +15,7 @@ export function PassingProgress({ players, passedSeats = [], yourSeat }) {
         return <span key={seat} className={`passing-player-status ${passed ? "is-ready" : "is-waiting"}`} data-testid={`passing-status-${seat}`}>
           {passed ? <Check size={12} aria-hidden="true" /> : <Clock3 size={12} aria-hidden="true" />}
           <span className="passing-player-name" title={player.name}>{player.name}{seat === yourSeat ? t("game.youSuffix") : ""}</span>
-          <span>{passed ? t("game.ready") : t("game.waits")}</span>
+          <span>{passed ? t("game.ready") : t("improvements.passing")}</span>
         </span>;
       })}
     </div>

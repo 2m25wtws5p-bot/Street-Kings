@@ -31,7 +31,7 @@ class TimingTests(unittest.TestCase):
 
     def test_bot_cards_are_individually_visible_and_full_trick_is_held(self):
         state = room()
-        with patch.object(server, "BOT_PLAY_DELAY", .95), patch.object(server.random, "uniform", return_value=1), patch.object(server, "TRICK_HOLD_SECONDS", 2), patch.object(server.time, "time", return_value=100) as clock:
+        with patch.object(server, "BOT_PLAY_DELAY", .95), patch.object(server.random, "uniform", return_value=1), patch.object(server, "TRICK_HOLD_SECONDS", 1), patch.object(server.time, "time", return_value=100) as clock:
             server._apply_play(state, "RED-1")
             server._advance_bots(state)
             self.assertEqual(len(state["trick"]), 1)
@@ -46,15 +46,15 @@ class TimingTests(unittest.TestCase):
             self.assertEqual(state["phase"], "trickEnd")
             self.assertEqual(len(state["trick"]), 3)
             completed = copy.deepcopy(state["trick"])
-            clock.return_value = 103.9
+            clock.return_value = 102.9
             server._advance_bots(state)
             self.assertEqual(state["trick"], completed)
-            clock.return_value = 104
+            clock.return_value = 103
             server._advance_bots(state)
             self.assertEqual(state["phase"], "playing")
             self.assertEqual(state["trick"], [])
             self.assertEqual(state["lastTrick"], completed)
-            self.assertGreater(state["nextBotAt"], 104)
+            self.assertGreater(state["nextBotAt"], 103)
 
     def test_review_presence_is_public_but_expires_and_hands_stay_private(self):
         state = room()
@@ -85,7 +85,15 @@ class ReviewActionTests(unittest.IsolatedAsyncioTestCase):
     async def test_host_cannot_collect_before_minimum_hold(self):
         state = room()
         state.update(phase="trickEnd", lastWinner=0, trickEndedAt=100)
-        with patch.object(server, "_get_room", AsyncMock(return_value=state)), patch.object(server, "TRICK_HOLD_SECONDS", 2), patch.object(server.time, "time", return_value=101):
+        with patch.object(server, "_get_room", AsyncMock(return_value=state)), patch.object(server, "TRICK_HOLD_SECONDS", 1), patch.object(server.time, "time", return_value=100.99):
             with self.assertRaises(HTTPException) as error:
                 await server.room_action("TIMING", server.ActionReq(token="human", type="continueTrick"))
             self.assertEqual(error.exception.status_code, 409)
+
+    async def test_host_can_collect_after_one_second(self):
+        state = room()
+        state.update(phase="trickEnd", lastWinner=0, trickEndedAt=100)
+        with patch.object(server, "_get_room", AsyncMock(return_value=state)), patch.object(server, "_save_room", AsyncMock()), patch.object(server, "TRICK_HOLD_SECONDS", 1), patch.object(server.time, "time", return_value=101):
+            view = await server.room_action("TIMING", server.ActionReq(token="human", type="continueTrick"))
+            self.assertEqual(view["phase"], "playing")
+            self.assertEqual(view["trickHoldMs"], 1000)

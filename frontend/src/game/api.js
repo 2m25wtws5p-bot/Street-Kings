@@ -1,5 +1,9 @@
 import axios from "axios";
-import { de as onlineGerman } from "../i18n/messages/online";
+import { de as baseOnlineGerman } from "../i18n/messages/online";
+import { de as flowGerman } from "../i18n/messages/flowImprovements";
+import { isChatSound } from "./chat";
+
+const onlineGerman = { ...baseOnlineGerman, ...flowGerman };
 
 const backendUrl = (process.env.REACT_APP_BACKEND_URL || "").trim().replace(/\/+$/, "");
 let configurationError = "";
@@ -71,7 +75,8 @@ export function validateRoomView(view) {
   const chatValid = messages => messages == null || (Array.isArray(messages) && messages.length <= 30 &&
     messages.every(message => message && typeof message.id === "string" && message.id.length > 0 &&
       seatValid(message.seat) && typeof message.name === "string" && typeof message.text === "string" &&
-      Array.from(message.text).length > 0 && Array.from(message.text).length <= 140 &&
+      (message.sound == null ? Array.from(message.text).length > 0 && Array.from(message.text).length <= 140
+        : isChatSound(message.sound) && message.text === "") &&
       Number.isSafeInteger(message.createdAt) && message.createdAt >= 0 && message.createdAt <= 8640000000000000));
   const valid = view && typeof view === "object" && typeof view.code === "string" &&
     ["lobby", "playing", "gameOver"].includes(view.status) &&
@@ -82,6 +87,10 @@ export function validateRoomView(view) {
     (view.yourSeat == null || seatValid(view.yourSeat)) &&
     (view.spectators == null || (Array.isArray(view.spectators) && view.spectators.every(name => typeof name === "string"))) &&
     exchangeValid(view.yourExchange) &&
+    optionalCards(view.yourPassedCards) &&
+    (view.roundId == null || (typeof view.roundId === "string" && view.roundId.length > 0)) &&
+    (view.readySeats == null || (Array.isArray(view.readySeats) && view.readySeats.length === view.n && view.readySeats.every(value => typeof value === "boolean"))) &&
+    (view.iReady == null || typeof view.iReady === "boolean") &&
     chatValid(view.chatMessages) &&
     (view.status === "lobby" || (
       ["passing", "playing", "trickEnd", "roundScores", "gameOver"].includes(view.phase) &&
@@ -128,6 +137,7 @@ export const roomApi = {
   rematch: (code, token) => client.post(`${API}/rooms/${code}/rematch`, { token }).then(roomResponse),
   action: (code, token, payload) => client.post(`${API}/rooms/${code}/action`, { token, ...payload }).then(roomResponse),
   chat: (code, token, text) => client.post(`${API}/rooms/${code}/chat`, { token, text }).then(roomResponse),
+  chatSound: (code, token, sound) => client.post(`${API}/rooms/${code}/chat`, { token, sound }).then(roomResponse),
 };
 
 export function normalizeRecentGames(value) {

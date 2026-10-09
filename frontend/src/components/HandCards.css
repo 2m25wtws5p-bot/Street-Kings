@@ -1,0 +1,64 @@
+.hand-cards-shell { width:100%; min-width:0; max-width:1440px; margin:0 auto; }
+.hand-sort-toolbar { display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:5px 10px; min-height:30px; color:#e9d9b4; font-size:11px; }
+.hand-sort-toolbar label { display:flex; align-items:center; gap:7px; }
+.hand-sort-toolbar select,.hand-shuffle-button { max-width:170px; border:1px solid #b99d65; border-radius:4px; padding:4px 7px; color:#fff0cb; background:#162e32; font:inherit; }
+.hand-sort-toolbar small { color:#c4c6b6; font-size:10px; }
+.hand-card-detail { display:block; box-sizing:border-box; height:28px; padding:2px 0; max-width:680px; margin:0 auto; color:#ebdbb3; text-align:center; font-size:11px; line-height:13px; }
+.hand-card-detail strong { color:#ffe8a2; }
+.hand-shuffle-button:focus-visible,.hand-sort-toolbar select:focus-visible { outline:2px solid #ffe89f; outline-offset:2px; }
+.passing-recipient { display:inline-flex; align-items:center; gap:10px; margin-top:9px; padding:5px 14px; border:1px solid #ddbe78; border-radius:7px; background:#173a39; color:#f7e8bd; font-size:12px; }
+.passing-recipient strong { font-size:18px; }
+.game-passing [data-testid="passing-phase-instructions"] { display:flex; align-items:center; justify-content:center; min-height:40px; }
+.hand-cards-shell .turn-hand-grid.compact-hand.spread-hand {
+  --hand-column-gap:6px;
+  display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
+  width:100%; max-width:1024px; padding:0; margin:18px auto 0;
+  gap:var(--hand-row-gap) 0; grid-template-columns:none; grid-auto-rows:auto;
+}
+.hand-cards-shell .turn-hand-grid.compact-hand.spread-hand > .spread-hand-row {
+  display:flex; flex:0 0 auto; align-items:flex-start; justify-content:flex-start;
+  height:calc(var(--hand-card-width) * 1.45); max-width:100%; position:relative;
+  margin:0; padding:0; transform:none!important; transition:none; isolation:isolate;
+}
+.hand-cards-shell .spread-hand-row > .street-card,
+.hand-cards-shell .spread-hand-row > .street-card-back {
+  flex:0 0 var(--hand-card-width); width:var(--hand-card-width); height:auto;
+  position:relative; aspect-ratio:20 / 29; transform:none; z-index:auto;
+  user-select:none; -webkit-user-select:none;
+  transition:transform .23s ease, box-shadow .25s ease, opacity .25s ease;
+}
+.hand-cards-shell .spread-hand-row > .street-card[data-selected="true"] { transform:translateY(-12px); }
+.hand-cards-shell .spread-hand-row > .street-card[data-dragging="true"] { cursor:grabbing; }
+.hand-cards-shell .spread-hand-row .card-pip-top { left:1px; top:1px; min-width:18px; }
+.hand-cards-shell .spread-hand-row .card-pip-bottom { display:none; }
+.hand-cards-shell .spread-hand-row .card-hand-effect {
+  display:flex; position:absolute; left:1px; top:42px; width:19px; min-height:19px;
+  padding:2px 0; justify-content:center; gap:0; font-size:11px; line-height:12px;
+}
+.hand-cards-shell .spread-hand-row .card-hand-effect svg { display:none; }
+.hand-cards-shell .spread-hand-row .card-selection-check { left:2px; right:auto; top:auto; bottom:3px; }
+.hand-cards-shell .spread-hand-row .card-special-rule { white-space:normal; }
+.street-card .card-special-name { font-family:"Barlow Condensed","Arial Narrow",sans-serif; letter-spacing:0; overflow-wrap:anywhere; }
+.hand-card-received { animation:received-hand-card 1.8s ease both; }
+@keyframes received-hand-card { 0%,75% { box-shadow:0 0 0 3px #fcf0ad,0 0 18px #f6cb56; } 100% { box-shadow:0 6px 12px #0006; } }
+[data-card-drop-zone][data-drag-over="true"] { outline:3px dashed #f8d882; outline-offset:-6px; background-color:#f1ca551a; }
+@media(min-width:1100px) and (min-height:700px) {
+  .hand-cards-shell .turn-hand-grid.compact-hand.spread-hand { max-width:1440px; }
+}
+@media(max-width:639px) {
+  .hand-sort-toolbar { min-height:26px; gap:4px 7px; }
+  .hand-sort-toolbar label > span { font-size:10px; }
+  .hand-sort-toolbar small { display:none; }
+  .hand-sort-toolbar select,.hand-shuffle-button { padding:3px 5px; font-size:10px; }
+  .hand-card-detail { height:30px; font-size:10.5px; line-height:12px; }
+  .game-passing [data-testid="passing-phase-instructions"] { min-height:36px; }
+  .hand-cards-shell .turn-hand-grid.compact-hand.spread-hand { max-width:520px; margin-top:16px; }
+  .hand-cards-shell .spread-hand-row .card-pip-top { min-width:16px; padding:0; gap:0; }
+  .hand-cards-shell .spread-hand-row .card-pip-top .font-display { font-size:18px; line-height:1; }
+  .hand-cards-shell .spread-hand-row .card-pip-top svg { width:8px; height:8px; }
+  .hand-cards-shell .spread-hand-row .card-hand-effect { top:30px; width:17px; min-height:15px; font-size:10px; line-height:11px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .hand-cards-shell .spread-hand-row > .street-card { transition:none; }
+  .hand-card-received { animation:none; outline:3px solid #fcf0ad; }
+}

@@ -250,7 +250,7 @@ def _drive_to_game_over(s, code, host_tok):
                 # not the winner - try continueTrick with host (allowed) - already host token. Weird.
                 pass
         elif phase == "roundScores":
-            r = s.post(f"{API}/rooms/{code}/action", json={"token": host_tok, "type": "nextRound"})
+            r = s.post(f"{API}/rooms/{code}/action", json={"token": host_tok, "type": "nextRound", "roundId": v["roundId"]})
             assert r.status_code == 200, r.text
         else:
             # possibly bot turn - just poll again

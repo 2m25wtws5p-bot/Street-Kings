@@ -221,7 +221,7 @@ def test_full_game_host_plus_bots_completes(s):
             saw_round_end = True
             assert "scores" in view and sum(view["scores"]) >= 0
             r = s.post(f"{API}/rooms/{code}/action",
-                       json={"token": host, "type": "nextRound"})
+                       json={"token": host, "type": "nextRound", "roundId": view["roundId"]})
             assert r.status_code == 200, r.text
             view = r.json()
             # sanity: after nextRound, should be back to passing/playing OR gameOver

@@ -122,7 +122,7 @@ def drive_match(session, code, token, n, view):
             # Spectators cannot obtain card-exchange snapshots even at a round
             # transition, and polling does not run the round transition twice.
             spectator_view(session, code, n)
-            payload = {"type": "nextRound"}
+            payload = {"type": "nextRound", "roundId": view["roundId"]}
         else:
             pytest.fail(f"Unexpected online phase: {phase}")
         view = request(session, "POST", f"/rooms/{code}/action", json={"token": token, **payload})

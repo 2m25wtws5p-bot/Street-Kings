@@ -7,6 +7,8 @@ const moduleUrl = text => `data:text/javascript;base64,${Buffer.from(text).toStr
 const chat = await import(moduleUrl(await source("game/chat.js")));
 const clipboard = await import(moduleUrl(await source("game/clipboard.js")));
 const onlineMessagesUrl = moduleUrl(await source("i18n/messages/online.js"));
+const flowMessagesUrl = moduleUrl(await source("i18n/messages/flowImprovements.js"));
+const chatUrl = moduleUrl(await source("game/chat.js"));
 const { de, en } = await import(onlineMessagesUrl);
 const translator = language => (key, params = {}) => {
   const entry = (language === "en" ? en : de)[key];
@@ -15,6 +17,8 @@ const translator = language => (key, params = {}) => {
 };
 const api = await import(moduleUrl((await source("game/api.js"))
   .replace('from "../i18n/messages/online"', `from "${onlineMessagesUrl}"`)
+  .replace('from "../i18n/messages/flowImprovements"', `from "${flowMessagesUrl}"`)
+  .replace('from "./chat"', `from "${chatUrl}"`)
   .replace('import axios from "axios";', 'const axios={create:()=>({interceptors:{request:{use(){}}}})};')));
 
 test("chat limits use Unicode characters and keep complete emoji", () => {
@@ -47,6 +51,19 @@ test("chat responses reject unsafe or malformed transcripts and accept HTML as o
   for (const chatMessages of ["bad", [null], Array(31).fill(message), [{ ...message, seat: 2 }], [{ ...message, text: "😎".repeat(141) }], [{ ...message, text: "" }], [{ ...message, createdAt: "now" }], [{ ...message, createdAt: 8640000000000001 }]]) {
     assert.throws(() => api.validateRoomView({ ...room, chatMessages }), error => error.code === "ONLINE_RESPONSE");
   }
+});
+
+test("sound transcripts accept local allowlisted IDs and reject mixed or external audio payloads", () => {
+  const room = { code: "ROOM", status: "lobby", n: 1, version: 1, players: [{ seat: 0, name: "Host" }], yourSeat: 0 };
+  const message = { id: "sound-id", seat: 0, name: "Host", text: "", createdAt: 1760000000000 };
+  assert.deepEqual(chat.CHAT_SOUNDS.map(sound => sound.id), ["siren", "scratch", "airhorn"]);
+  for (const { id } of chat.CHAT_SOUNDS) {
+    assert.equal(api.validateRoomView({ ...room, chatMessages: [{ ...message, sound: id }] }).chatMessages[0].sound, id);
+  }
+  for (const sound of ["constructor", "https://example.test/audio.mp3", "<audio>", {}, 2]) {
+    assert.throws(() => api.validateRoomView({ ...room, chatMessages: [{ ...message, sound }] }), error => error.code === "ONLINE_RESPONSE");
+  }
+  assert.throws(() => api.validateRoomView({ ...room, chatMessages: [{ ...message, sound: "siren", text: "mixed" }] }));
 });
 
 test("denied modern clipboard falls back to copying the exact code and restores focus", async () => {
@@ -101,7 +118,9 @@ const fakeApi = moduleUrl('export const roomApi=new Proxy({}, {get:(_,name)=>(..
 const fakeI18n = moduleUrl('export const useI18n=()=>({t:globalThis.__chatT});');
 globalThis.__chatT = translator("de");
 const { useOnlineGame } = await import(moduleUrl((await source("game/useOnlineGame.js"))
+  .replace('import { useChatSounds } from "./useChatSounds";', 'const useChatSounds = () => {};')
   .replace('from "react"', `from "${hooks}"`).replace('from "./api"', `from "${fakeApi}"`)
+  .replace('from "./chat"', `from "${chatUrl}"`)
   .replace('from "../i18n/I18nProvider"', `from "${fakeI18n}"`)
   .replaceAll("setInterval(", "globalThis.__chatSetInterval(").replaceAll("clearInterval(", "globalThis.__chatClearInterval(")));
 globalThis.__chatSetInterval = () => 1;
@@ -174,6 +193,51 @@ test("late chat responses and errors from abandoned sessions cannot leak into an
     assert.equal(host.value.view.code, "NEW"); assert.equal(host.value.chatError, null); assert.equal(host.value.chatBusy, false);
     host.unmount();
   }
+});
+
+test("a sound send shares chat cooldown and never locks gameplay or applies a stale response", async () => {
+  const pending = deferred(); let sends = 0;
+  globalThis.__chatApi = {
+    get: async () => ({ code: "ROOM", version: 1 }),
+    chatSound: (_room, _token, sound) => { assert.equal(sound, "siren"); sends++; return pending.promise; },
+    action: async () => ({ code: "ROOM", version: 3, phase: "playing" }),
+  };
+  const host = new HookHost(); host.render(); await settle(); host.render();
+  assert.equal(await host.value.sendChatSound("https://example.test/file.mp3"), false);
+  assert.equal(sends, 0);
+  const send = host.value.sendChatSound("siren");
+  host.render(); assert.equal(host.value.chatBusy, true); assert.equal(host.value.busy, false);
+  assert.equal(await host.value.sendChat("Locked by sound"), false);
+  assert.equal(await host.value.play("RED-1"), true);
+  pending.resolve({ code: "ROOM", version: 2, phase: "passing" });
+  assert.equal(await send, true); host.render();
+  assert.equal(host.value.view.version, 3);
+  assert.equal(await host.value.sendChatSound("scratch"), false);
+  assert.equal(sends, 1); host.unmount();
+});
+
+test("a sound response from an abandoned token cannot enter the next session", async () => {
+  const pending = deferred();
+  globalThis.__chatApi = { get: async room => ({ code: room, version: 1 }), chatSound: () => pending.promise };
+  const host = new HookHost(); host.render("ROOM", "old"); await settle(); host.render("ROOM", "old");
+  const send = host.value.sendChatSound("airhorn");
+  host.render("ROOM", "new"); await settle(); host.render("ROOM", "new");
+  pending.resolve({ code: "ROOM", version: 999, chatMessages: [{ sound: "airhorn" }] });
+  assert.equal(await send, false); host.render("ROOM", "new");
+  assert.equal(host.value.view.version, 1); assert.equal(host.value.chatError, null);
+  host.unmount();
+});
+
+test("readiness requests include the visible round identity", async () => {
+  const payloads = [];
+  globalThis.__chatApi = {
+    get: async () => ({ code: "ROOM", version: 1, roundId: "round-identity", phase: "roundScores" }),
+    action: async (_room, _token, payload) => { payloads.push(payload); return { code: "ROOM", version: 2, roundId: "round-identity" }; },
+  };
+  const host = new HookHost(); host.render(); await settle(); host.render();
+  assert.equal(await host.value.nextRound(), true);
+  assert.deepEqual(payloads, [{ type: "nextRound", roundId: "round-identity" }]);
+  host.unmount();
 });
 
 test("online catalogs cover the same keys, variables and safe server error translations", () => {

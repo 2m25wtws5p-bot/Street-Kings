@@ -6,6 +6,7 @@ import { getScoreCardMeta } from "../game/scoreExplanation";
 import { Crown, ArrowRight } from "lucide-react";
 import { useI18n } from "../i18n/I18nProvider";
 import { useGameLabels } from "../i18n/gameLabels";
+import { SpecialCardReference } from "./SpecialCardReference";
 
 const SPECIAL_RULES = ["fire", "water", "pygmy", "air", "earth", "wizard"];
 const PASS_ROWS = [
@@ -77,9 +78,12 @@ export function RulesDialog({ open, onOpenChange }) {
           <p className="mb-3"><RuleText text={t("rules.specials.text")} /></p>
           <div className="grid gap-2">{SPECIAL_RULES.map(key => {
             const card = scoreCards[key]; const Icon = SUIT_ICON[card.suit] || SPECIAL_ICON[key];
-            return <div key={key} className="rule-special rounded-md p-3" data-rule-card={key} style={{ color: card.ink, background: card.paper, border: `1px solid ${card.ink}66` }}>
-              <div className="flex flex-wrap justify-between gap-1 mb-1"><span className="font-display text-lg font-bold inline-flex items-center gap-2"><Icon size={20} aria-hidden="true" />{card.colorName} {card.rank} · {card.name}</span><span className="text-[10px] font-bold uppercase self-center">{card.role}</span></div>
-              <p className="text-xs sm:text-sm leading-relaxed">{t(`rules.special.${key}`)}</p>
+            return <div key={key} className="rule-special rule-special-illustrated rounded-md p-3" data-rule-card={key} style={{ color: card.ink, background: card.paper, border: `1px solid ${card.ink}66` }}>
+              <SpecialCardReference cardKey={key} />
+              <div className="rule-special-copy">
+                <div className="flex flex-wrap justify-between gap-1 mb-1"><span className="font-display text-lg font-bold inline-flex items-center gap-2"><Icon size={20} aria-hidden="true" />{card.colorName} {card.rank} · {card.name}</span><span className="text-[10px] font-bold uppercase self-center">{card.role}</span></div>
+                <p className="text-xs sm:text-sm leading-relaxed">{t(`rules.special.${key}`)}</p>
+              </div>
             </div>;
           })}</div>
         </RuleSection>
@@ -87,9 +91,9 @@ export function RulesDialog({ open, onOpenChange }) {
         <RuleSection number="05" title={t("rules.scoring.title")}>
           <p><RuleText text={t("rules.scoring.text")} /></p>
           <div className="rule-example rounded-md p-3 mt-3 space-y-2 text-xs sm:text-sm">
-            <p><RuleText text={t("rules.scoring.doubleBefore")} /> <span className="font-mono-stat font-bold">4 × 2 = 8</span>. {t("rules.scoring.doubleBetween")} <span className="font-mono-stat font-bold">20 → 15</span>.</p>
-            <p><RuleText text={t("rules.scoring.greenBefore")} /> <span className="font-mono-stat font-bold">2 + 5 + 10 = 17</span>. {t("rules.scoring.greenBetween")} <span className="font-mono-stat font-bold">0</span>.</p>
-            <p><RuleText text={t("rules.scoring.reduceBefore")} /> <span className="font-mono-stat font-bold">3 − 3 = 0</span>. {t("rules.scoring.reduceAfter")}</p>
+            <div><div className="rule-scoring-illustrations"><SpecialCardReference cardKey="fire" compact /></div><p><RuleText text={t("rules.scoring.doubleBefore")} /> <span className="font-mono-stat font-bold">4 × 2 = 8</span>. {t("rules.scoring.doubleBetween")} <span className="font-mono-stat font-bold">20 → 15</span>.</p></div>
+            <div><div className="rule-scoring-illustrations">{["water", "pygmy", "air"].map(key => <SpecialCardReference key={key} cardKey={key} compact />)}</div><p><RuleText text={t("rules.scoring.greenBefore")} /> <span className="font-mono-stat font-bold">2 + 5 + 10 = 17</span>. {t("rules.scoring.greenBetween")} <span className="font-mono-stat font-bold">0</span>.</p></div>
+            <div><div className="rule-scoring-illustrations"><SpecialCardReference cardKey="earth" compact /></div><p><RuleText text={t("rules.scoring.reduceBefore")} /> <span className="font-mono-stat font-bold">3 − 3 = 0</span>. {t("rules.scoring.reduceAfter")}</p></div>
           </div>
           <p className="mt-2 inline-flex items-center gap-1 flex-wrap"><strong>{t("rules.scoring.total")}</strong> {t("rules.scoring.previous")} <ArrowRight size={14} aria-hidden="true" /> {t("rules.scoring.plus")} <ArrowRight size={14} aria-hidden="true" /> {t("rules.scoring.new")}</p>
         </RuleSection>

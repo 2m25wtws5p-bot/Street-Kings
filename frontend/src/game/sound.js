@@ -134,17 +134,47 @@ function policeSiren() {
   if (!c) return;
   const at = c.currentTime;
   const oscillator = c.createOscillator();
-  oscillator.type = "sine";
-  oscillator.frequency.setValueAtTime(560, at);
-  // Original, moderate-volume hi-lo siren; no recorded samples.
-  for (let step = 1; step <= 6; step++) {
-    oscillator.frequency.linearRampToValueAtTime(step % 2 ? 940 : 560, at + step * .16);
-  }
-  const amp = envelope(c, at, 1.05, .12);
-  oscillator.connect(amp);
-  oscillator.onended = () => { oscillator.disconnect(); amp.disconnect(); };
+  oscillator.type = "sawtooth";
+  oscillator.frequency.setValueAtTime(680, at);
+  // A recognizable police wail followed by faster yelps. Filtering keeps the
+  // original synthesized harmonics gentle, with no samples or background loop.
+  [[.28, 1380], [.56, 680], [.67, 1420], [.78, 680], [.89, 1420],
+    [1, 680], [1.11, 1420], [1.22, 680]].forEach(([delay, frequency]) => {
+    oscillator.frequency.linearRampToValueAtTime(frequency, at + delay);
+  });
+  const filter = c.createBiquadFilter();
+  filter.type = "lowpass";
+  filter.frequency.value = 2200;
+  filter.Q.value = .5;
+  const amp = c.createGain();
+  amp.gain.setValueAtTime(.0001, at);
+  amp.gain.linearRampToValueAtTime(.075, at + .025);
+  amp.gain.setValueAtTime(.075, at + 1.1);
+  amp.gain.exponentialRampToValueAtTime(.0001, at + 1.28);
+  amp.connect(master);
+  oscillator.connect(filter);
+  filter.connect(amp);
+  oscillator.onended = () => { oscillator.disconnect(); filter.disconnect(); amp.disconnect(); };
   oscillator.start(at);
-  oscillator.stop(at + 1.08);
+  oscillator.stop(at + 1.3);
+}
+function airHorn() {
+  const c = ac();
+  if (!c) return;
+  [220, 277.18, 329.63].forEach(frequency => {
+    const oscillator = c.createOscillator();
+    oscillator.type = "sawtooth";
+    oscillator.frequency.value = frequency;
+    const filter = c.createBiquadFilter();
+    filter.type = "lowpass";
+    filter.frequency.value = 1250;
+    const amp = envelope(c, c.currentTime, .45, .023);
+    oscillator.connect(filter);
+    filter.connect(amp);
+    oscillator.onended = () => { oscillator.disconnect(); filter.disconnect(); amp.disconnect(); };
+    oscillator.start(c.currentTime);
+    oscillator.stop(c.currentTime + .47);
+  });
 }
 const hat = (delay = 0, gain = .07) => texture(delay, .045, gain, 6500, "highpass");
 const rim = (delay = 0, gain = .13) => texture(delay, .075, gain, 1500);
@@ -176,5 +206,18 @@ export const sfx = {
     } catch {
       // A visual reminder still works when the browser refuses audio.
     }
+  },
+  chatSound(id) {
+    if (!enabled) return;
+    try {
+      switch (id) {
+        case "siren": policeSiren(); break;
+        case "scratch":
+          texture(0, .12, .12, 600); texture(.11, .12, .1, 1500); texture(.22, .14, .09, 450);
+          break;
+        case "airhorn": airHorn(); break;
+        default: break;
+      }
+    } catch { /* Sound messages must never interrupt a turn. */ }
   },
 };

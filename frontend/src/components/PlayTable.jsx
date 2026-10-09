@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
-import { CardView } from "./CardView";
+import { HandCards } from "./HandCards";
 import { LeadSuitIndicator } from "./LeadSuitIndicator";
 import { Avatar } from "./Avatar";
 import { PlayerIdentity } from "./PlayerIdentity";
 import { TrickCards } from "./TrickCards";
 import { TurnStatus } from "./TurnStatus";
+import { PlayOrder } from "./PlayOrder";
 import { useTurnReminder } from "../game/useTurnReminder";
-import { useHandLayout } from "../game/useHandLayout";
 import { legalCardIds, leadSuit, dealCount } from "../game/engine";
 import { sfx } from "../game/sound";
+import { rememberPlayedCard } from "../game/cardMotion";
 import { useI18n } from "../i18n/I18nProvider";
 
 export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false, displaySeat = null }) {
@@ -39,12 +40,11 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false, di
   const faceDown = !persistentHand && (hideHand || isTrickEnd);
   const legal = canPlay ? new Set(legalCardIds(hand, trick)) : new Set();
   const reminderCount = useTurnReminder({ enabled: canPlay, turnKey: `${state.roundIndex}-${trickNumber}-${currentSeat}` });
-  const handLayout = useHandLayout(totalTricks);
   const active = players[currentSeat];
   useEffect(() => {
     setReady(false);
     if (!isTrickEnd) return;
-    const timer = setTimeout(() => setReady(true), 2000);
+    const timer = setTimeout(() => setReady(true), 1000);
     return () => clearTimeout(timer);
   }, [isTrickEnd, trickNumber]);
   useEffect(() => () => clearTimeout(sweepTimer.current), []);
@@ -54,12 +54,21 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false, di
     if (!legal.has(card.id)) return;
     if (armed === card.id) {
       sfx.playCard(card, `${state.roundIndex}-${trickNumber}-${currentSeat}-${card.id}`);
+      rememberPlayedCard(card.id);
       onPlay(card.id);
       setArmed(null);
     } else {
       sfx.select();
       setArmed(card.id);
     }
+  };
+
+  const dropCard = (card) => {
+    if (!canPlay || !legal.has(card.id)) return;
+    sfx.playCard(card, `${state.roundIndex}-${trickNumber}-${currentSeat}-${card.id}`);
+    rememberPlayedCard(card.id);
+    onPlay(card.id);
+    setArmed(null);
   };
 
   const handleContinue = () => {
@@ -102,12 +111,15 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false, di
         ))}
       </div>
 
+      <PlayOrder players={players} currentSeat={isTrickEnd ? null : currentSeat} />
+
       {/* table center */}
       <div className="game-center flex-1 grid place-items-center px-4 py-2">
         <div
           className="relative w-full max-w-2xl min-h-[220px] rounded-[40%] grid place-items-center"
           style={{ background: "radial-gradient(ellipse at center, rgba(239,68,68,0.10), rgba(13,15,19,0) 70%)" }}
           data-testid="central-trick-cauldron"
+          data-card-drop-zone="true"
         >
           {trick.length === 0 && !isTrickEnd && (
             <p className="font-serif-fancy text-slate-400/50 italic text-lg">{t("game.emptyTrick")}</p>
@@ -132,11 +144,11 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false, di
             {!canPlay && !isTrickEnd && <span data-testid="bot-thinking" className="turn-wait-note">{t("game.handStays")}</span>}
           </TurnStatus>
         </div>
-        <div className="turn-hand-grid compact-hand flex flex-wrap justify-center gap-1.5 sm:gap-2 max-w-5xl mx-auto" ref={handLayout.ref} style={handLayout.style} data-initial-count={totalTricks} data-testid="own-hand-grid">
-          {hand.map((card) => <CardView key={card.id} card={card} size="md" faceDown={faceDown}
-            selected={canPlay && armed === card.id} dim={canPlay && !legal.has(card.id)}
-            onClick={canPlay ? () => clickCard(card) : undefined} testId={`hand-card-item-${card.id}`} />)}
-        </div>
+        <HandCards cards={hand} initialCount={totalTricks} faceDown={faceDown}
+          selectedIds={canPlay && armed ? [armed] : []} legalIds={legal}
+          dimIds={canPlay ? hand.filter(card => !legal.has(card.id)).map(card => card.id) : []}
+          onCardClick={canPlay ? clickCard : undefined} onCardDrop={dropCard} canDrag={canPlay}
+          interactionKey={`${state.roundIndex}-${trickNumber}-${currentSeat}-${phase}-${hideHand}`} />
       </div>
     </div>
   );

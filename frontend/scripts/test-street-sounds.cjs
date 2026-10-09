@@ -47,8 +47,18 @@ before = voices;
 const reminderStart = starts.length, reminderStop = stops.length;
 sfx.turnReminder();
 assert.equal(voices - before, 1, 'Turn reminder uses one bounded siren voice');
-assert(Math.max(...stops.slice(reminderStop)) - Math.min(...starts.slice(reminderStart)) <= 1.2, 'Siren must stop promptly');
-assert.deepEqual(sweeps.filter(value => value >= 560).slice(-6), [940,560,940,560,940,560], 'Police siren alternates high and low');
+assert(Math.max(...stops.slice(reminderStop)) - Math.min(...starts.slice(reminderStart)) <= 1.5, 'Siren must stop promptly');
+assert.deepEqual(sweeps.filter(value => value >= 680).slice(-8), [1380,680,1420,680,1420,680,1420,680], 'Police siren has a slow wail followed by quick yelps');
+for (const sound of ['siren', 'scratch', 'airhorn']) {
+  before = voices;
+  const firstStart = starts.length, firstStop = stops.length;
+  sfx.chatSound(sound);
+  assert(voices > before, `${sound} produces an original local cue`);
+  assert(Math.max(...stops.slice(firstStop)) - Math.min(...starts.slice(firstStart)) <= 1.5, 'Chat cues are bounded');
+}
+before = voices;
+for (const invalid of ['', 'https://example.com/audio.mp3', '<audio>', 'constructor', null]) sfx.chatSound(invalid);
+assert.equal(voices, before, 'Unknown sound IDs never produce audio');
 before = voices;
 unlockSound();
 assert.equal(voices - before, 1, 'iOS unlock starts a silent buffer in the gesture');
@@ -63,6 +73,7 @@ before = voices;
 setSoundEnabled(false);
 assert.equal(isSoundEnabled(), false);
 for (const cue of Object.keys(sfx)) sfx[cue]();
+sfx.chatSound('siren'); sfx.chatSound('scratch'); sfx.chatSound('airhorn');
 assert.equal(voices, before);
 assert.equal(targets.at(-1), 0);
 setSoundEnabled(true);

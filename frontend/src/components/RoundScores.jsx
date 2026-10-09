@@ -2,8 +2,9 @@ import React, { useEffect } from "react";
 import { Avatar } from "./Avatar";
 import { WIN_THRESHOLD } from "../game/constants";
 import { isGameOver } from "../game/engine";
-import { Siren, Crown, ChevronRight, Footprints } from "lucide-react";
+import { Siren, Crown, Footprints, CheckCircle2, Clock3, Bot } from "lucide-react";
 import { SUIT_ICON } from "./CardView";
+import { SpecialCardReference } from "./SpecialCardReference";
 import { explainRoundScore, getScoreCardMeta, signedScore } from "../game/scoreExplanation";
 import { sfx } from "../game/sound";
 import { useI18n } from "../i18n/I18nProvider";
@@ -14,19 +15,22 @@ function ScoreStep({ step, scoreCards }) {
   const card = scoreCards[step.cardKey];
   const Icon = SUIT_ICON[step.suit] || (step.cardKey === "wizard" ? Footprints : Siren);
   const [ink, paper] = SUIT_TONES[step.suit] || ["#343c49", "#ece5d5"];
-  return <li className="score-step rounded-md p-2.5" data-score-step={step.id} style={{ background: paper, color: ink, border: `1px solid ${ink}55` }}>
-    <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-      <span className="inline-flex items-center gap-1.5 font-display font-bold text-base"><Icon size={16} aria-hidden="true" />{card ? `${card.colorName} ${card.rank} · ${card.name}` : step.title}</span>
-      <span className="score-math font-mono-stat text-sm font-bold whitespace-nowrap">{step.math}</span>
-    </div>
-    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1 text-xs leading-relaxed">
-      {step.status && <span className="score-status font-semibold rounded px-1.5 py-0.5" style={{ border: `1px solid ${ink}55` }}>{step.status}</span>}
-      <span>{step.note}</span>
+  return <li className={`score-step rounded-md p-2.5${card || step.suit ? " score-step-illustrated" : ""}`} data-score-step={step.id} style={{ background: paper, color: ink, border: `1px solid ${ink}55` }}>
+    {(card || step.suit) && <SpecialCardReference cardKey={step.cardKey} suit={step.suit} compact />}
+    <div className="score-step-copy">
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+        <span className="inline-flex items-center gap-1.5 font-display font-bold text-base"><Icon size={16} aria-hidden="true" />{card ? `${card.colorName} ${card.rank} · ${card.name}` : step.title}</span>
+        <span className="score-math font-mono-stat text-sm font-bold whitespace-nowrap">{step.math}</span>
+      </div>
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1 text-xs leading-relaxed">
+        {step.status && <span className="score-status font-semibold rounded px-1.5 py-0.5" style={{ border: `1px solid ${ink}55` }}>{step.status}</span>}
+        <span>{step.note}</span>
+      </div>
     </div>
   </li>;
 }
 
-export function RoundScores({ state, onNext }) {
+export function RoundScores({ state, onNext, onReady, onReplaceSeat, readySeats = state.readySeats || [], yourSeat, busy = false, spectator = false }) {
   const { t } = useI18n();
   const { roundResult, scores, players } = state;
   const { results, shooter } = roundResult;
@@ -38,6 +42,10 @@ export function RoundScores({ state, onNext }) {
 
   useEffect(() => { if (shooter >= 0) sfx.witchReveal(); }, [shooter]);
   const order = players.map((_, i) => i).sort((a, b) => scores[a] - scores[b]);
+  const ready = players.map((player, seat) => Boolean(player.isBot || readySeats[seat]));
+  const humans = players.map((player, seat) => ({ ...player, seat })).filter(player => !player.isBot);
+  const ownSeat = Number.isInteger(yourSeat) ? yourSeat : null;
+  const ownReady = ownSeat != null && ready[ownSeat];
 
   return <div className="round-summary min-h-screen coven-bg px-3 sm:px-4 py-8 overflow-y-auto">
     <div className="max-w-2xl mx-auto">
@@ -70,9 +78,22 @@ export function RoundScores({ state, onNext }) {
           </article>;
         })}
       </div>
-      {onNext ? <button onClick={() => { sfx.reveal(); onNext(); }} data-testid="btn-start-next-round" className="score-next mt-6 w-full rounded-md py-4 font-display text-lg font-bold flex items-center justify-center gap-2">
-        {over ? <><Crown size={20} />{t("scores.summary.crown")}</> : <>{t("scores.summary.next")}<ChevronRight size={20} /></>}
-      </button> : <p className="mt-6 text-center text-slate-300/70 text-sm" data-testid="spectator-waiting-next-round">{t("scores.summary.waiting")}</p>}
+      {over && onNext && !spectator ? <button disabled={busy} onClick={() => { sfx.reveal(); onNext(); }} data-testid="btn-start-next-round" className="score-next mt-6 w-full rounded-md py-4 font-display text-lg font-bold flex items-center justify-center gap-2"><Crown size={20} />{t("scores.summary.crown")}</button>
+        : <section className="round-readiness" data-testid="round-readiness">
+          <h3 className="font-display font-bold">{t("improvements.ready.title")}</h3>
+          <p>{t("improvements.ready.hint")}</p>
+          <p role="status" className="mt-2 font-bold" data-testid="round-ready-status">{t("improvements.ready.status", { ready: humans.filter(player => ready[player.seat]).length, total: humans.length })}</p>
+          <ul className="round-readiness-list">
+            {players.map((player, seat) => <li key={seat} className="round-readiness-player" data-testid={`round-ready-player-${seat}`} data-ready={ready[seat] ? "true" : "false"}>
+              <span className="round-readiness-player-name">{player.name}</span>
+              <span className="round-readiness-status">{ready[seat] ? <CheckCircle2 size={15} aria-hidden="true" /> : <Clock3 size={15} aria-hidden="true" />}{t(ready[seat] ? "improvements.ready.yes" : "improvements.ready.no")}</span>
+              {onReady && !spectator && !player.isBot && !ready[seat] && <button type="button" className="round-readiness-button" data-testid={`btn-ready-player-${seat}`} aria-label={t("improvements.ready.playerButton", { name: player.name })} disabled={busy} onClick={() => { sfx.select(); onReady(seat); }}>{t("improvements.ready.yes")}</button>}
+              {onReplaceSeat && !spectator && !over && !player.isBot && player.connected === false && seat !== ownSeat && <button type="button" className="text-xs rounded-md px-2 py-1 border border-amber-300/60 bg-black/25 text-amber-100 inline-flex items-center gap-1 disabled:opacity-40" data-testid={`btn-replace-bot-${seat}`} aria-label={`${player.name}: ${t("online.replaceBot")}`} title={t("online.replaceBot")} disabled={busy} onClick={() => onReplaceSeat(seat)}><Bot size={13} aria-hidden="true" />{t("online.replaceBot")}</button>}
+            </li>)}
+          </ul>
+          {!onReady && !spectator && ownSeat != null && !players[ownSeat]?.isBot && onNext && <button type="button" className="round-readiness-button round-readiness-own-button" data-testid="btn-start-next-round" disabled={busy || ownReady} onClick={() => { sfx.select(); onNext(); }}><CheckCircle2 size={17} aria-hidden="true" />{t(ownReady ? "improvements.ready.yes" : "improvements.ready.button")}</button>}
+          {spectator ? <p className="mt-2" data-testid="spectator-waiting-next-round">{t("improvements.ready.spectator")}</p> : ownReady && !onReady ? <p className="mt-2" data-testid="round-ready-confirmed">{t("improvements.ready.confirmed")}</p> : null}
+        </section>}
     </div>
   </div>;
 }

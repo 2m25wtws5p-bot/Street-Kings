@@ -136,8 +136,9 @@ MAX_PLAYER_NAME_LENGTH = 24
 MAX_CHAT_LENGTH = 140
 MAX_CHAT_MESSAGES = 30
 CHAT_COOLDOWN_SECONDS = 1.5
+CHAT_SOUND_IDS = frozenset(("siren", "scratch", "airhorn"))
 BOT_PLAY_DELAY = float(os.environ.get("BOT_PLAY_DELAY", "0.95"))
-TRICK_HOLD_SECONDS = float(os.environ.get("TRICK_HOLD_SECONDS", "2.0"))
+TRICK_HOLD_SECONDS = float(os.environ.get("TRICK_HOLD_SECONDS", "1.0"))
 
 _locks: weakref.WeakValueDictionary[str, asyncio.Lock] = weakref.WeakValueDictionary()
 
@@ -172,8 +173,17 @@ class TokenReq(BaseModel):
 
 
 class ChatReq(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     token: str
-    text: str = Field(strict=True)
+    text: Optional[str] = Field(default=None, strict=True)
+    sound: Optional[str] = Field(default=None, strict=True)
+
+    @model_validator(mode="before")
+    @classmethod
+    def explicit_text_is_not_null(cls, value):
+        if isinstance(value, dict) and "text" in value and value["text"] is None:
+            raise ValueError("Textnachrichten benötigen Text")
+        return value
 
 
 class BotsReq(BaseModel):
@@ -192,6 +202,7 @@ class ActionReq(BaseModel):
     cards: Optional[List[str]] = None
     cardId: Optional[str] = None
     reviewing: Optional[bool] = None
+    roundId: Optional[str] = None
 
 
 def _gen_code() -> str:
@@ -247,10 +258,21 @@ def _connected(p):
     return (time.time() - p.get("last_seen", 0)) < OFFLINE_AFTER
 
 
+def _round_id(room):
+    # Existing persisted rooms need a stable identity without modifying them
+    # during a rejected/unauthenticated request. New rounds receive a UUID.
+    return room.get("roundId") or str(uuid.uuid5(uuid.NAMESPACE_URL,
+        f"street-kings-round:{room['_id']}:{room.get('created_at', '')}:{room.get('rematches', 0)}:{room.get('roundIndex', 0)}"))
+
+
 # ----- game flow helpers (operate on room dict in place) -----
 
 def _setup_passing(room):
     n = room["n"]
+    # A unique round identity prevents a delayed readiness request (including
+    # requests from a previous match) from confirming a different round.
+    room["roundId"] = str(uuid.uuid4())
+    room["readySeats"] = [bool(p["isBot"]) for p in room["players"]]
     count, d = eng.pass_info(n, room["roundIndex"])
     room["passCount"] = count
     room["passDir"] = d
@@ -339,6 +361,7 @@ def _do_continue_trick(room):
         room["scores"] = [s + res["results"][i]["total"] for i, s in enumerate(room["scores"])]
         room["totalRounds"] = room.get("totalRounds", 0) + 1
         room["phase"] = "roundScores"
+        room["readySeats"] = [bool(p["isBot"]) for p in room["players"]]
         return
     winner = room["lastWinner"]
     room["leader"] = winner
@@ -427,7 +450,8 @@ def _redact(room, token):
         # Chat is public, but the enclosing room also contains seat tokens and
         # private hands. Project only the message fields, including for watchers.
         "chatMessages": [
-            {key: message[key] for key in ("id", "seat", "name", "text", "createdAt")}
+            {**{key: message[key] for key in ("id", "seat", "name", "text", "createdAt")},
+             **({"sound": message["sound"]} if message.get("sound") in CHAT_SOUND_IDS else {})}
             for message in room.get("chatMessages", [])[-MAX_CHAT_MESSAGES:]
         ],
     }
@@ -435,6 +459,10 @@ def _redact(room, token):
         return view
     view.update({
         "roundIndex": room.get("roundIndex", 0),
+        "roundId": _round_id(room),
+        "readySeats": [bool(p["isBot"] or (room.get("readySeats", [])[seat]
+                        if seat < len(room.get("readySeats", [])) else False))
+                       for seat, p in enumerate(room["players"])],
         "totalRounds": room.get("totalRounds", 0),
         "trickNumber": room.get("trickNumber", 1),
         "scores": room.get("scores", [0] * n),
@@ -453,10 +481,15 @@ def _redact(room, token):
         if your_seat is not None and view["phase"] in ("playing", "trickEnd")
         and 1 <= room.get("trickNumber", 1) <= 3 else None,
     })
+    view["iReady"] = your_seat is not None and view["readySeats"][your_seat]
     if view["phase"] == "passing":
         view["passedSeats"] = [str(seat) in room["pendingSelections"] for seat in range(n)]
         view["iPassed"] = your_seat is not None and str(your_seat) in room["pendingSelections"]
         view["passTarget"] = eng.target_seat(your_seat, room["passDir"], n) if your_seat is not None else None
+        # An already confirmed selection remains visible to its owner after a
+        # refresh, without revealing another player's selected cards.
+        own_ids = room["pendingSelections"].get(str(your_seat), []) if your_seat is not None else []
+        view["yourPassedCards"] = [copy.deepcopy(card) for card in view["yourHand"] if card["id"] in own_ids]
     return view
 
 
@@ -561,18 +594,28 @@ async def room_chat(code: str, payload: ChatReq):
             raise HTTPException(status_code=403, detail="Nur Spieler am Tisch können chatten")
         if room["status"] not in ("lobby", "playing", "gameOver"):
             raise HTTPException(status_code=409, detail="In diesem Raum ist kein Chat verfügbar")
-        # Keep messages on one line. Joiners/variation selectors used by emoji
-        # remain valid; C0/C1 controls and Unicode line separators do not.
-        if any(unicodedata.category(char) in ("Cc", "Cs", "Zl", "Zp") for char in payload.text):
-            raise HTTPException(status_code=400, detail="Chat-Nachrichten dürfen keine Steuerzeichen enthalten")
-        text = payload.text.strip()
-        if not text or len(text) > MAX_CHAT_LENGTH:
-            raise HTTPException(status_code=400, detail=f"Chat-Nachrichten müssen 1 bis {MAX_CHAT_LENGTH} Zeichen enthalten")
+        if payload.sound is not None:
+            # IDs select locally generated audio only. Never accept a file,
+            # URL, markup, arbitrary audio data or a mixed text/sound payload.
+            if payload.sound not in CHAT_SOUND_IDS or payload.text is not None:
+                raise HTTPException(status_code=400, detail="Ungültige Soundnachricht")
+            text = ""
+        else:
+            # Joiners/variation selectors used by emoji remain valid.
+            if payload.text is None:
+                raise HTTPException(status_code=400, detail=f"Chat-Nachrichten müssen 1 bis {MAX_CHAT_LENGTH} Zeichen enthalten")
+            if any(unicodedata.category(char) in ("Cc", "Cs", "Zl", "Zp") for char in payload.text):
+                raise HTTPException(status_code=400, detail="Chat-Nachrichten dürfen keine Steuerzeichen enthalten")
+            text = payload.text.strip()
+            if not text or len(text) > MAX_CHAT_LENGTH:
+                raise HTTPException(status_code=400, detail=f"Chat-Nachrichten müssen 1 bis {MAX_CHAT_LENGTH} Zeichen enthalten")
         now = time.time()
         if "last_chat_at" in me and now - me["last_chat_at"] < CHAT_COOLDOWN_SECONDS:
             raise HTTPException(status_code=429, detail="Bitte warte kurz vor der nächsten Nachricht", headers={"Retry-After": "2"})
         message = {"id": str(uuid.uuid4()), "seat": me["seat"], "name": me["name"],
                    "text": text, "createdAt": int(now * 1000)}
+        if payload.sound is not None:
+            message["sound"] = payload.sound
         room["chatMessages"] = (room.get("chatMessages", []) + [message])[-MAX_CHAT_MESSAGES:]
         me["last_chat_at"] = now
         me["last_seen"] = now
@@ -669,6 +712,11 @@ async def replace_with_bot(code: str, payload: ReplaceReq):
         seat = target["seat"]
         if room["phase"] == "passing" and str(seat) not in room["pendingSelections"]:
             room["pendingSelections"][str(seat)] = eng.bot_pass(room["hands"][seat], room["passCount"])
+        if room["phase"] == "roundScores":
+            ready = room.setdefault("readySeats", [False] * room["n"])
+            ready[seat] = True
+            if all(player["isBot"] or ready[i] for i, player in enumerate(room["players"])):
+                _do_next_round(room)
         _advance_bots(room)
         await _maybe_record(room)
         await _save_room(room)
@@ -771,9 +819,20 @@ async def room_action(code: str, payload: ActionReq):
                 raise HTTPException(status_code=409, detail="Der Stich bleibt noch kurz sichtbar")
             _do_continue_trick(room)
         elif t == "nextRound":
+            if not payload.roundId:
+                raise HTTPException(status_code=409, detail="Bitte aktualisiere die Rundenansicht")
+            if payload.roundId != _round_id(room):
+                # A retry after the final confirmation is a harmless no-op;
+                # it can never make the caller ready in the following round.
+                return _redact(room, payload.token)
             if phase != "roundScores":
                 raise HTTPException(status_code=409, detail="Gerade keine Abrechnung")
-            _do_next_round(room)
+            ready = room.setdefault("readySeats", [False] * room["n"])
+            ready[seat] = True
+            if eng.is_game_over(room["scores"]) or all(
+                player["isBot"] or ready[i] for i, player in enumerate(room["players"])
+            ):
+                _do_next_round(room)
         else:
             raise HTTPException(status_code=400, detail="Unbekannte Aktion")
 

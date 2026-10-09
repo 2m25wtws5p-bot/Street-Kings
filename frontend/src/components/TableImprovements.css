@@ -1,0 +1,65 @@
+.exchange-receipt {
+  position:fixed; z-index:65; top:40%; left:50%; translate:-50% -50%;
+  width:max-content; max-width:calc(100vw - 24px); padding:12px 16px;
+  color:#342b20; background:#eee0bf; border:3px solid #a67b4d;
+  border-radius:5px 13px 6px 10px; box-shadow:4px 7px 0 #07120ddd;
+  pointer-events:none; text-align:center;
+}
+.exchange-receipt h3 { font:800 20px/1.2 "Barlow Condensed",sans-serif; margin-bottom:10px; }
+.exchange-receipt-cards { display:flex; gap:8px; justify-content:center; }
+.exchange-receipt-cards .street-card { width:70px; aspect-ratio:20/29; }
+.passing-progress .passing-player-status.is-ready { color:#f0fff5; background:#215b40; border:2px solid #82c990; font-weight:800; }
+.passing-progress .passing-player-status.is-waiting { color:#5b3519; background:#f2d7a1; border:2px dashed #a37640; font-weight:700; }
+.passing-player-status > span:last-child { white-space:normal; }
+.passing-recipient { display:inline-flex; gap:6px; align-items:center; color:#f8e7bb; background:#262a22; padding:4px 9px; border:1px solid #a78955; border-radius:4px 8px 4px 6px; }
+.passing-recipient strong { color:#ffe096; }
+.game-table .game-center .trick-cards .played-card { flex:1 1 0; max-width:110px; }
+.game-table .game-center .trick-cards .played-card-art { width:min(100%,var(--trick-card-max-width)); }
+.game-table .game-center .trick-cards .played-card-art > .street-card { aspect-ratio:20/29; object-fit:contain; }
+.chat-sound-choices { display:flex; flex-wrap:wrap; gap:8px; padding:8px 0; }
+.chat-sound-choices button,.chat-replay-sound { display:inline-flex; align-items:center; gap:5px; border:1px solid #9b7b4e; border-radius:5px; padding:7px 9px; color:#392d1e; background:#f1dfb4; font-weight:700; }
+.chat-sound-choices button:disabled { opacity:.5; }
+.chat-sound-note { font-size:11px; color:#786343; }
+@media(max-width:639px) {
+  .exchange-receipt-cards .street-card { width:54px; }
+  .exchange-receipt h3 { font-size:17px; }
+  .exchange-receipt { padding:10px; }
+  .passing-progress .passing-player-status { gap:3px; padding:4px 5px; font-size:10px; }
+  .passing-recipient { font-size:12px; }
+}
+@media(prefers-reduced-motion:reduce) { .exchange-receipt * { animation:none!important; } }
+
+@media(min-width:640px) and (max-height:850px) {
+  .game-table { padding-top:80px; }
+  .last-trick-button { top:48px; padding:4px 7px; }
+  .exchange-history-button { top:48px; min-height:28px; padding:4px 7px; }
+  .game-table > .play-order { flex:0 0 auto; margin:2px auto; padding:0 12px; }
+  .game-table > .play-order .play-order-heading { display:none; }
+  .game-table > .play-order .play-order-chip { height:24px; padding:1px 5px; }
+  .game-table > .play-order .play-order-arrow,
+  .game-table > .play-order .play-order-step:last-child .play-order-arrow { top:6px; }
+  .game-table .game-center { min-height:144px; flex:1 1 144px; padding-block:2px; }
+  .game-table .game-center > [data-testid="central-trick-cauldron"] { min-height:136px; padding:3px 8px; }
+  .game-table .game-center .trick-cards { padding:2px 0; margin-bottom:0; }
+  .game-table .hand-cards-shell .turn-hand-grid.compact-hand.spread-hand { --hand-card-width:64px; }
+}
+
+/* Compact phones retain a complete played card and its owner label. */
+@media(max-width:639px) and (max-height:600px) {
+  .game-table { padding-top:74px; }
+  .last-trick-button { top:44px; padding:4px 7px; }
+  .exchange-history-button { top:44px; min-height:28px; padding:4px 7px; }
+  .game-table > .play-order { flex:0 0 auto; margin:2px auto; padding:0 8px; }
+  .game-table > .play-order .play-order-heading { display:none; }
+  .game-table > .play-order .play-order-chip { height:22px; flex-direction:row; gap:3px; padding:1px 3px; }
+  .game-table > .play-order .play-order-number { width:13px; height:13px; font-size:8px; }
+  .game-table > .play-order .play-order-name { width:auto; font-size:9px; line-height:12px; }
+  .game-table > .play-order .play-order-arrow,
+  .game-table > .play-order .play-order-step:last-child .play-order-arrow { top:5px; }
+  .game-table .game-center { min-height:106px; flex:1 1 106px; }
+  .game-table .game-center > [data-testid="central-trick-cauldron"] { min-height:96px; }
+  .game-table .hand-sort-toolbar { min-height:22px; }
+  .game-table .hand-sort-toolbar select,.game-table .hand-shuffle-button { padding-block:1px; }
+  .game-table .hand-card-detail { height:28px; }
+  .game-table .hand-cards-shell .turn-hand-grid.compact-hand.spread-hand { --hand-card-width:42px; --hand-row-gap:12px; margin-top:12px; }
+}

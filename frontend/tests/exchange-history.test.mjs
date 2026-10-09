@@ -93,7 +93,8 @@ test("local reducer records the exchange before moving cards and clears it in th
   assert.deepEqual(dealt.exchangeHistory[0].received.map(card => card.id), pending[3]);
   assert.ok(dealt.hands[0].every(card => !pending[0].includes(card.id)));
   assert.ok(pending[3].every(id => dealt.hands[0].some(card => card.id === id)));
-  const nextRound = reducer({ ...dealt, phase: "roundScores" }, { type: "NEXT_ROUND" });
+  let nextRound = { ...dealt, phase: "roundScores" };
+  for (let seat = 0; seat < players.length; seat++) nextRound = reducer(nextRound, { type: "NEXT_ROUND", seat });
   assert.deepEqual(nextRound.exchangeHistory, [null, null, null, null]);
   assert.equal(nextRound.roundIndex, 1);
   const rematch = reducer({ ...dealt, phase: "gameOver" }, { type: "RESTART_SAME" });

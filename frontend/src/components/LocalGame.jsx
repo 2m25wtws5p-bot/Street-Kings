@@ -13,6 +13,8 @@ import { Avatar } from "@/components/Avatar";
 import { GameHeaderButtons } from "@/components/GameHeaderButtons";
 import { LastTrickButton } from "@/components/LastTrickButton";
 import { ExchangeHistoryButton } from "@/components/ExchangeHistoryButton";
+import { ExchangeReveal } from "@/components/ExchangeReveal";
+import { rememberPlayedCard } from "@/game/cardMotion";
 import { localExchangeSeat } from "@/game/exchangeHistory";
 import { lowestSeats, botPass, botPlay } from "@/game/engine";
 import { recordGame } from "@/game/storage";
@@ -88,6 +90,7 @@ function LocalGameView({ onExit, sound, setSound, game }) {
         const id = botPlay(state.hands[state.currentSeat], state.trick);
         const card = state.hands[state.currentSeat].find((c) => c.id === id);
         sfx.playCard(card, `${state.roundIndex}-${state.trickNumber}-${state.currentSeat}-${id}`);
+        rememberPlayedCard(id);
         actions.playCard(id);
       }, 620 + Math.random() * 320);
     }
@@ -120,10 +123,13 @@ function LocalGameView({ onExit, sound, setSound, game }) {
       {state.phase === "setup" && <SetupScreen onStart={actions.startGame} />}
       {state.phase !== "setup" && <LastTrickButton trick={state.lastTrick} players={state.players} winner={state.lastWinner} />}
       <ExchangeHistoryButton exchange={exchangeSeat == null ? null : state.exchangeHistory?.[exchangeSeat]} phase={state.phase} trickNumber={state.trickNumber} scopeKey={`${state.roundIndex}-${exchangeSeat}`} />
+      <ExchangeReveal exchange={exchangeSeat == null ? null : state.exchangeHistory?.[exchangeSeat]} scopeKey={`${state.roundId || state.roundIndex}-${exchangeSeat}`} available={exchangeSeat != null && state.phase === "playing" && state.trickNumber === 1} />
 
       {state.phase === "passGate" &&
         (state.players[state.passSeat]?.isBot ? (
-          <BotWaiting player={state.players[state.passSeat]} text={t('local.botPassing')} />
+          soloHumanSeat != null && state.pendingSelections?.[soloHumanSeat]?.length ?
+            <PassingScreen state={{ ...state, passSeat: soloHumanSeat }} readOnly /> :
+            <BotWaiting player={state.players[state.passSeat]} text={t('local.botPassing')} />
         ) : (
           <PassGate player={state.players[state.passSeat]} onReveal={actions.reveal} ctaPrefix={t('local.showCards')} note={t('local.passNote')} />
         ))}
@@ -138,7 +144,7 @@ function LocalGameView({ onExit, sound, setSound, game }) {
 
       {state.phase === "roundScores" && (
         <div className="pt-10">
-          <RoundScores state={state} onNext={actions.nextRound} />
+          <RoundScores state={state} onNext={actions.nextRound} onReady={actions.nextRound} readySeats={state.readySeats} />
         </div>
       )}
 

@@ -15,8 +15,12 @@ const reducerSource = (await source("game/useGame.js"))
 const { reducer } = await import(moduleUrl(`${reducerSource}\nexport { reducer };`));
 const { botPass, botPlay } = await import(engineUrl);
 const onlineMessagesUrl = moduleUrl(await source("i18n/messages/online.js"));
+const flowMessagesUrl = moduleUrl(await source("i18n/messages/flowImprovements.js"));
+const chatUrl = moduleUrl(await source("game/chat.js"));
 const apiSource = (await source("game/api.js"))
   .replace('from "../i18n/messages/online"', `from "${onlineMessagesUrl}"`)
+  .replace('from "../i18n/messages/flowImprovements"', `from "${flowMessagesUrl}"`)
+  .replace('from "./chat"', `from "${chatUrl}"`)
   .replace('import axios from "axios";', 'const axios={create:()=>({interceptors:{request:{use(){}}}})};');
 const { validateRoomView, validateRoomSession, normalizeRecentGames } = await import(moduleUrl(apiSource));
 const flowSource = await source("components/OnlineFlow.jsx");
@@ -250,6 +254,28 @@ test("malformed setup payloads cannot escape the reducer into a dealing exceptio
   }
 });
 
+test("local hotseat requires each human to confirm separately and resets readiness", () => {
+  const crew = [{ name: "A" }, { name: "B" }, { name: "Bot", isBot: true }];
+  const initial = reducer({ phase: "setup" }, { type: "START_GAME", players: crew });
+  const scores = { ...initial, phase: "roundScores" };
+  assert.equal(reducer(scores, { type: "NEXT_ROUND" }), scores, "No-argument hotseat confirmation cannot bypass the other humans");
+  assert.equal(reducer(scores, { type: "NEXT_ROUND", seat: 2 }), scores, "Bots cannot confirm for a human");
+  const first = reducer(scores, { type: "NEXT_ROUND", seat: 0 });
+  assert.deepEqual(first.readySeats, [true, false, true]);
+  assert.equal(first.phase, "roundScores");
+  const retry = reducer(first, { type: "NEXT_ROUND", seat: 0 });
+  assert.equal(retry.roundIndex, 0); assert.deepEqual(retry.readySeats, first.readySeats);
+  const next = reducer(retry, { type: "NEXT_ROUND", seat: 1 });
+  assert.equal(next.roundIndex, 1); assert.deepEqual(next.readySeats, [false, false, true]);
+  assert.equal(reducer(next, { type: "NEXT_ROUND", seat: 1 }), next);
+  const rematch = reducer({ ...first, phase: "gameOver" }, { type: "RESTART_SAME" });
+  assert.deepEqual(rematch.readySeats, [false, false, true]);
+  const soloCrew = crew.map((player, seat) => ({ ...player, isBot: seat !== 0 }));
+  const solo = reducer({ phase: "setup" }, { type: "START_GAME", players: soloCrew });
+  assert.equal(reducer({ ...solo, phase: "roundScores" }, { type: "NEXT_ROUND" }).roundIndex, 1);
+  assert.equal(reducer({ ...scores, scores: [70, 1, 2] }, { type: "NEXT_ROUND" }).phase, "gameOver");
+});
+
 test("all local player counts finish repeated rounds and conserve the 60 cards", () => {
   for (const n of [3, 4, 5, 6]) {
     const crew = Array.from({ length: n }, (_, i) => ({ name: `Crew ${i}`, isBot: true }));
@@ -316,6 +342,8 @@ const hookExports = moduleUrl('export const useState=(...a)=>globalThis.__online
 const apiExports = moduleUrl('export const roomApi=new Proxy({}, {get:(_,name)=>(...a)=>globalThis.__roomApi[name](...a)});export const onlineErrorMessage=(e,t)=>e?.translationKey ? t(e.translationKey) : e?.response?.data?.detail || e.message;');
 const i18nExports = moduleUrl('export const useI18n=()=>({t:key=>key});');
 const onlineSource = (await source("game/useOnlineGame.js"))
+  .replace('import { useChatSounds } from "./useChatSounds";', 'const useChatSounds = () => {};')
+  .replace('from "./chat"', `from "${chatUrl}"`)
   .replace('from "react"', `from "${hookExports}"`)
   .replace('from "./api"', `from "${apiExports}"`)
   .replace('from "../i18n/I18nProvider"', `from "${i18nExports}"`)
