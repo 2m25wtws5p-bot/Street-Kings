@@ -5,7 +5,7 @@ import { useGameLabels } from "../i18n/gameLabels";
 import { CARD_ART } from "../game/cardArt";
 
 export const SUIT_ICON = { RED: Siren, YELLOW: VenetianMask, BLUE: Banknote, GREEN: Package };
-export const SPECIAL_ICON = { fire: Crown, water: Eye, earth: Coins, air: Handshake, pygmy: Gem, wizard: Footprints };
+export const SPECIAL_ICON = { kingpin: Crown, informant: Eye, briber: Coins, fixer: Handshake, godmother: Gem, runner: Footprints };
 // Width is responsive; one printed-card ratio governs every size and state.
 const SIZES = { xs: "w-11", sm: "w-16", md: "w-20", lg: "w-[104px]" };
 const NUM = { xs: "text-sm", sm: "text-lg", md: "text-2xl", lg: "text-4xl" };
@@ -13,8 +13,8 @@ const NUM = { xs: "text-sm", sm: "text-lg", md: "text-2xl", lg: "text-4xl" };
 const INK = { RED: "#a3232c", YELLOW: "#704600", BLUE: "#1655a6", GREEN: "#146543" };
 const PAPER = { RED: "#ffe5dc", YELLOW: "#fff0b8", BLUE: "#dceeff", GREEN: "#d8f3df" };
 // Presentation only: gameplay and scoring remain in the engines.
-export const CARD_IMPACT = { fire: "risk", water: "risk", pygmy: "risk", earth: "help", air: "help", wizard: "neutral" };
-const HAND_EFFECT = { fire: "×2", water: "+5", pygmy: "+10", earth: "−5", air: "Ø", wizard: "0" };
+export const CARD_IMPACT = { kingpin: "risk", informant: "risk", godmother: "risk", briber: "help", fixer: "help", runner: "neutral" };
+const HAND_EFFECT = { kingpin: "×2", informant: "+5", godmother: "+10", briber: "−5", fixer: "Ø", runner: "0" };
 
 function CardBack({ sizeCls, className, testId, style }) {
   const { t } = useI18n();
@@ -32,7 +32,7 @@ export function CardView({ card, size = "md", faceDown = false, selected = false
   if (faceDown || !card) return <CardBack sizeCls={sizeCls} className={className} testId={testId} style={style} />;
   const suit = SUITS[card.suit];
   const special = SPECIALS[card.special];
-  const isWizard = card.special === "wizard";
+  const isRunner = card.special === "runner";
   const Icon = SUIT_ICON[card.suit] || Footprints;
   const SpecialIcon = SPECIAL_ICON[card.special];
   const ink = INK[card.suit] || "#273444";
@@ -41,17 +41,17 @@ export function CardView({ card, size = "md", faceDown = false, selected = false
   const impact = CARD_IMPACT[card.special];
   const ImpactIcon = impact === "risk" ? TriangleAlert : impact === "help" ? ShieldCheck : SpecialIcon;
   const effect = t(impact === "risk" ? 'cards.effectRisk' : impact === "help" ? 'cards.effectHelp' : 'cards.effectNeutral');
-  const numeral = isWizard ? "0" : card.value;
+  const numeral = isRunner ? "0" : card.value;
   const artwork = CARD_ART[card.special] || CARD_ART[card.suit];
   const Comp = onClick ? "button" : "div";
   return <Comp type={onClick ? "button" : undefined} onClick={onClick}
     onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}
     onPointerCancel={onPointerCancel} onLostPointerCapture={onLostPointerCapture}
     data-testid={testId} data-suit={card.suit || "NEUTRAL"} data-card-size={size} data-impact={impact}
-    data-special={special && !isWizard ? card.special : undefined}
+    data-special={special && !isRunner ? card.special : undefined}
     data-selected={selected ? "true" : undefined} data-dragging={dragging ? "true" : undefined} aria-pressed={onClick ? selected : undefined}
     data-received-from={card.receivedFrom || undefined}
-    aria-label={`${suit?.people || t('cards.wizard.label')} ${numeral}${special ? ` · ${special.label}: ${special.desc} · ${effect}` : ""}${card.receivedFrom ? ` · ${t('cards.from', { name: card.receivedFrom })}` : ""}`}
+    aria-label={`${suit?.people || t('cards.runner.label')} ${numeral}${special ? ` · ${special.label}: ${special.desc} · ${effect}` : ""}${card.receivedFrom ? ` · ${t('cards.from', { name: card.receivedFrom })}` : ""}`}
     title={[special ? `${special.label}: ${special.desc}` : null, card.receivedFrom ? t('cards.receivedFrom', { name: card.receivedFrom }) : null].filter(Boolean).join(" · ") || undefined}
     className={`${sizeCls} street-card relative shrink-0 rounded-lg overflow-hidden text-left transition-transform duration-200 ${selected ? "-translate-y-4 z-20" : ""} ${dim ? "opacity-40 saturate-50" : ""} ${onClick ? "cursor-pointer hover:-translate-y-1" : ""} ${className}`}
     style={{ "--suit-ink": ink, "--suit-paper": paper, "--suit-accent": accent, backgroundColor: paper,
@@ -71,7 +71,7 @@ export function CardView({ card, size = "md", faceDown = false, selected = false
     {special && size !== "xs" && <div className="card-special-banner">
       <div className="font-display card-special-name">{special.label}</div>
       <div className="card-special-rule">{special.short}</div>
-      {!isWizard && <div className="card-impact-label">{t(impact === "risk" ? 'cards.danger' : 'cards.protection')}</div>}
+      {!isRunner && <div className="card-impact-label">{t(impact === "risk" ? 'cards.danger' : 'cards.protection')}</div>}
     </div>}
   </Comp>;
 }

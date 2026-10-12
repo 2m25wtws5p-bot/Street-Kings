@@ -98,7 +98,7 @@ export function SetupScreen({ onStart }) {
   };
 
   return (
-    <div className="min-h-screen coven-bg relative">
+    <div className="min-h-screen street-bg relative">
       <div className="relative max-w-3xl mx-auto px-4 py-10 sm:py-16">
         <div className="text-center mb-10 rise-in">
           <div className="inline-flex items-center gap-2 text-amber-400/80 font-display text-xs uppercase tracking-[0.3em] mb-3">
@@ -213,7 +213,7 @@ export function SetupScreen({ onStart }) {
 
           <button
             onClick={start}
-            data-testid="btn-start-coven-game"
+            data-testid="btn-start-street-game"
             className="mt-7 w-full rounded-md py-4 font-display text-lg font-bold text-black bg-gradient-to-r from-yellow-300 to-amber-400 hover:from-yellow-200 hover:to-amber-300 transition-all glow-ring flex items-center justify-center gap-2"
           >
             <Play size={20} className="fill-black" /> {t('setup.start')}

@@ -8,7 +8,7 @@ import { RoundScores } from "./RoundScores";
 import { RulesDialog } from "./RulesDialog";
 import { SpecialCardReference } from "./SpecialCardReference";
 
-jest.mock("../game/sound", () => ({ sfx: { witchReveal: jest.fn(), select: jest.fn(), reveal: jest.fn() } }));
+jest.mock("../game/sound", () => ({ sfx: { takeoverReveal: jest.fn(), select: jest.fn(), reveal: jest.fn() } }));
 
 let container;
 let root;
@@ -27,7 +27,7 @@ const render = (element, language = "de") => act(() => root.render(<I18nScope la
 const players = count => Array.from({ length: count }, (_, seat) => ({ name: `Crew ${seat + 1}`, avatar: { key: "boss", color: "#facc15" }, isBot: seat === count - 1 }));
 const state = (count = 3) => ({
   players: players(count), scores: Array(count).fill(12), roundIndex: 0,
-  roundResult: { shooter: -1, results: Array.from({ length: count }, () => ({ total: 0, fireCards: 2, fireWitch: true, water: true, pygmy: true, air: true, earth: true })) },
+  roundResult: { shooter: -1, results: Array.from({ length: count }, () => ({ total: 0, heatCards: 2, kingpin: true, informant: true, godmother: true, fixer: true, briber: true })) },
 });
 
 test.each([3, 4, 5, 6])("one roster exposes order and active crew without duplicated names with %i crews", count => {
@@ -77,7 +77,7 @@ test("integrated order follows explicit seats and still preserves host, offline 
 });
 
 test("reference artwork retains the deck's actual special suit and rank", () => {
-  for (const [cardKey, identity] of Object.entries({ ...SPECIAL_MAP, wizard: { suit: null, value: 0 } })) {
+  for (const [cardKey, identity] of Object.entries({ ...SPECIAL_MAP, runner: { suit: null, value: 0 } })) {
     render(<SpecialCardReference cardKey={cardKey} />);
     const card = container.querySelector(".street-card");
     expect(card.dataset.suit).toBe(identity.suit || "NEUTRAL");
@@ -89,19 +89,19 @@ test("reference artwork retains the deck's actual special suit and rank", () => 
 test("all six rules show their full card artwork with readable localized explanations", () => {
   render(<RulesDialog open onOpenChange={() => {}} />, "en");
   const rows = [...document.querySelectorAll("[data-rule-card]")];
-  expect(rows.map(row => row.dataset.ruleCard)).toEqual(["fire", "water", "pygmy", "air", "earth", "wizard"]);
+  expect(rows.map(row => row.dataset.ruleCard)).toEqual(["kingpin", "informant", "godmother", "fixer", "briber", "runner"]);
   for (const row of rows) {
     expect(row.querySelector("img.card-art")).not.toBeNull();
     expect(row.querySelector(".rule-special-copy p").textContent.length).toBeGreaterThan(20);
   }
-  expect(rows.find(row => row.dataset.ruleCard === "pygmy").querySelector(".street-card").dataset.suit).toBe("GREEN");
+  expect(rows.find(row => row.dataset.ruleCard === "godmother").querySelector(".street-card").dataset.suit).toBe("GREEN");
   expect(document.querySelector('[data-testid="rules-dialog"]').textContent).toContain("Godmother");
 });
 
 test("score explanations show all captured special identities without changing authoritative totals", () => {
   render(<RoundScores state={state()} onReady={() => {}} />);
   const score = container.querySelector('[data-testid="score-row-player-0"]');
-  for (const cardKey of ["fire", "water", "pygmy", "air", "earth"]) {
+  for (const cardKey of ["kingpin", "informant", "godmother", "fixer", "briber"]) {
     expect(score.querySelector(`[data-score-step="${cardKey}"] [data-reference-card="${cardKey}"] img.card-art`)).not.toBeNull();
   }
   expect(score.querySelector("[data-score-total]").dataset.scoreTotal).toBe("0");

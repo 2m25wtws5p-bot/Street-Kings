@@ -59,12 +59,12 @@ test("leaving an invitation clears both the URL and the next online entry", () =
   }
 });
 
-test("displayed help describes token recovery, red-only Kingpin and continuous PDF passing", async () => {
+test("displayed help describes token recovery, red-only Kingpin and continuous passing", async () => {
   const rules = await source("components/RulesDialog.jsx");
   const { de, en } = await import(moduleUrl(await source("i18n/messages/rules.js")));
   const { SPECIALS } = await import(constantsUrl);
-  assert.match(SPECIALS.fire.desc, /roten Karten/);
-  assert.doesNotMatch(SPECIALS.fire.desc, /gesamte Hitze/);
+  assert.match(SPECIALS.kingpin.desc, /roten Karten/);
+  assert.doesNotMatch(SPECIALS.kingpin.desc, /gesamte Hitze/);
   assert.match(rules, /t\("rules.online.restore"\)/);
   assert.match(de["rules.online.restore"], /gespeicherte Zugang stellt deinen Platz wieder her/);
   assert.match(en["rules.online.restore"], /saved access/);
@@ -74,8 +74,8 @@ test("displayed help describes token recovery, red-only Kingpin and continuous P
   assert.match(en["rules.passing.start"], /passed every round.*no skipped round/i);
   assert.match(rules, /\[5, 12, 3,/);
   assert.match(rules, /t\(`rules.special.\$\{key\}`\)/);
-  assert.match(de["rules.special.air"], /Neutralisiert die gesamte Hitze aus deinen Stichen/);
-  assert.match(en["rules.special.air"], /all.*Heat/i);
+  assert.match(de["rules.special.fixer"], /Neutralisiert die gesamte Hitze aus deinen Stichen/);
+  assert.match(en["rules.special.fixer"], /all.*Heat/i);
 });
 
 function memoryStorage(value) {
@@ -98,7 +98,7 @@ test("player names matching Object prototype keys are ordinary saved identities"
   const stats = storage.recordGame({ players: names.map(name => ({ name })), scores: [2, 3, 4], winnerNames: ["__proto__"], rounds: 1 });
   for (const name of names) {
     assert.equal(stats.players[name].games, 1);
-    assert.ok(Number.isFinite(stats.players[name].totalFire));
+    assert.ok(Number.isFinite(stats.players[name].totalHeat));
   }
   assert.equal(stats.players.__proto__.wins, 1);
   assert.deepEqual(Object.keys(storage.loadStats().players).sort(), [...names].sort());
@@ -189,7 +189,7 @@ test("unknown special-card keys cannot address inherited artwork or component pr
     players: players.slice(0, 3).map((player, seat) => ({ ...player, seat })), yourSeat: 0,
     scores: [0, 0, 0], handCounts: [20, 20, 20], yourHand: [card],
     trick: [], lastTrick: null, currentSeat: 0, lastWinner: null };
-  for (const special of [undefined, null, "fire", "water", "earth", "air", "pygmy", "wizard"]) {
+  for (const special of [undefined, null, "kingpin", "informant", "briber", "fixer", "godmother", "runner"]) {
     const valid = { ...base, yourHand: [{ ...card, special }] };
     assert.equal(validateRoomView(valid), valid);
   }
@@ -210,12 +210,12 @@ test("round-score takeover captions cannot address a missing winner or render ob
   const base = { code: "ROOM", status: "playing", phase: "roundScores", n: 3, version: 1,
     players: players.slice(0, 3).map((player, seat) => ({ ...player, seat })), yourSeat: 0,
     scores: [0, 0, 0], handCounts: [0, 0, 0], yourHand: [], trick: [], lastTrick: null,
-    currentSeat: 0, lastWinner: null, roundResult: { shooter: -1, spellName: null, results: [{ total: 0 }, { total: 0 }, { total: 0 }] } };
+    currentSeat: 0, lastWinner: null, roundResult: { shooter: -1, takeoverName: null, results: [{ total: 0 }, { total: 0 }, { total: 0 }] } };
   assert.equal(validateRoomView(base), base);
   for (const shooter of [3, 99, "0", {}, -2]) {
     assert.throws(() => validateRoomView({ ...base, roundResult: { ...base.roundResult, shooter } }), error => error.code === "ONLINE_RESPONSE");
   }
-  assert.throws(() => validateRoomView({ ...base, roundResult: { ...base.roundResult, shooter: 0, spellName: {} } }), error => error.code === "ONLINE_RESPONSE");
+  assert.throws(() => validateRoomView({ ...base, roundResult: { ...base.roundResult, shooter: 0, takeoverName: {} } }), error => error.code === "ONLINE_RESPONSE");
 });
 
 test("duplicate pass confirmation does not advance the next player's gate", () => {

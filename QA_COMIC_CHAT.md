@@ -13,7 +13,7 @@ Stand: 7. Oktober 2026. Die Umsetzung und die unten beschriebenen lokalen Prüfu
 7. **Comic-Porträts:** passende Spielerbilder und lesbare Identitäten im gemeinsamen Comic-Stil.
 8. **Mobiles Layout:** feste äußere Spielfläche ohne Seiten-Overscroll; längere Menüs, Setup und Ergebnisse scrollen intern.
 9. **Regeln/Akte:** zusammenhängende Gestaltung und verständliche Erklärungen mit passenden Beispielen.
-10. **PDF-Regeln:** paraphrasierte Regeln und die freigegebenen Mechanik-Korrekturen in beiden Engines; Details siehe unten.
+10. **Spielregeln:** verständliche Regelerklärungen und die freigegebenen Mechanik-Korrekturen in beiden Engines; Details siehe unten.
 11. **Karten am PC:** größere, responsive Karten; volle Stiche und eigene Hand bleiben auch auf kurzen Desktop-Ansichten getrennt.
 12. **Zugerinnerung:** Polizei-Sirene und visueller Hinweis nach zehn Sekunden ohne Zug; Wiederholung alle zehn Sekunden nur während des eigenen sichtbaren Zuges.
 13. **Mobiler Ton:** Freischaltung durch echte Nutzerinteraktion; pausierte Audio-Kontexte werden beim Aktivieren fortgesetzt.
@@ -21,18 +21,18 @@ Stand: 7. Oktober 2026. Die Umsetzung und die unten beschriebenen lokalen Prüfu
 15. **Graffiti:** dezente, handgezeichnet wirkende Street-Kings-Schriftzüge im Hintergrund, ohne Karten und Hinweise zu überdecken.
 16. **Tests und Korrekturen:** zusätzliche Regressionstests, konsistente lokale/Server-Regeln, Chat-Sitzschutz sowie korrigierte mobile und Desktop-Abstände.
 
-## Freigegebene Mechanik-Korrekturen zur PDF
+## Freigegebene Mechanik-Korrekturen
 
 Frontend und Backend verwenden dieselben Regeln:
 
 - Weitergabe: bei 3/4/5/6 Spielern jeweils **4/3/3/2 Karten**. Bei 3 und 5 Spielern links/rechts; bei 4 und 6 links/rechts/gegenüber. Keine Runde ohne Weitergabe.
 - Fixer (blau 11) neutralisiert sämtliche roten und grünen Heat-Punkte.
 - Kingpin (rot 11) zählt selbst 0 und verdoppelt die übrigen roten Punkte, gedeckelt auf 15. Informant (grün 11) bringt 5, Patin (grün 12) 10 Punkte.
-- Schmierer (gelb 11) reduziert nur die aktuelle Runde um bis zu 5, niemals unter 0. Die optionale PDF-Variante zur Senkung alter Gesamtpunkte ist nicht aktiviert.
+- Schmierer (gelb 11) reduziert nur die aktuelle Runde um bis zu 5, niemals unter 0. Der bisherige Gesamtstand bleibt unverändert.
 - Takeover erfordert alle 14 roten Karten plus Informant und/oder Patin: 20/25/30 Punkte. Normale Sonderkarteneffekte sind dabei inaktiv.
 - Endspiel-Ausnahme: Würde ein normaler Takeover das Spiel beenden und ein anderer Spieler zu den Gewinnern mit niedrigstem Gesamtstand gehören, erhalten die anderen in dieser Runde 0. Der Takeover-Wert wird stattdessen vom bisherigen Stand des Auslösers abgezogen, mindestens bis 0; das Spiel geht weiter.
 
-Die Regeltexte sind eine eigene deutsche Zusammenfassung, keine vollständige Wiedergabe der PDF.
+Die Regeltexte erklären den Street-Kings-Kodex mit passenden Beispielen.
 
 ## Prüfergebnisse
 

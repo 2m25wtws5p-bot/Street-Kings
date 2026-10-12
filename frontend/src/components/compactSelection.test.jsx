@@ -5,10 +5,10 @@ import { SelectedCards } from "./SelectedCards";
 
 let container, root;
 const hand = [
-  { id:"RED-11", suit:"RED", value:11, special:"fire" },
-  { id:"GREEN-12", suit:"GREEN", value:12, special:"pygmy" },
+  { id:"RED-11", suit:"RED", value:11, special:"kingpin" },
+  { id:"GREEN-12", suit:"GREEN", value:12, special:"godmother" },
   { id:"BLUE-4", suit:"BLUE", value:4 },
-  { id:"W1", suit:null, value:0, special:"wizard" },
+  { id:"W1", suit:null, value:0, special:"runner" },
 ];
 beforeEach(() => {
   global.IS_REACT_ACT_ENVIRONMENT = true;

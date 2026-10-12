@@ -19,7 +19,7 @@
   min-height:var(--table-center-height); width:100%; padding:8px 12px;
   display:flex; align-items:center; justify-content:center;
 }
-.App .game-table .game-center > [data-testid="central-trick-cauldron"] {
+.App .game-table .game-center > [data-testid="central-trick-table"] {
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   min-height:calc(var(--table-center-height) - 16px); height:100%;
   width:100%; max-width:760px; padding:8px 10px;
@@ -115,7 +115,7 @@
   .App .game-table > .game-table-status { min-height:24px; padding-block:2px; }
   .App .game-table .hand-sort-toolbar { min-height:26px; }
   .App .game-table .hand-card-detail { height:18px; }
-  .App .game-table .game-center > [data-testid="central-trick-cauldron"] { padding-block:3px; }
+  .App .game-table .game-center > [data-testid="central-trick-table"] { padding-block:3px; }
   .App .game-table .turn-status-title { font-size:21px; line-height:23px; }
 }
 @media(min-width:640px) and (min-height:700px) and (max-height:850px) {
@@ -125,7 +125,7 @@
   .App .game-table { --table-hand-width:64px; --table-row-gap:20px; --table-center-height:152px; --table-trick-width:74px; --table-action-height:78px; padding-top:88px; }
   .App .game-table > .game-table-status { min-height:26px; padding:2px 8px 5px; }
   .App .game-table > .game-center { padding:5px 8px; }
-  .App .game-table .game-center > [data-testid="central-trick-cauldron"] { min-height:calc(var(--table-center-height) - 10px); padding:4px 2px; }
+  .App .game-table .game-center > [data-testid="central-trick-table"] { min-height:calc(var(--table-center-height) - 10px); padding:4px 2px; }
   .App .game-table .game-center .trick-cards { gap:7px; padding-inline:4px; }
   .App .game-table .game-center .trick-cards .played-card { flex:0 1 calc((100% - (var(--trick-player-count) - 1) * 7px) / var(--trick-player-count)); gap:4px; }
   .App .game-table .game-center .played-card-label { height:18px; min-height:18px; font-size:10px; }

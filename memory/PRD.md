@@ -1,59 +1,69 @@
-# PRD — STREET KINGS („Don't take the heat.")
+# PRD — Street Kings (Don't take the Heat)
 
-## Original Problem Statement
-"Create an online game for me based on the 'Witches' card game by Amigo." — later fully reskinned (2026-06) to a
-German-language modern gangster / street-crime setting **STREET KINGS**. Rules and mechanics are unchanged.
+## Product
 
-## User Choices
-- Local pass-and-play + Solo vs AI + Online multiplayer (room code / link), 3–6 players
-- Local browser stats; no AI-generated images on special cards (icon-based design kept)
-- Reskin: whole app in **German**, gangster theme; card visuals/colours unchanged; hero background image removed
-- Spectator: via the normal room link with "Mitspielen / Zuschauen" choice
-- Reconnect: rejoin by same name takes over the abandoned seat (no token needed)
+Street Kings is a browser-based trick-taking card game for 3–6 players with a
+comic street-crime setting. It supports local pass-and-play, solo games against
+bots, online rooms, spectators, German and English on each player's own device.
 
-## Theme mapping (display only — engine keys unchanged)
-| Engine key | Display |
-|---|---|
-| RED / YELLOW / BLUE / GREEN | Hitze / Schwarzmarkt / Cash / Ware |
-| fire (Red 11) | Kingpin (Hitze x2, max 15) |
-| water (Blue 11) | Fixer (+5 Hitze) |
-| earth (Green 11) | Informant (−5 Hitze) |
-| air (Yellow 11) | Schmierer (neutralisiert Fixer & Patin) |
-| pygmy (Green 12) | Patin (+10 Hitze) |
-| wizard | Laufjunge (Wert 0) |
-| Fire points / Fire Spell | Hitze / Takeover (Fixer-/Patin-/Großer Takeover) |
-| Avatars | Boss, Dealer, Fahrer, Schmuggler, Hacker, Anwalt |
-| Bot names | Vito, Ronny, Kalle, Shorty, Dragan, Nadja, Ivo, Mischa |
+## Card identities
+
+| Internal key | Card | Function |
+|---|---|---|
+| `RED` / `YELLOW` / `BLUE` / `GREEN` | Hitze / Schwarzmarkt / Cash / Ware | Four suits, ranks 1–14 |
+| `kingpin` | Kingpin, red 11 | Doubles other red-card Heat, capped at 15 |
+| `informant` | Informant, green 11 | Adds 5 Heat |
+| `briber` | Schmierer, yellow 11 | Removes up to 5 Heat from this round |
+| `fixer` | Fixer, blue 11 | Neutralizes captured Heat outside a Takeover |
+| `godmother` | Patin, green 12 | Adds 10 Heat |
+| `runner` | Laufjunge, no suit, rank 0 | Always playable; wins only an all-Runner trick |
 
 ## Architecture
-- Frontend: React (CRA + craco), Tailwind, shadcn/ui, framer-motion, lucide-react.
-  - Engine `src/game/engine.js`, local reducer `useGame.js`, online hook `useOnlineGame.js`, API `api.js`.
-  - App.js orchestrates home | local (LocalGame.jsx) | online (OnlineFlow.jsx → Lobby / OnlineTable).
-- Backend: FastAPI + MongoDB. Python engine `witches_engine.py`; rooms in `server.py`.
-  - Endpoints: POST /api/rooms, /rooms/{code}/join, /rooms/{code}/watch, /rooms/{code}/bots, /rooms/{code}/start,
-    GET /rooms/{code}?token= (redacted per token, heartbeat updates last_seen), POST /rooms/{code}/action.
-  - Rooms TTL 12h idle. Short polling ~1.3s.
 
-## Game Rules (unchanged Amigo "Witches")
-- 60 cards: 4 colours 1–14 + 4 Laufjungen (0). Red = 1 Hitze each. Specials as table above.
-- Follow led colour; highest of led colour wins; winner leads. Passing 3/3/2/1 rotating direction.
-- Takeover (all 14 red): shooter 0, others +20/25/30 (Informant −5). Game ends at 70; lowest wins.
+- Frontend: React, CRA/CRACO, Tailwind, shadcn/ui, Framer Motion and Lucide.
+  - `src/game/engine.js`: pure rules and bot logic.
+  - `src/game/useGame.js`: local game reducer and `useStreetKingsGame` hook.
+  - `src/game/useOnlineGame.js`: online polling and actions.
+  - `src/game/api.js`: validated API responses and localized errors.
+  - `src/i18n`: extensible per-viewer translation catalogs.
+- Backend: FastAPI and MongoDB.
+  - `backend/street_kings_engine.py`: server-authoritative rules and bots.
+  - `backend/server.py`: rooms, token-based player access, chat and persistence.
+  - Rooms expire after inactivity; clients use polling and receive redacted views.
+- Hosting: static frontend plus a separate API service. Secrets are server-side.
 
-## Implemented
-- 2026-06 (earlier): full game loop, rules/stats dialogs, sounds, bots, icon-based specials, framer-motion
-  arc/sweep animations, online multiplayer with rooms + deep link, TTL cleanup.
-- 2026-06 (this iteration):
-  - Full German gangster reskin of all UI text, constants, rules, stats, avatars, bot names, spell names, index.html.
-  - Spectator mode: `POST /rooms/{code}/watch` → `spec-` token; view has `isSpectator`, `spectators[]`;
-    invite screen (?room=CODE) offers Mitspielen / Zuschauen; spectator UI hides hand & actions.
-  - Reconnect grace: players carry `last_seen` (heartbeat on GET); `connected` flag in view (offline after 10s,
-    WifiOff icon in roster/lobby). Join with same name (case-insensitive) of an offline player → takes over seat
-    with new token (`rejoined: true`); host token transferred if host. Connected duplicate → 409. New name after
-    start → 409. localStorage session resume still works (also for spectators).
-  - Testing: iteration_3 passed (backend pytest in /app/backend/tests/test_streetkings.py + Playwright).
+## Rules summary
 
-## Backlog / Next
-- P2: Configurable end threshold / fixed number of rounds.
-- P2: Rematch in the same online room (currently returns to lobby/home).
-- P2: Spectator chat / reactions; kick offline player & replace with bot (host).
-- P3: Optional noir visual pass (fonts/colours) — explicitly deferred by user for this step.
+- 60 cards: 56 suited cards plus four Runners. All cards are dealt.
+- Players pass 4 / 3 / 3 / 2 cards for 3 / 4 / 5 / 6 players respectively.
+  The direction follows the player-count-specific cycle; every round has a pass.
+- Follow the first played suit when possible. Runners may always be played.
+  The highest card of the led suit wins; that player leads the next trick.
+- Ordinary red cards add one Heat each; special effects follow the table above.
+- A Takeover requires all 14 red cards plus Informant and/or Godmother.
+  Its value is 20 / 25 / 30. The endgame exception prevents handing another
+  player the win, deducting the Takeover value from the collector instead.
+- When a player reaches 70 Heat, the lowest total wins; ties are possible.
+- All human players confirm readiness before the next round.
+
+## Presentation and interaction
+
+- Shared player tiles show turn order, active player, passing progress and chat.
+- Full illustrated trick cards remain visible separately from status/buttons.
+- Smartphone hands use two overlapping rows, with stable size and position.
+- Local sorting belongs to the viewer only, including a personal Chaos order.
+- Twelve synthesized chat cues, a turn reminder, mute and mobile audio unlock.
+- Rules and scoring explanations reuse the playable special-card illustrations.
+
+## Compatibility
+
+Stable physical card IDs are unchanged. Persisted card metadata is normalized
+from suit and rank. Existing awarded scores and access tokens are retained.
+Validated older browser statistics and room sessions can be copied to the
+current Street Kings namespace without deleting the older records.
+
+## Backlog
+
+- Additional languages, including Spanish.
+- Additional selectable visual themes.
+- Optional house rules, configurable threshold and consensus-based actions.

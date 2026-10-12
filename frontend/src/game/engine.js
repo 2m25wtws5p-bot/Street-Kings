@@ -1,4 +1,4 @@
-// Pure game logic for the Witches (Amigo) trick-taking card game.
+// Pure game logic for the Street Kings (Street Kings) trick-taking card game.
 import { SUIT_ORDER, WIN_THRESHOLD } from "./constants";
 
 export function makeDeck() {
@@ -6,16 +6,16 @@ export function makeDeck() {
   for (const suit of SUIT_ORDER) {
     for (let v = 1; v <= 14; v++) {
       let special = null;
-      if (suit === "RED" && v === 11) special = "fire";
-      else if (suit === "GREEN" && v === 11) special = "water"; // Informant (+5)
-      else if (suit === "YELLOW" && v === 11) special = "earth"; // Schmierer (-5)
-      else if (suit === "BLUE" && v === 11) special = "air"; // Fixer (neutralisiert)
-      else if (suit === "GREEN" && v === 12) special = "pygmy";
+      if (suit === "RED" && v === 11) special = "kingpin";
+      else if (suit === "GREEN" && v === 11) special = "informant"; // Informant (+5)
+      else if (suit === "YELLOW" && v === 11) special = "briber"; // Schmierer (-5)
+      else if (suit === "BLUE" && v === 11) special = "fixer"; // Fixer (neutralisiert)
+      else if (suit === "GREEN" && v === 12) special = "godmother";
       cards.push({ id: `${suit}-${v}`, suit, value: v, special });
     }
   }
   for (let i = 1; i <= 4; i++) {
-    cards.push({ id: `W${i}`, suit: null, value: 0, special: "wizard" });
+    cards.push({ id: `W${i}`, suit: null, value: 0, special: "runner" });
   }
   return cards;
 }
@@ -86,7 +86,7 @@ export function targetSeat(seat, dir, n) {
   return (((seat + dir) % n) + n) % n;
 }
 
-// The lead suit is set by the first non-wizard card in the trick.
+// The lead suit is set by the first non-runner card in the trick.
 export function leadSuit(trick) {
   const e = trick.find((t) => t.card.suit != null);
   return e ? e.card.suit : null;
@@ -95,11 +95,11 @@ export function leadSuit(trick) {
 export function legalCardIds(hand, trick) {
   if (trick.length === 0) return hand.map((c) => c.id);
   const lead = leadSuit(trick);
-  if (lead == null) return hand.map((c) => c.id); // only wizards played so far
+  if (lead == null) return hand.map((c) => c.id); // only runners played so far
   const hasLead = hand.some((c) => c.suit === lead);
   if (!hasLead) return hand.map((c) => c.id);
   return hand
-    .filter((c) => c.suit === lead || c.special === "wizard")
+    .filter((c) => c.suit === lead || c.special === "runner")
     .map((c) => c.id);
 }
 
@@ -107,7 +107,7 @@ export function legalCardIds(hand, trick) {
 export function resolveTrick(trick) {
   if (!trick.length) throw new RangeError("Cannot resolve an empty trick");
   const leadEntry = trick.find((t) => t.card.suit != null);
-  if (!leadEntry) return trick[0].seat; // all wizards -> first played wins
+  if (!leadEntry) return trick[0].seat; // all runners -> first played wins
   const lead = leadEntry.card.suit;
   let winner = null;
   for (const t of trick) {
@@ -122,12 +122,12 @@ export function resolveTrick(trick) {
 export function scoreRound(piles, previousScores = null) {
   const n = piles.length;
   const results = Array.from({ length: n }, () => ({
-    fireCards: 0,
-    fireWitch: false,
-    water: false,
-    pygmy: false,
-    earth: false,
-    air: false,
+    heatCards: 0,
+    kingpin: false,
+    informant: false,
+    godmother: false,
+    briber: false,
+    fixer: false,
     total: 0,
     moon: false,
   }));
@@ -136,69 +136,69 @@ export function scoreRound(piles, previousScores = null) {
   let shooter = -1;
   piles.forEach((pile, seat) => {
     const allRed = pile.filter((c) => c.suit === "RED").length === 14;
-    const greenSpecial = pile.some((c) => c.special === "water" || c.special === "pygmy");
+    const greenSpecial = pile.some((c) => c.special === "informant" || c.special === "godmother");
     if (allRed && greenSpecial) shooter = seat;
   });
 
   if (shooter >= 0) {
     const s = piles[shooter];
-    const hasWater = s.some((c) => c.special === "water");
-    const hasPygmy = s.some((c) => c.special === "pygmy");
-    const spell = 15 + (hasWater ? 5 : 0) + (hasPygmy ? 10 : 0); // 20 / 25 / 30
-    let spellName = "Takeover";
-    if (hasWater && hasPygmy) spellName = "Großer Takeover";
-    else if (hasPygmy) spellName = "Patin-Takeover";
-    // Original rulebook's endgame exception: a takeover must not hand the
+    const hasInformant = s.some((c) => c.special === "informant");
+    const hasGodmother = s.some((c) => c.special === "godmother");
+    const takeover = 15 + (hasInformant ? 5 : 0) + (hasGodmother ? 10 : 0); // 20 / 25 / 30
+    let takeoverName = "Takeover";
+    if (hasInformant && hasGodmother) takeoverName = "Großer Takeover";
+    else if (hasGodmother) takeoverName = "Patin-Takeover";
+    // Endgame exception: a takeover must not hand the
     // victory to another player. Instead, deduct its value from the shooter.
-    const projected = previousScores?.map((score, seat) => score + (seat === shooter ? 0 : spell));
-    const spellWithheld = !!projected && isGameOver(projected) && lowestSeats(projected).some(seat => seat !== shooter);
+    const projected = previousScores?.map((score, seat) => score + (seat === shooter ? 0 : takeover));
+    const takeoverWithheld = !!projected && isGameOver(projected) && lowestSeats(projected).some(seat => seat !== shooter);
     piles.forEach((pile, seat) => {
       if (seat === shooter) {
         results[seat] = {
-          fireCards: 13,
-          fireWitch: true,
-          water: hasWater,
-          pygmy: hasPygmy,
-          earth: pile.some(c => c.special === "earth"),
-          air: pile.some(c => c.special === "air"),
-          total: spellWithheld ? -Math.min(previousScores[seat], spell) : 0,
+          heatCards: 13,
+          kingpin: true,
+          informant: hasInformant,
+          godmother: hasGodmother,
+          briber: pile.some(c => c.special === "briber"),
+          fixer: pile.some(c => c.special === "fixer"),
+          total: takeoverWithheld ? -Math.min(previousScores[seat], takeover) : 0,
           moon: true,
-          spellVictim: false,
+          takeoverVictim: false,
         };
       } else {
         results[seat] = {
-          fireCards: pile.filter(c => c.suit === "RED" && c.special !== "fire").length,
-          fireWitch: pile.some(c => c.special === "fire"),
-          water: pile.some(c => c.special === "water"),
-          pygmy: pile.some(c => c.special === "pygmy"),
-          earth: pile.some(c => c.special === "earth"),
-          air: pile.some(c => c.special === "air"),
-          total: spellWithheld ? 0 : spell,
+          heatCards: pile.filter(c => c.suit === "RED" && c.special !== "kingpin").length,
+          kingpin: pile.some(c => c.special === "kingpin"),
+          informant: pile.some(c => c.special === "informant"),
+          godmother: pile.some(c => c.special === "godmother"),
+          briber: pile.some(c => c.special === "briber"),
+          fixer: pile.some(c => c.special === "fixer"),
+          total: takeoverWithheld ? 0 : takeover,
           moon: false,
-          spellVictim: true,
+          takeoverVictim: true,
         };
       }
     });
-    return { results, shooter, spellName, spellPoints: spell, spellWithheld };
+    return { results, shooter, takeoverName, takeoverPoints: takeover, takeoverWithheld };
   }
 
   piles.forEach((pile, seat) => {
-    const redPts = pile.filter((c) => c.suit === "RED" && c.special !== "fire").length;
-    const fireWitch = pile.some((c) => c.special === "fire");
-    const air = pile.some((c) => c.special === "air");
-    const water = pile.some((c) => c.special === "water");
-    const pygmy = pile.some((c) => c.special === "pygmy");
-    const earth = pile.some((c) => c.special === "earth");
+    const redPts = pile.filter((c) => c.suit === "RED" && c.special !== "kingpin").length;
+    const kingpin = pile.some((c) => c.special === "kingpin");
+    const fixer = pile.some((c) => c.special === "fixer");
+    const informant = pile.some((c) => c.special === "informant");
+    const godmother = pile.some((c) => c.special === "godmother");
+    const briber = pile.some((c) => c.special === "briber");
     let base = redPts;
-    if (fireWitch) base = Math.min(base * 2, 15);
+    if (kingpin) base = Math.min(base * 2, 15);
     let total = base;
-    if (water) total += 5;
-    if (pygmy) total += 10;
-    if (air) total = 0;
-    if (earth) total = Math.max(total - 5, 0);
-    results[seat] = { fireCards: redPts, fireWitch, water, pygmy, earth, air, total, moon: false };
+    if (informant) total += 5;
+    if (godmother) total += 10;
+    if (fixer) total = 0;
+    if (briber) total = Math.max(total - 5, 0);
+    results[seat] = { heatCards: redPts, kingpin, informant, godmother, briber, fixer, total, moon: false };
   });
-  return { results, shooter: -1, spellName: null };
+  return { results, shooter: -1, takeoverName: null };
 }
 
 export function isGameOver(scores) {
@@ -214,14 +214,14 @@ export function lowestSeats(scores) {
 
 // How badly a bot wants to get rid of a card (higher = dump it).
 export function cardDanger(card) {
-  if (card.special === "wizard") return -5; // safe, keep for escapes
-  if (card.special === "earth") return -25; // blessing, keep
-  if (card.special === "air") return -15; // neutralizer, keep
-  if (card.special === "pygmy") return 45; // +10, dump
-  if (card.special === "water") return 32; // +5, dump
-  if (card.special === "fire") return 27; // fire witch, dangerous to hold
-  if (card.suit === "RED") return 12 + card.value; // fire cards
-  return card.value * 0.4; // non-fire, mild
+  if (card.special === "runner") return -5; // safe, keep for escapes
+  if (card.special === "briber") return -25; // blessing, keep
+  if (card.special === "fixer") return -15; // neutralizer, keep
+  if (card.special === "godmother") return 45; // +10, dump
+  if (card.special === "informant") return 32; // +5, dump
+  if (card.special === "kingpin") return 27; // kingpin special, dangerous to hold
+  if (card.suit === "RED") return 12 + card.value; // kingpin cards
+  return card.value * 0.4; // non-kingpin, mild
 }
 
 // Choose `count` cards for a bot to pass away.
@@ -233,12 +233,12 @@ export function botPass(hand, count) {
 }
 
 function leadPref(card) {
-  if (card.special === "wizard") return 3; // leading a wizard is safe (can't win)
-  if (card.special === "pygmy") return 95;
-  if (card.special === "water") return 85;
-  if (card.special === "fire") return 55;
+  if (card.special === "runner") return 3; // leading a runner is safe (can't win)
+  if (card.special === "godmother") return 95;
+  if (card.special === "informant") return 85;
+  if (card.special === "kingpin") return 55;
   if (card.suit === "RED") return 40 + card.value;
-  return card.value; // low non-fire preferred
+  return card.value; // low non-kingpin preferred
 }
 
 // Choose a legal card for a bot to play.
@@ -255,13 +255,13 @@ export function botPlay(hand, trick) {
   const lead = leadSuit(trick);
   const hasLead = hand.some((c) => c.suit === lead);
   const trickHasPenalty = trick.some(
-    (t) => t.card.suit === "RED" || t.card.special === "water" || t.card.special === "pygmy"
+    (t) => t.card.suit === "RED" || t.card.special === "informant" || t.card.special === "godmother"
   );
 
   if (!hasLead) {
     // void of the led colour — off-suit can never win, so dump the worst card
-    const nonWizard = legal.filter((c) => c.special !== "wizard");
-    const pool = nonWizard.length ? nonWizard : legal;
+    const nonRunner = legal.filter((c) => c.special !== "runner");
+    const pool = nonRunner.length ? nonRunner : legal;
     return [...pool].sort((a, b) => cardDanger(b) - cardDanger(a))[0].id;
   }
 
@@ -272,7 +272,7 @@ export function botPlay(hand, trick) {
     return safe.sort((a, b) => b.value - a.value)[0].id; // duck with highest safe card
   }
   // any lead card would currently win
-  const wizard = legal.find((c) => c.special === "wizard");
-  if (trickHasPenalty && wizard) return wizard.id; // escape a penalty trick
+  const runner = legal.find((c) => c.special === "runner");
+  if (trickHasPenalty && runner) return runner.id; // escape a penalty trick
   return leadCards.sort((a, b) => a.value - b.value)[0].id;
 }

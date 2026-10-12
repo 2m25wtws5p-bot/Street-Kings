@@ -12,12 +12,12 @@ Shared direction: original portrait 2:3, full-bleed illustration, detailed hand-
 | yellow.webp | Detailed Venetian half mask on black cloth at a street-market stall; mustard, gold, cream. |
 | blue.webp | Fictional blue banknote bundle, coins and worn metal cash box with city mural; cobalt, pale blue, cream. |
 | green.webp | Twine-bound kraft parcels on a cargo bicycle at a green warehouse door; forest green, mint, cream. |
-| fire.webp | Confident adult Kingpin in a red varsity jacket with gold chain; scarlet, brick red, cream. |
-| water.webp | Wary adult Informant in a green hooded jacket holding a folded note; forest green, mint, cream. |
-| earth.webp | Knowing adult Schmierer in a mustard trench coat holding a sealed envelope; mustard, gold, cream. |
-| air.webp | Composed adult Fixer in cobalt streetwear with silver earpiece; cobalt, pale blue, cream. |
-| pygmy.webp | Authoritative adult Patin with curly hair, green coat and gold brooch; forest green, mint, cream. |
-| wizard.webp | Adult courier in a cream hoodie, charcoal vest and messenger bag with parcel; ivory, charcoal, terracotta. |
+| kingpin.webp | Confident adult Kingpin in a red varsity jacket with gold chain; scarlet, brick red, cream. |
+| informant.webp | Wary adult Informant in a green hooded jacket holding a folded note; forest green, mint, cream. |
+| briber.webp | Knowing adult Schmierer in a mustard trench coat holding a sealed envelope; mustard, gold, cream. |
+| fixer.webp | Composed adult Fixer in cobalt streetwear with silver earpiece; cobalt, pale blue, cream. |
+| godmother.webp | Authoritative adult Patin with curly hair, green coat and gold brooch; forest green, mint, cream. |
+| runner.webp | Adult courier in a cream hoodie, charcoal vest and messenger bag with parcel; ivory, charcoal, terracotta. |
 
 The four neutral runner cards intentionally share artwork. Specials retain their canonical suit, and green 12 always uses green framing and a green number field. Numbers and icons are high-contrast on solid paper-colored corners; illustrations are decorative and have empty alt text because the full playable card is already named for assistive technology.
 
@@ -39,8 +39,8 @@ Risk specials (red 11, green 11/12) use a warning triangle and dark warning labe
 Built-in image generation was used, not CLI/API fallback. Final project assets:
 
 - `../backgrounds/high-rises.webp`: original photorealistic wide European apartment towers at dusk, concrete balconies, warm windows and leafy trees. Soft atmospheric light, muted teal/sandstone, uncluttered center behind UI. No neon, futuristic skyline, people, logos or text. 1536 × 1024, optimized WebP.
-- `air.webp`: full-bleed 2:3 detailed painted editorial street-comic portrait. Mature calm Black male fixer, cropped silver hair and neat beard, navy work jacket. Reassuring open hand, folding a red warning notice into a worn blue folder to convey neutralizing trouble. Natural brick courtyard, screenprinted paper texture. Quiet corners for code-rendered pips; no text, borders, weapons or magical effects.
-- `water.webp`: precise edit of the previous informant. Preserve face, red hair, pose, green jacket, note, alley and illustrated style. Add only a small worn red chest/shoulder fabric patch and subtle red jacket piping to signal red heat risk. Predominantly green, no text or framing.
+- `fixer.webp`: full-bleed 2:3 detailed painted editorial street-comic portrait. Mature calm Black male fixer, cropped silver hair and neat beard, navy work jacket. Reassuring open hand, folding a red warning notice into a worn blue folder to convey neutralizing trouble. Natural brick courtyard, screenprinted paper texture. Quiet corners for code-rendered pips; no text, borders, weapons or magical effects.
+- `informant.webp`: precise edit of the previous informant. Preserve face, red hair, pose, green jacket, note, alley and illustrated style. Add only a small worn red chest/shoulder fabric patch and subtle red jacket piping to signal red heat risk. Predominantly green, no text or framing.
 
 The card illustrations remain 320 × 480. Suit identity and game rules are unchanged.
 

@@ -7,7 +7,7 @@ import { LanguageSelector } from "./LanguageSelector";
 export function HomeScreen({ onLocal, onOnline, onRules, onStats }) {
   const { t } = useI18n();
   return (
-    <div className="min-h-screen coven-bg relative">
+    <div className="min-h-screen street-bg relative">
       <div className="fixed top-3 right-4 z-40 flex gap-1.5">
         <button onClick={onRules} data-testid="btn-open-how-to-play-dialog" title={t('common.rules')} aria-label={t('common.rules')} className="grid place-items-center w-9 h-9 rounded-lg bg-black/40 border border-white/10 text-amber-200 hover:border-amber-400/60 transition-colors">
           <BookOpen size={16} />

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { gameApi } from "@/game/api";
-import { useWitchesGame } from "@/game/useGame";
+import { useStreetKingsGame } from "@/game/useGame";
 import { SetupScreen } from "@/components/SetupScreen";
 import { PassGate } from "@/components/PassGate";
 import { PassingScreen } from "@/components/PassingScreen";
@@ -24,7 +24,7 @@ import { I18nScope, useI18n } from "../i18n/I18nProvider";
 import { localLanguageSeat } from "../i18n/localLanguage";
 
 export function LocalGame(props) {
-  const game = useWitchesGame();
+  const game = useStreetKingsGame();
   const viewerRef = useRef(null);
   viewerRef.current = localLanguageSeat(game.state, viewerRef.current);
   const language = game.state.players?.[viewerRef.current]?.language;
@@ -160,7 +160,7 @@ function LocalGameView({ onExit, sound, setSound, game }) {
 
 function BotWaiting({ player, text }) {
   return (
-    <div className="min-h-screen coven-bg grid place-items-center px-4" data-testid="bot-waiting-screen">
+    <div className="min-h-screen street-bg grid place-items-center px-4" data-testid="bot-waiting-screen">
       <div className="text-center rise-in">
         <div className="float-slow inline-block mb-5">
           <Avatar avatar={player.avatar} size={96} active />

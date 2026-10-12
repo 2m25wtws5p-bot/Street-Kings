@@ -33,7 +33,7 @@ afterEach(() => {
 
 const exchange = (id = "GREEN-12", name = "Nia") => ({
   receivedFrom: name,
-  received: [{ id, suit: "GREEN", value: id === "GREEN-11" ? 11 : 12, special: id === "GREEN-11" ? "water" : "pygmy" }],
+  received: [{ id, suit: "GREEN", value: id === "GREEN-11" ? 11 : 12, special: id === "GREEN-11" ? "informant" : "godmother" }],
 });
 const renderReceipt = ({ cards = exchange(), scopeKey = "round-0-seat-0", available = true, language = "de", strict = false } = {}) => {
   const child = <I18nScope language={language}><ExchangeReveal exchange={cards} scopeKey={scopeKey} available={available} /></I18nScope>;

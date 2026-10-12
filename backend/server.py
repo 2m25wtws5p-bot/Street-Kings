@@ -18,7 +18,7 @@ import weakref
 import unicodedata
 from datetime import datetime, timezone
 
-import witches_engine as eng
+import street_kings_engine as eng
 
 
 ROOT_DIR = Path(__file__).parent
@@ -221,6 +221,7 @@ async def _get_room(code: str):
     room = await db.rooms.find_one({"_id": code})
     if not room:
         raise HTTPException(status_code=404, detail="Raum nicht gefunden")
+    eng.normalize_room_cards(room)
     if room.get("status") == "lobby" and any(
         player.get("seat") != seat for seat, player in enumerate(room["players"])
     ):

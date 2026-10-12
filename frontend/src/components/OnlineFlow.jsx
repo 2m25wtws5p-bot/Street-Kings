@@ -83,7 +83,7 @@ export function OnlineFlow({ initialCode, onExit, sound, setSound }) {
 
   if (resuming) {
     return (
-      <div className="min-h-screen coven-bg grid place-items-center">
+      <div className="min-h-screen street-bg grid place-items-center">
         <Loader className="animate-spin text-amber-400" size={32} />
       </div>
     );
@@ -95,7 +95,7 @@ export function OnlineFlow({ initialCode, onExit, sound, setSound }) {
 
   if (!online.view && online.error) {
     return (
-      <div className="min-h-screen coven-bg grid place-items-center px-4">
+      <div className="min-h-screen street-bg grid place-items-center px-4">
         <div className="panel rounded-lg p-5 max-w-md text-center">
           <p role="alert" className="text-red-300 mb-4">{online.error}</p>
           <button onClick={leave} className="text-amber-300">{t("online.home")}</button>
@@ -106,7 +106,7 @@ export function OnlineFlow({ initialCode, onExit, sound, setSound }) {
 
   if (!online.view) {
     return (
-      <div className="min-h-screen coven-bg grid place-items-center">
+      <div className="min-h-screen street-bg grid place-items-center">
         <Loader className="animate-spin text-amber-400" size={32} />
       </div>
     );
@@ -172,7 +172,7 @@ function CreateJoin({ initialCode, onExit, onSession }) {
   const watch = () => validCode() && run(() => roomApi.watch(code.trim().toUpperCase(), name.trim() || t('online.defaultSpectator')), sfx.select);
 
   return (
-    <div className="min-h-screen coven-bg relative">
+    <div className="min-h-screen street-bg relative">
       <div className="relative max-w-md mx-auto px-4 py-12">
         <button onClick={onExit} data-testid="btn-back-home" className="text-slate-300/70 hover:text-amber-300 text-sm flex items-center gap-1.5 mb-6 transition-colors">
           <ArrowLeft size={16} /> {t("online.back")}
@@ -254,7 +254,7 @@ function Lobby({ view, actions, onLeave }) {
   const canStart = n >= 3 && n <= 6;
 
   return (
-    <div className="min-h-screen coven-bg px-4 py-10">
+    <div className="min-h-screen street-bg px-4 py-10">
       <div className="max-w-md mx-auto">
         <button onClick={onLeave} data-testid="btn-leave-room" className="text-slate-300/70 hover:text-amber-300 text-sm flex items-center gap-1.5 mb-6 transition-colors">
           <ArrowLeft size={16} /> {t("online.leave")}

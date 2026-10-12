@@ -4,16 +4,17 @@ import test from "node:test";
 
 const source = path => readFile(new URL(`../src/${path}`, import.meta.url), "utf8");
 const moduleUrl = text => `data:text/javascript;base64,${Buffer.from(text).toString("base64")}`;
-const { HAND_PREFERENCE_KEY, readHandPreferences, saveHandPreferences, sortHand, canDropHandCard } = await import(moduleUrl(await source("game/handPreferences.js")));
+const { HAND_PREFERENCE_KEY, readHandPreferences, saveHandPreferences, sortHand, canDropHandCard,
+  reconcileManualHand, moveHandCard, handReorderTarget } = await import(moduleUrl(await source("game/handPreferences.js")));
 const hand = [
   { id: "g-7", suit: "GREEN", value: 7 }, { id: "r-8", suit: "RED", value: 8 },
   { id: "b-2", suit: "BLUE", value: 2 }, { id: "y-3", suit: "YELLOW", value: 3 },
-  { id: "r-1", suit: "RED", value: 1 }, { id: "wizard", suit: null, value: 0 },
+  { id: "r-1", suit: "RED", value: 1 }, { id: "runner", suit: null, value: 0 },
 ];
 
 test("sorting is private, immutable and ascending for suits and values", () => {
   const original = JSON.stringify(hand);
-  assert.deepEqual(sortHand(hand).map(card => card.id), ["r-1", "r-8", "y-3", "b-2", "g-7", "wizard"]);
+  assert.deepEqual(sortHand(hand).map(card => card.id), ["r-1", "r-8", "y-3", "b-2", "g-7", "runner"]);
   assert.deepEqual(sortHand(hand, { mode: "value" }).map(card => card.value), [0, 1, 2, 3, 7, 8]);
   assert.equal(JSON.stringify(hand), original);
   assert.ok(sortHand(hand).every(card => hand.includes(card)), "No engine card object is rewritten");
@@ -28,6 +29,50 @@ test("chaos order stays stable through rerenders, plays, and incoming cards", ()
   const incoming = { id: "new-card", suit: "BLUE", value: 9 };
   assert.deepEqual(sortHand([...hand, incoming], preferences).filter(card => card.id !== incoming.id).map(card => card.id), order);
   assert.notDeepEqual(sortHand(hand, { ...preferences, seed: 748392 }).map(card => card.id), order);
+});
+
+test("manual chaos arrangement preserves identities without editing the hand", () => {
+  const original = JSON.stringify(hand);
+  const preferences = { mode: "chaos", seed: 9127 };
+  const order = sortHand(hand, preferences).map(card => card.id);
+  const moved = moveHandCard(order, order[0], order[3]);
+  assert.equal(moved[3], order[0]);
+  assert.deepEqual(order, sortHand(hand, preferences).map(card => card.id));
+  const arranged = reconcileManualHand(hand, moved, preferences);
+  assert.deepEqual(arranged.map(card => card.id), moved);
+  assert.equal(JSON.stringify(hand), original);
+  assert.ok(arranged.every(card => hand.includes(card)));
+  assert.deepEqual(moveHandCard(order, "absent", order[2]), order);
+  assert.deepEqual(moveHandCard(order, order[0], "absent"), order);
+  assert.deepEqual(moveHandCard(order, order[0], order[0]), order);
+});
+
+test("manual chaos arrangement drops stale IDs and appends incoming cards predictably", () => {
+  const preferences = { mode: "chaos", seed: 9127 };
+  const order = [hand[3].id, hand[0].id, hand[2].id, "foreign", hand[3].id];
+  const incoming = { id: "incoming", suit: "BLUE", value: 10 };
+  const nextHand = [...hand.filter(card => card.id !== hand[2].id), incoming];
+  const result = reconcileManualHand(nextHand, order, preferences).map(card => card.id);
+  assert.deepEqual(result.slice(0, 2), [hand[3].id, hand[0].id]);
+  assert.deepEqual(new Set(result), new Set(nextHand.map(card => card.id)));
+  assert.equal(result.length, nextHand.length);
+  assert.deepEqual(result.slice(2), sortHand(nextHand.filter(card => !order.includes(card.id)), preferences).map(card => card.id));
+});
+
+test("manual drag hit testing uses exposed hand strips and rejects outside points", () => {
+  const slots = [
+    { id: "a", left: 10, right: 30, top: 100, bottom: 200 },
+    { id: "b", left: 30, right: 50, top: 100, bottom: 200 },
+    { id: "c", left: 50, right: 120, top: 100, bottom: 200 },
+    { id: "d", left: 10, right: 80, top: 230, bottom: 330 },
+  ];
+  assert.equal(handReorderTarget({ x: 20, y: 150 }, slots), "a");
+  assert.equal(handReorderTarget({ x: 45, y: 150 }, slots), "b");
+  assert.equal(handReorderTarget({ x: 110, y: 150 }, slots), "c");
+  assert.equal(handReorderTarget({ x: 50, y: 300 }, slots), "d");
+  for (const point of [{ x: 2, y: 150 }, { x: 50, y: 210 }, { x: 121, y: 150 }, { x: NaN, y: 150 }]) {
+    assert.equal(handReorderTarget(point, slots), null);
+  }
 });
 
 test("per-device preferences survive a remount and refused or malformed storage", () => {
@@ -110,7 +155,7 @@ test("pointer dragging has a movement threshold, cancellation and click suppress
   assert.match(component, /onPointerCancel=\{draggable \? event => endPointer\(event, card, true\)/);
   assert.match(component, /if \(!cancelled && canDropHandCard/);
   assert.match(component, /event\.detail !== 0 && suppressClick\.current\?\.id === card\.id/);
-  assert.match(component, /\[interactionKey, canDrag, faceDown\]/);
+  assert.match(component, /\[interactionKey, canDrag, faceDown, arranging, orderScope\]/);
   assert.match(component, /onCardClick\?\.\(card\)/);
 });
 
@@ -133,7 +178,7 @@ test("confirmed local passes remain highlighted and reject editing while bots fi
 test("special functions have matching viewer-local translations and a reserved readable line", async () => {
   const { de, en } = await import(moduleUrl(await source("i18n/messages/cardsImprovements.js")));
   assert.deepEqual(Object.keys(de).sort(), Object.keys(en).sort());
-  for (const special of ["fire", "water", "earth", "air", "pygmy", "wizard"]) {
+  for (const special of ["kingpin", "informant", "briber", "fixer", "godmother", "runner"]) {
     assert.ok(de[`hand.effect.${special}`]);
     assert.ok(en[`hand.effect.${special}`]);
   }

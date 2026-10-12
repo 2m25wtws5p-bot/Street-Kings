@@ -77,7 +77,7 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false, di
   };
 
   return (
-    <div className="game-table min-h-screen coven-bg flex flex-col" data-phase={phase}>
+    <div className="game-table min-h-screen street-bg flex flex-col" data-phase={phase}>
       {/* header row */}
       <div className="game-table-status flex items-center justify-between px-4 pt-3 pb-2">
         <div className="font-mono-stat text-xs text-slate-300/70">
@@ -96,7 +96,7 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false, di
         <div
           className="relative w-full max-w-2xl min-h-[220px] rounded-[40%] grid place-items-center"
           style={{ background: "radial-gradient(ellipse at center, rgba(239,68,68,0.10), rgba(13,15,19,0) 70%)" }}
-          data-testid="central-trick-cauldron"
+          data-testid="central-trick-table"
           data-card-drop-zone="true"
         >
           {trick.length === 0 && !isTrickEnd && (
@@ -123,6 +123,7 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false, di
           </TurnStatus>
         </div>
         <HandCards cards={hand} initialCount={totalTricks} faceDown={faceDown}
+          handScopeKey={`local-${state.roundId || state.roundIndex}-${handSeat}`}
           selectedIds={canPlay && armed ? [armed] : []} legalIds={legal}
           dimIds={canPlay ? hand.filter(card => !legal.has(card.id)).map(card => card.id) : []}
           onCardClick={canPlay ? clickCard : undefined} onCardDrop={dropCard} canDrag={canPlay}

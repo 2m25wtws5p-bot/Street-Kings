@@ -11,7 +11,7 @@ from urllib.parse import urlparse
 import pytest
 import requests
 
-import witches_engine as eng
+import street_kings_engine as eng
 
 
 BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "http://127.0.0.1:8871").rstrip("/")

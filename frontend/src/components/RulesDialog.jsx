@@ -8,7 +8,7 @@ import { useI18n } from "../i18n/I18nProvider";
 import { useGameLabels } from "../i18n/gameLabels";
 import { SpecialCardReference } from "./SpecialCardReference";
 
-const SPECIAL_RULES = ["fire", "water", "pygmy", "air", "earth", "wizard"];
+const SPECIAL_RULES = ["kingpin", "informant", "godmother", "fixer", "briber", "runner"];
 const PASS_ROWS = [
   [3, 20, 4, "rules.passing.odd"],
   [4, 15, 3, "rules.passing.even"],
@@ -91,9 +91,9 @@ export function RulesDialog({ open, onOpenChange }) {
         <RuleSection number="05" title={t("rules.scoring.title")}>
           <p><RuleText text={t("rules.scoring.text")} /></p>
           <div className="rule-example rounded-md p-3 mt-3 space-y-2 text-xs sm:text-sm">
-            <div><div className="rule-scoring-illustrations"><SpecialCardReference cardKey="fire" compact /></div><p><RuleText text={t("rules.scoring.doubleBefore")} /> <span className="font-mono-stat font-bold">4 × 2 = 8</span>. {t("rules.scoring.doubleBetween")} <span className="font-mono-stat font-bold">20 → 15</span>.</p></div>
-            <div><div className="rule-scoring-illustrations">{["water", "pygmy", "air"].map(key => <SpecialCardReference key={key} cardKey={key} compact />)}</div><p><RuleText text={t("rules.scoring.greenBefore")} /> <span className="font-mono-stat font-bold">2 + 5 + 10 = 17</span>. {t("rules.scoring.greenBetween")} <span className="font-mono-stat font-bold">0</span>.</p></div>
-            <div><div className="rule-scoring-illustrations"><SpecialCardReference cardKey="earth" compact /></div><p><RuleText text={t("rules.scoring.reduceBefore")} /> <span className="font-mono-stat font-bold">3 − 3 = 0</span>. {t("rules.scoring.reduceAfter")}</p></div>
+            <div><div className="rule-scoring-illustrations"><SpecialCardReference cardKey="kingpin" compact /></div><p><RuleText text={t("rules.scoring.doubleBefore")} /> <span className="font-mono-stat font-bold">4 × 2 = 8</span>. {t("rules.scoring.doubleBetween")} <span className="font-mono-stat font-bold">20 → 15</span>.</p></div>
+            <div><div className="rule-scoring-illustrations">{["informant", "godmother", "fixer"].map(key => <SpecialCardReference key={key} cardKey={key} compact />)}</div><p><RuleText text={t("rules.scoring.greenBefore")} /> <span className="font-mono-stat font-bold">2 + 5 + 10 = 17</span>. {t("rules.scoring.greenBetween")} <span className="font-mono-stat font-bold">0</span>.</p></div>
+            <div><div className="rule-scoring-illustrations"><SpecialCardReference cardKey="briber" compact /></div><p><RuleText text={t("rules.scoring.reduceBefore")} /> <span className="font-mono-stat font-bold">3 − 3 = 0</span>. {t("rules.scoring.reduceAfter")}</p></div>
           </div>
           <p className="mt-2 inline-flex items-center gap-1 flex-wrap"><strong>{t("rules.scoring.total")}</strong> {t("rules.scoring.previous")} <ArrowRight size={14} aria-hidden="true" /> {t("rules.scoring.plus")} <ArrowRight size={14} aria-hidden="true" /> {t("rules.scoring.new")}</p>
         </RuleSection>
@@ -101,7 +101,7 @@ export function RulesDialog({ open, onOpenChange }) {
         <RuleSection number="06" title={t("rules.takeover.title")}>
           <p><RuleText text={t("rules.takeover.text")} /></p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3">
-            {[["scores.meta.water.name", "15 + 5", 20], ["scores.meta.pygmy.name", "15 + 10", 25], ["rules.takeover.both", "15 + 5 + 10", 30]].map(([nameKey, math, total]) => <div key={nameKey} className="rule-example rounded-md p-3 text-center"><div className="font-display font-bold">{t("rules.takeover.allRed", { name: t(nameKey) })}</div><div className="font-mono-stat text-xs mt-1">{math}</div><div className="font-display text-3xl font-bold">{t("rules.takeover.heat", { count: total })}</div></div>)}
+            {[["scores.meta.informant.name", "15 + 5", 20], ["scores.meta.godmother.name", "15 + 10", 25], ["rules.takeover.both", "15 + 5 + 10", 30]].map(([nameKey, math, total]) => <div key={nameKey} className="rule-example rounded-md p-3 text-center"><div className="font-display font-bold">{t("rules.takeover.allRed", { name: t(nameKey) })}</div><div className="font-mono-stat text-xs mt-1">{math}</div><div className="font-display text-3xl font-bold">{t("rules.takeover.heat", { count: total })}</div></div>)}
           </div>
           <p className="mt-3">{t("rules.takeover.effects")}</p>
           <div className="rule-note rounded-md p-3 mt-3"><RuleText text={t("rules.takeover.exception")} /></div>

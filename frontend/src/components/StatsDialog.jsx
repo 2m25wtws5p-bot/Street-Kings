@@ -23,7 +23,7 @@ export function StatsDialog({ open, onOpenChange }) {
   }, [open]);
 
   const players = Object.entries(stats.players || {})
-    .map(([name, record]) => ({ name, ...record, avg: record.games ? record.totalFire / record.games : 0 }))
+    .map(([name, record]) => ({ name, ...record, avg: record.games ? record.totalHeat / record.games : 0 }))
     .sort((a, b) => b.wins - a.wins || a.avg - b.avg);
 
   return <Dialog open={open} onOpenChange={onOpenChange}>

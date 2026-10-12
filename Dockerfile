@@ -4,7 +4,7 @@ WORKDIR /app
 COPY backend/requirements.runtime.txt requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt \
     && useradd --create-home --uid 10001 appuser
-COPY --chown=appuser:appuser backend/server.py backend/witches_engine.py ./
+COPY --chown=appuser:appuser backend/server.py backend/street_kings_engine.py ./
 USER appuser
 EXPOSE 8000
 # Room locks are process-local: do not use multiple workers or replicas.

@@ -6,9 +6,9 @@ import requests
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL').rstrip('/')
 API = f"{BASE_URL}/api"
 
-AVATAR_A = {"key": "witch1", "label": "Wanda", "icon": "hat", "color": "#8B5CF6"}
-AVATAR_B = {"key": "witch2", "label": "Willow", "icon": "moon", "color": "#EC4899"}
-AVATAR_C = {"key": "witch3", "label": "Circe", "icon": "star", "color": "#10B981"}
+AVATAR_A = {"key": "boss", "label": "Ace", "icon": "crown", "color": "#FACC15"}
+AVATAR_B = {"key": "dealer", "label": "Ruby", "icon": "banknote", "color": "#EC4899"}
+AVATAR_C = {"key": "smuggler", "label": "Rico", "icon": "package", "color": "#10B981"}
 
 
 @pytest.fixture(scope="module")

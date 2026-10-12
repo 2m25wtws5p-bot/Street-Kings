@@ -15,7 +15,7 @@ export function SelectedCards({ hand, selected, count, onRemove }) {
       {Array.from({ length: count }, (_, index) => {
         const card = hand.find(c => c.id === selected[index]);
         const Icon = SUIT_ICON[card?.suit] || Footprints;
-        const label = card && `${suits[card.suit]?.people || t("cards.wizard.label")} ${card.value}${card.special ? ` · ${specials[card.special]?.label}` : ""}`;
+        const label = card && `${suits[card.suit]?.people || t("cards.runner.label")} ${card.value}${card.special ? ` · ${specials[card.special]?.label}` : ""}`;
         return <span className="selected-card-token-slot" key={index}>
           {card ? <button type="button" className="selected-card-token" data-suit={card.suit || "NEUTRAL"}
             data-testid={`selected-card-${card.id}`} title={label} aria-label={t("table.removeSelection", { card: label })}

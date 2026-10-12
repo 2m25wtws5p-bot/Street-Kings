@@ -63,7 +63,7 @@ export function validateRoomView(view) {
   const cardValid = card => card && typeof card.id === "string" &&
     Number.isInteger(card.value) && card.value >= 0 && card.value <= 14 &&
     [null, "RED", "YELLOW", "BLUE", "GREEN"].includes(card.suit) &&
-    (card.special == null || ["fire", "water", "earth", "air", "pygmy", "wizard"].includes(card.special));
+    (card.special == null || ["kingpin", "informant", "briber", "fixer", "godmother", "runner"].includes(card.special));
   const trickValid = trick => Array.isArray(trick) && trick.length <= view.n &&
     trick.every(entry => entry && seatValid(entry.seat) && cardValid(entry.card));
   const optionalName = name => name == null || typeof name === "string";
@@ -103,7 +103,7 @@ export function validateRoomView(view) {
       ((view.phase !== "roundScores" && view.phase !== "gameOver") ||
         (view.roundResult && Array.isArray(view.roundResult.results) && view.roundResult.results.length === view.n &&
           (view.roundResult.shooter == null || view.roundResult.shooter === -1 || seatValid(view.roundResult.shooter)) &&
-          optionalName(view.roundResult.spellName) &&
+          optionalName(view.roundResult.takeoverName) &&
           view.roundResult.results.every(result => result && Number.isFinite(result.total))))
     ));
   if (!valid) {

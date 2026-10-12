@@ -16,7 +16,7 @@ export function GameOver({ state, onRematch, onNewGame, onStats, rematchLabel, n
   }, []);
 
   return (
-    <div className="round-summary game-over-summary min-h-screen coven-bg px-4 py-10 grid place-items-center">
+    <div className="round-summary game-over-summary min-h-screen street-bg px-4 py-10 grid place-items-center">
       <div className="max-w-md w-full text-center">
         <div className="rise-in">
           <div className="inline-flex float-slow mb-3">
@@ -53,7 +53,7 @@ export function GameOver({ state, onRematch, onNewGame, onStats, rematchLabel, n
           <button onClick={onRematch} disabled={rematchDisabled} data-testid="btn-play-rematch" className="rounded-md py-3.5 font-display font-bold text-black bg-gradient-to-r from-yellow-300 to-amber-400 glow-ring flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed">
             <RotateCcw size={18} /> {rematchLabel || t('over.rematch')}
           </button>
-          <button onClick={onNewGame} data-testid="btn-new-coven-setup" className="rounded-md py-3.5 font-display font-bold text-amber-100 bg-black/40 border border-white/15 hover:border-amber-400/50 transition-colors flex items-center justify-center gap-2">
+          <button onClick={onNewGame} data-testid="btn-new-street-setup" className="rounded-md py-3.5 font-display font-bold text-amber-100 bg-black/40 border border-white/15 hover:border-amber-400/50 transition-colors flex items-center justify-center gap-2">
             <Users size={18} /> {newGameLabel || t('over.newCrew')}
           </button>
         </div>

@@ -1,7 +1,7 @@
 import { SUITS, SPECIALS, AVATARS } from '../game/constants.js';
 import { createTranslator } from './core.js';
 
-const shortKeys = { fire: 'heatShort', water: 'informantShort', earth: 'briberShort', air: 'fixerShort', pygmy: 'godmotherShort', wizard: 'runnerShort' };
+const shortKeys = { kingpin: 'heatShort', informant: 'informantShort', briber: 'briberShort', fixer: 'fixerShort', godmother: 'godmotherShort', runner: 'runnerShort' };
 
 export function getGameLabels(language) {
   const t = createTranslator(language);

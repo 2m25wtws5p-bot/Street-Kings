@@ -150,7 +150,7 @@ test('localized card and portrait labels never mutate mechanical constants or id
     });
   }
   assert.equal(getGameLabels('en').suits.GREEN.people, 'Goods');
-  assert.equal(getGameLabels('en').specials.pygmy.label, 'Godmother');
+  assert.equal(getGameLabels('en').specials.godmother.label, 'Godmother');
   assert.equal(JSON.stringify({ SUITS, SPECIALS, AVATARS, SPECIAL_MAP, SUIT_ORDER }), original);
 });
 

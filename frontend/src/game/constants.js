@@ -1,4 +1,4 @@
-// Statische Spielkonstanten für STREET KINGS (Regelmechanik nach Amigo-Original).
+// Statische Spielkonstanten für Street Kings.
 
 export const SUITS = {
   RED: {
@@ -11,7 +11,7 @@ export const SUITS = {
     neon: "#FF2A2A",
     border: "#7F1D1D",
     grad: "from-[#240d12] via-[#15090b] to-[#0d0608]",
-    isFire: true,
+    isHeat: true,
   },
   YELLOW: {
     key: "YELLOW",
@@ -23,7 +23,7 @@ export const SUITS = {
     neon: "#FFE600",
     border: "#713F12",
     grad: "from-[#241d08] via-[#171306] to-[#0d0a03]",
-    isFire: false,
+    isHeat: false,
   },
   BLUE: {
     key: "BLUE",
@@ -35,7 +35,7 @@ export const SUITS = {
     neon: "#00E5FF",
     border: "#0C4A6E",
     grad: "from-[#091726] via-[#08101a] to-[#050b12]",
-    isFire: false,
+    isHeat: false,
   },
   GREEN: {
     key: "GREEN",
@@ -47,59 +47,59 @@ export const SUITS = {
     neon: "#00FF88",
     border: "#064E3B",
     grad: "from-[#091e14] via-[#07150e] to-[#040d08]",
-    isFire: false,
+    isHeat: false,
   },
 };
 
 export const SUIT_ORDER = ["RED", "YELLOW", "BLUE", "GREEN"];
 
-// special -> suit,value mapping (Originalregeln: Rot 11, Grün 11, Gelb 11, Blau 11, Grün 12)
+// Identity of each Street Kings special card.
 export const SPECIAL_MAP = {
-  fire: { suit: "RED", value: 11 },
-  water: { suit: "GREEN", value: 11 },
-  earth: { suit: "YELLOW", value: 11 },
-  air: { suit: "BLUE", value: 11 },
-  pygmy: { suit: "GREEN", value: 12 },
+  kingpin: { suit: "RED", value: 11 },
+  informant: { suit: "GREEN", value: 11 },
+  briber: { suit: "YELLOW", value: 11 },
+  fixer: { suit: "BLUE", value: 11 },
+  godmother: { suit: "GREEN", value: 12 },
 };
 
 export const SPECIALS = {
-  fire: {
-    key: "fire",
+  kingpin: {
+    key: "kingpin",
     label: "Kingpin",
     short: "HITZE x2",
     tag: "#EF4444",
     desc: "Der mächtigste Gangster der Stadt (Hitze 11). Verdoppelt die Hitze deiner übrigen roten Karten (höchstens 15 Hitze für rote Karten). Er selbst bringt keine Hitze.",
   },
-  water: {
-    key: "water",
+  informant: {
+    key: "informant",
     label: "Informant",
     short: "+5 HITZE",
     tag: "#00FF88",
     desc: "Ein zwielichtiger Informant (Ware 11), der Informationen an die Bullen verkauft. Wer ihn im Stich kassiert, zieht +5 Hitze auf sich.",
   },
-  earth: {
-    key: "earth",
+  briber: {
+    key: "briber",
     label: "Schmierer",
     short: "-5 HITZE",
     tag: "#FACC15",
     desc: "Ein korrupter Kontakt (Schwarzmarkt 11), der mit Geld und Beziehungen Probleme aus der Welt schafft. Nimmt dir in dieser Runde bis zu 5 Hitze ab.",
   },
-  air: {
-    key: "air",
+  fixer: {
+    key: "fixer",
     label: "Fixer",
     short: "NEUTRALISIERT",
     tag: "#00E5FF",
     desc: "Ein mächtiger Problemlöser mit hervorragenden Kontakten (Cash 11). Neutralisiert die gesamte Hitze deiner gesammelten Stiche, einschließlich roter Karten, Informant und Patin. Bei einem Takeover gelten dessen Sonderregeln.",
   },
-  pygmy: {
-    key: "pygmy",
+  godmother: {
+    key: "godmother",
     label: "Patin",
     short: "+10 HITZE",
     tag: "#00FF88",
     desc: "Die mächtigste Figur der Unterwelt, über allen Crews (Ware 12). Wer sie kassiert, zieht brutale +10 Hitze auf sich.",
   },
-  wizard: {
-    key: "wizard",
+  runner: {
+    key: "runner",
     label: "Laufjunge",
     short: "WERT 0",
     tag: "#94A3B8",

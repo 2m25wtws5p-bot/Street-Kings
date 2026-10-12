@@ -43,14 +43,14 @@ function expectedWinner(trick) {
 }
 
 // Pure-engine simulations test every move, not just the eventual score.
-function pdfTakeoverFixtures() {
+function takeoverFixtures() {
   const fixtures = [];
   const variants = [[["GREEN-11"], 20, "Takeover"], [["GREEN-12"], 25, "Patin-Takeover"],
     [["GREEN-11", "GREEN-12"], 30, "Großer Takeover"]];
   for (const n of [3, 4, 5, 6]) {
     for (let shooter = 0; shooter < n; shooter += 1) {
       const others = Array.from({ length: n }, (_, seat) => seat).filter(seat => seat !== shooter);
-      for (const [greenIds, spell, spellName] of variants) {
+      for (const [greenIds, takeover, takeoverName] of variants) {
         const captured = new Set(eng.makeDeck().filter(card => card.suit === "RED").map(card => card.id));
         [...greenIds, "YELLOW-11", "BLUE-11"].forEach(id => captured.add(id));
         const piles = Array.from({ length: n }, () => []);
@@ -58,25 +58,25 @@ function pdfTakeoverFixtures() {
         eng.makeDeck().filter(card => !captured.has(card.id)).forEach((card, index) => {
           piles[others[index % others.length]].push(card);
         });
-        // Literal outcomes from the PDF's endgame exception: opponents keep
+        // Literal outcomes from the endgame exception: opponents keep
         // their scores when an ending takeover leaves an opponent first/tied.
         const scenarios = [
           ["ordinary", 10, 20, 25, 20, false],
-          ["projected69", 60, 0, 69 - spell, 0, false],
-          ["endingShooterWins", 5, 0, 70 - spell, 0, false],
-          ["endingOpponentWins", 60, 0, 70 - spell, 0, true],
-          ["endingTie", spell + 10, 10, 70 - spell, 20, true],
-          ["zeroFloor", spell, 0, 70 - spell, 10, true],
+          ["projected69", 60, 0, 69 - takeover, 0, false],
+          ["endingShooterWins", 5, 0, 70 - takeover, 0, false],
+          ["endingOpponentWins", 60, 0, 70 - takeover, 0, true],
+          ["endingTie", takeover + 10, 10, 70 - takeover, 20, true],
+          ["zeroFloor", takeover, 0, 70 - takeover, 10, true],
         ];
         for (const [label, own, low, threshold, extra, withheld] of scenarios) {
           const previousScores = Array(n).fill(extra);
           previousScores[shooter] = own;
           previousScores[others[0]] = low;
           previousScores[others[1]] = threshold;
-          const deltas = Array.from({ length: n }, (_, seat) => withheld || seat === shooter ? 0 : spell);
-          if (withheld) deltas[shooter] = -spell;
-          fixtures.push({ label: `${n}p-seat${shooter}-${spell}-${label}`, piles, previousScores,
-            shooter, spell, spellName, withheld, deltas });
+          const deltas = Array.from({ length: n }, (_, seat) => withheld || seat === shooter ? 0 : takeover);
+          if (withheld) deltas[shooter] = -takeover;
+          fixtures.push({ label: `${n}p-seat${shooter}-${takeover}-${label}`, piles, previousScores,
+            shooter, takeover, takeoverName, withheld, deltas });
         }
       }
     }
@@ -161,10 +161,10 @@ if (process.argv.includes("--parity")) {
     for (const suit of ["RED", "YELLOW", "BLUE", "GREEN"]) {
       assert.deepEqual(deck.filter(card => card.suit === suit).map(card => card.value), Array.from({ length: 14 }, (_, i) => i + 1));
     }
-    assert.deepEqual(Object.fromEntries(deck.filter(card => card.special && card.special !== "wizard").map(card => [card.special, card.id])), {
-      fire: "RED-11", earth: "YELLOW-11", air: "BLUE-11", water: "GREEN-11", pygmy: "GREEN-12",
+    assert.deepEqual(Object.fromEntries(deck.filter(card => card.special && card.special !== "runner").map(card => [card.special, card.id])), {
+      kingpin: "RED-11", briber: "YELLOW-11", fixer: "BLUE-11", informant: "GREEN-11", godmother: "GREEN-12",
     });
-    assert.equal(deck.filter(card => card.suit === null && card.value === 0 && card.special === "wizard").length, 4);
+    assert.equal(deck.filter(card => card.suit === null && card.value === 0 && card.special === "runner").length, 4);
   });
 
   test("shuffle is a nonmutating permutation across 40 seeded random sources", () => {
@@ -228,57 +228,57 @@ if (process.argv.includes("--parity")) {
   });
 
   test("448 red-count and special-card combinations respect caps, neutralization and takeovers", () => {
-    const reds = eng.makeDeck().filter(card => card.suit === "RED" && card.special !== "fire");
+    const reds = eng.makeDeck().filter(card => card.suit === "RED" && card.special !== "kingpin");
     const specials = ["RED-11", "GREEN-11", "GREEN-12", "YELLOW-11", "BLUE-11"].map(id => byId[id]);
     for (let count = 0; count <= 13; count += 1) {
       for (let mask = 0; mask < 32; mask += 1) {
         const flags = specials.map((_, i) => Boolean(mask & (1 << i)));
-        const [fire, water, pygmy, earth, air] = flags;
+        const [kingpin, informant, godmother, briber, fixer] = flags;
         const pile = [...reds.slice(0, count), ...specials.filter((_, i) => flags[i])];
         const before = JSON.stringify(pile);
         const result = eng.scoreRound([[], pile, []]);
         assert.equal(JSON.stringify(pile), before);
-        if (count === 13 && fire && (water || pygmy)) {
-          const spell = 15 + (water ? 5 : 0) + (pygmy ? 10 : 0);
+        if (count === 13 && kingpin && (informant || godmother)) {
+          const takeover = 15 + (informant ? 5 : 0) + (godmother ? 10 : 0);
           assert.equal(result.shooter, 1);
-          assert.deepEqual(result.results.map(row => row.total), [spell, 0, spell]);
+          assert.deepEqual(result.results.map(row => row.total), [takeover, 0, takeover]);
           assert.equal(result.results[1].moon, true);
         } else {
-          let expected = fire ? Math.min(15, count * 2) : count;
-          expected += (water ? 5 : 0) + (pygmy ? 10 : 0);
-          if (air) expected = 0;
-          if (earth) expected = Math.max(0, expected - 5);
+          let expected = kingpin ? Math.min(15, count * 2) : count;
+          expected += (informant ? 5 : 0) + (godmother ? 10 : 0);
+          if (fixer) expected = 0;
+          if (briber) expected = Math.max(0, expected - 5);
           assert.equal(result.shooter, -1);
           assert.equal(result.results[1].total, expected);
-          assert.equal(result.results[1].fireCards, count);
+          assert.equal(result.results[1].heatCards, count);
           assert.equal(result.results[1].moon, false);
         }
       }
     }
   });
 
-  test("PDF takeover fixtures cover 3–6 players, every seat, endgame ties, zero floor and capture flags", () => {
-    for (const fixture of pdfTakeoverFixtures()) {
+  test("Takeover fixtures cover 3–6 players, every seat, endgame ties, zero floor and capture flags", () => {
+    for (const fixture of takeoverFixtures()) {
       const before = JSON.stringify(fixture);
       const result = eng.scoreRound(fixture.piles, fixture.previousScores);
       assert.equal(JSON.stringify(fixture), before, fixture.label);
       assertConservation([], fixture.piles);
       assert.equal(result.shooter, fixture.shooter, fixture.label);
-      assert.equal(result.spellName, fixture.spellName, fixture.label);
-      assert.equal(result.spellPoints, fixture.spell, fixture.label);
-      assert.equal(result.spellWithheld, fixture.withheld, fixture.label);
+      assert.equal(result.takeoverName, fixture.takeoverName, fixture.label);
+      assert.equal(result.takeoverPoints, fixture.takeover, fixture.label);
+      assert.equal(result.takeoverWithheld, fixture.withheld, fixture.label);
       assert.deepEqual(result.results.map(row => row.total), fixture.deltas, fixture.label);
       const totals = fixture.previousScores.map((score, seat) => score + fixture.deltas[seat]);
       assert.ok(totals.every(score => score >= 0), fixture.label);
       if (fixture.label.endsWith("zeroFloor")) assert.equal(totals[fixture.shooter], 0, fixture.label);
       result.results.forEach((row, seat) => {
         const pile = fixture.piles[seat];
-        assert.equal(row.fireCards, pile.filter(card => card.suit === "RED" && card.special !== "fire").length, fixture.label);
-        for (const [flag, special] of [["fireWitch", "fire"], ["water", "water"], ["pygmy", "pygmy"], ["earth", "earth"], ["air", "air"]]) {
+        assert.equal(row.heatCards, pile.filter(card => card.suit === "RED" && card.special !== "kingpin").length, fixture.label);
+        for (const [flag, special] of [["kingpin", "kingpin"], ["informant", "informant"], ["godmother", "godmother"], ["briber", "briber"], ["fixer", "fixer"]]) {
           assert.equal(row[flag], pile.some(card => card.special === special), fixture.label);
         }
         assert.equal(row.moon, seat === fixture.shooter, fixture.label);
-        assert.equal(row.spellVictim, seat !== fixture.shooter, fixture.label);
+        assert.equal(row.takeoverVictim, seat !== fixture.shooter, fixture.label);
       });
     }
   });
@@ -297,7 +297,7 @@ if (process.argv.includes("--parity")) {
     }
   });
 
-  test("32 seeded full bot games reach the threshold with nonnegative scores and PDF takeover exceptions", () => {
+  test("32 seeded full bot games reach the threshold with nonnegative scores and Takeover exceptions", () => {
     for (const n of [3, 4, 5, 6]) {
       for (let seed = 0; seed < 8; seed += 1) {
         const scores = Array(n).fill(0);

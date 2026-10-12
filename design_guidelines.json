@@ -6,7 +6,7 @@
   "design_intent": {
     "emotional_tone": "Gritty, tactile crime-noir, street underworld tension, cinematic command center, neon-lit rainy asphalt",
     "metaphor": "Wet asphalt streets of Berlin/Hamburg underworld illuminated by flashing police beacons, yellow sodium streetlights, toxic green stash marks, and cyan surveillance monitors.",
-    "anti_slop_commitment": "No generic fantasy purple coven styling. No plain gradients. Distinct tactile concrete grain, industrial stencil typography, stencil cuts, gritty crime dossier panels, sharp neon-edged cards."
+    "anti_slop_commitment": "Distinct tactile concrete grain, industrial stencil typography, stencil cuts, gritty crime dossier panels, sharp neon-edged cards. No plain gradients."
   },
   "fonts": {
     "headline_display": {
@@ -26,7 +26,7 @@
       "name": "Cinzel Decorative / Anton / Barlow",
       "fallback": "Barlow Condensed",
       "css_class": "font-serif-fancy",
-      "note": "Re-map .font-serif-fancy to Chivo or Barlow Condensed (with italic styling) so that all lingering gothic/witch serif text switches cleanly to street gangster voice"
+      "note": "Use Chivo or Barlow Condensed with italic styling for a clear street-inspired editorial voice."
     },
     "monospace_data": {
       "name": "JetBrains Mono",
@@ -91,48 +91,48 @@
       }
     },
     "gangster_specials": {
-      "fire": {
-        "key": "fire",
+      "kingpin": {
+        "key": "kingpin",
         "label": "Kingpin",
         "short": "HITZE x2",
         "tag": "#EF4444",
         "icon": "Crown",
         "rule_summary": "Verdoppelt Hitze der Runde (max 15)"
       },
-      "water": {
-        "key": "water",
-        "label": "Fixer",
-        "short": "+5 HITZE",
-        "tag": "#00E5FF",
-        "icon": "Handshake",
-        "rule_summary": "Bringt dem Kassierer +5 Hitze"
-      },
-      "earth": {
-        "key": "earth",
+      "informant": {
+        "key": "informant",
         "label": "Informant",
-        "short": "-5 HITZE",
+        "short": "+5 HITZE",
         "tag": "#00FF88",
         "icon": "Eye",
-        "rule_summary": "Lenkt 5 Hitze von dir ab"
+        "rule_summary": "Bringt dem Kassierer +5 Hitze"
       },
-      "air": {
-        "key": "air",
+      "briber": {
+        "key": "briber",
         "label": "Schmierer",
-        "short": "NEUTRALISIERT",
+        "short": "-5 HITZE",
         "tag": "#FACC15",
         "icon": "Coins",
-        "rule_summary": "Hebt Fixer (+5) und Patin (+10) auf"
+        "rule_summary": "Lenkt 5 Hitze von dir ab"
       },
-      "pygmy": {
-        "key": "pygmy",
+      "fixer": {
+        "key": "fixer",
+        "label": "Fixer",
+        "short": "NEUTRALISIERT",
+        "tag": "#00E5FF",
+        "icon": "Handshake",
+        "rule_summary": "Neutralisiert gesammelte rote und grüne Hitze außerhalb eines Takeovers"
+      },
+      "godmother": {
+        "key": "godmother",
         "label": "Patin",
         "short": "+10 HITZE",
         "tag": "#E11D48",
         "icon": "Gem",
         "rule_summary": "Brutale +10 Hitze für den Stich-Gewinner"
       },
-      "wizard": {
-        "key": "wizard",
+      "runner": {
+        "key": "runner",
         "label": "Laufjunge",
         "short": "WERT 0",
         "tag": "#94A3B8",
@@ -143,7 +143,7 @@
   },
   "textures_and_css_surfaces": {
     "asphalt_concrete_bg": {
-      "css_selector": ".coven-bg",
+      "css_selector": ".street-bg",
       "formula": "background: radial-gradient(1200px 700px at 50% -10%, rgba(239,68,68,0.12), transparent 50%), radial-gradient(900px 600px at 85% 105%, rgba(0,229,255,0.08), transparent 55%), radial-gradient(800px 500px at 15% 95%, rgba(250,204,21,0.06), transparent 50%), #0d0f13; background-image: radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), radial-gradient(rgba(0,0,0,0.6) 1px, transparent 1px); background-size: 100% 100%, 8px 8px, 16px 16px;"
     },
     "asphalt_noise_overlay": {
@@ -207,11 +207,11 @@
   },
   "instructions_to_main_agent": [
     "1. Replace Google Fonts in index.css with Barlow Condensed, Chivo, and JetBrains Mono. Set font-display to 'Barlow Condensed', sans-serif and font-sans to 'Chivo', sans-serif.",
-    "2. Update index.css variables and classes: redefine .coven-bg to asphalt/street background with concrete aggregate; redefine .panel to crime dossier glass panel; redefine .gold-text and .glow-ring to neon street aesthetic; add .police-flash and .neon-border classes.",
+    "2. Update index.css variables and classes: redefine .street-bg to asphalt/street background with concrete aggregate; redefine .panel to crime dossier glass panel; redefine .gold-text and .glow-ring to neon street aesthetic; add .police-flash and .neon-border classes.",
     "3. Update SUITS in /app/frontend/src/game/constants.js: change RED icon from 'flame' to 'siren' (Hitze), BLUE icon to 'banknote' (Cash), GREEN icon to 'package' (Ware), YELLOW icon to 'mask' (Schwarzmarkt). Keep the four colors red/blue/green/yellow but shift to punchy street neon tones.",
-    "4. Update SPECIAL_ICON and SUIT_ICON in CardView.jsx: use Siren for RED, Banknote for BLUE, Package for GREEN, VenetianMask or ShieldAlert for YELLOW. For specials: fire = Crown (Kingpin), water = Handshake (Fixer), earth = Eye (Informant), air = Coins (Schmierer), pygmy = Gem (Patin), wizard = Footprints (Laufjunge).",
+    "4. Use Siren for RED, Banknote for BLUE, Package for GREEN and VenetianMask for YELLOW. Special icons: kingpin = Crown, informant = Eye, briber = Coins, fixer = Handshake, godmother = Gem, runner = Footprints.",
     "5. Refactor CardView.jsx to render concrete asphalt texture, neon inner border, sharp bevels, street-tape special banner at bottom, and top-right siren badge for Red cards without any AI images.",
-    "6. Clean all remaining coven/witch words from components (replace any witch references in German with Gangster, Crew, Unterwelt, Kodex, Akte).",
+    "6. Keep product terminology consistent: Gangster, Crew, Unterwelt, Kodex and Akte.",
     "7. Ensure every interactive button and score card has valid data-testid attributes."
   ],
   "image_urls": []

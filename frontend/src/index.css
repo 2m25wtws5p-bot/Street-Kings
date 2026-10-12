@@ -59,7 +59,7 @@ body {
 }
 
 /* ---- Asphalt / concrete surfaces ---- */
-.coven-bg {
+.street-bg {
     background-color: #0d0f13;
     background-image:
         radial-gradient(1200px 700px at 50% -10%, rgba(239, 68, 68, 0.13), transparent 50%),
@@ -170,7 +170,7 @@ body {
 }
 
 /* Printed street-art surfaces: color and texture, rather than a neon grid. */
-.coven-bg {
+.street-bg {
   background-color:#192323;
   background-image:radial-gradient(ellipse at 0% 0%,#89432c55,transparent 45%),radial-gradient(ellipse at 100% 90%,#186a6a55,transparent 50%),radial-gradient(#e9d3b812 1px,transparent 1px);
   background-size:100% 100%,100% 100%,9px 9px;
@@ -239,7 +239,7 @@ body {
 .played-card-label { white-space:nowrap; }
 .game-table { overflow:clip; }
 .game-center { flex-shrink:0; }
-.game-center > [data-testid="central-trick-cauldron"] { height:auto; padding:14px 8px 20px; }
+.game-center > [data-testid="central-trick-table"] { height:auto; padding:14px 8px 20px; }
 .trick-cards { position:relative; width:100%; padding:8px 0; }
 .game-table > div:last-child { position:relative; isolation:isolate; flex-shrink:0; margin-top:12px; }
 [data-testid="btn-continue-trick"] { position:relative; z-index:2; touch-action:manipulation; }
@@ -272,7 +272,7 @@ body {
   .game-center > div > div { gap:5px; }
   .game-center .trick-cards { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); max-width:300px; gap:14px 4px; }
   .game-center .played-card { min-width:0; }
-  .game-center > [data-testid="central-trick-cauldron"] { padding:10px 4px 16px; }
+  .game-center > [data-testid="central-trick-table"] { padding:10px 4px 16px; }
   .game-table > div:last-child { padding:4px 8px 10px; }
   .game-table > div:last-child .text-lg, .game-table > div:last-child .text-xl { font-size:13px; }
   .game-table [data-testid="waiting-indicator"] { padding:4px 0 8px; }
@@ -304,7 +304,7 @@ body {
 }
 
 /* Clear suit rails, explicit heat warnings and paper-label crew identities. */
-.coven-bg { background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%201200%20800%22%20preserveAspectRatio%3D%22none%22%3E%3Cg%20fill%3D%22%23253537%22%20stroke%3D%22%23729088%22%20stroke-opacity%3D%22.22%22%3E%3Cpath%20d%3D%22M0%20800V340h94v82h60v378M1200%20800V290h-105v130h-70v380%22%2F%3E%3Cpath%20d%3D%22M0%20360h94M0%20420h94M0%20480h154M0%20540h154M0%20600h154M0%20660h154M1095%20350h105M1095%20410h105M1025%20470h175M1025%20530h175M1025%20590h175M1025%20650h175%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22%23ddb16e%22%20opacity%3D%22.1%22%3E%3Cpath%20d%3D%22M22%20382h22v25H22zm40%200h18v25H62zm-40%2065h22v25H22zm40%200h18v25H62zm1060-71h22v25h-22zm42%200h22v25h-22zm-42%2065h22v25h-22zm42%200h22v25h-22z%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M18%20690l55-32-15%2045%2050-15M1100%20705l30-45%2035%2045-42-13%22%20stroke%3D%22%23dc7660%22%20stroke-width%3D%229%22%20opacity%3D%22.16%22%2F%3E%3Cpath%20d%3D%22M0%20755h150m900%200h150%22%20stroke%3D%22%23d5bc86%22%20stroke-width%3D%222%22%20opacity%3D%22.15%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"),radial-gradient(ellipse at 0% 0%,#89432c44,transparent 45%),radial-gradient(ellipse at 100% 90%,#186a6a44,transparent 50%),radial-gradient(#e9d3b80b 1px,transparent 1px); background-size:100% 100%,100% 100%,100% 100%,9px 9px; background-position:center bottom,center,center,0 0; }
+.street-bg { background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%201200%20800%22%20preserveAspectRatio%3D%22none%22%3E%3Cg%20fill%3D%22%23253537%22%20stroke%3D%22%23729088%22%20stroke-opacity%3D%22.22%22%3E%3Cpath%20d%3D%22M0%20800V340h94v82h60v378M1200%20800V290h-105v130h-70v380%22%2F%3E%3Cpath%20d%3D%22M0%20360h94M0%20420h94M0%20480h154M0%20540h154M0%20600h154M0%20660h154M1095%20350h105M1095%20410h105M1025%20470h175M1025%20530h175M1025%20590h175M1025%20650h175%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22%23ddb16e%22%20opacity%3D%22.1%22%3E%3Cpath%20d%3D%22M22%20382h22v25H22zm40%200h18v25H62zm-40%2065h22v25H22zm40%200h18v25H62zm1060-71h22v25h-22zm42%200h22v25h-22zm-42%2065h22v25h-22zm42%200h22v25h-22z%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M18%20690l55-32-15%2045%2050-15M1100%20705l30-45%2035%2045-42-13%22%20stroke%3D%22%23dc7660%22%20stroke-width%3D%229%22%20opacity%3D%22.16%22%2F%3E%3Cpath%20d%3D%22M0%20755h150m900%200h150%22%20stroke%3D%22%23d5bc86%22%20stroke-width%3D%222%22%20opacity%3D%22.15%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"),radial-gradient(ellipse at 0% 0%,#89432c44,transparent 45%),radial-gradient(ellipse at 100% 90%,#186a6a44,transparent 50%),radial-gradient(#e9d3b80b 1px,transparent 1px); background-size:100% 100%,100% 100%,100% 100%,9px 9px; background-position:center bottom,center,center,0 0; }
 .street-card::before { content:""; position:absolute; z-index:1; inset:0 auto 0 0; width:5px; background:var(--suit-accent); border-right:1px solid var(--suit-ink); pointer-events:none; }
 .street-card .card-art { inset:2px; width:calc(100% - 4px); height:calc(100% - 4px); }
 .card-pip { border:1px solid var(--suit-ink); }
@@ -335,9 +335,9 @@ body {
 .crew-card-count { display:inline-flex; align-items:center; gap:2px; color:#455354; }
 .game-roster .crew-player > :first-child { background:#263936!important; border-color:#71826b!important; box-shadow:none!important; transform:none!important; }
 .game-roster .crew-player > :first-child svg { filter:none!important; color:#efe6cf; stroke:#efe6cf; }
-.game-center > [data-testid="central-trick-cauldron"] { border:1px dashed #d9c8a318; background:radial-gradient(ellipse at center,#48716b18,transparent 75%)!important; border-radius:20%; }
+.game-center > [data-testid="central-trick-table"] { border:1px dashed #d9c8a318; background:radial-gradient(ellipse at center,#48716b18,transparent 75%)!important; border-radius:20%; }
 /* Soft photographic neighborhood behind the printed tabletop. */
-.coven-bg { background-color:#1b2928; background-image:linear-gradient(180deg,#152322b8,#182522d9),url("./assets/backgrounds/high-rises.webp"); background-size:cover; background-position:center; background-repeat:no-repeat; }
+.street-bg { background-color:#1b2928; background-image:linear-gradient(180deg,#152322b8,#182522d9),url("./assets/backgrounds/high-rises.webp"); background-size:cover; background-position:center; background-repeat:no-repeat; }
 .game-roster .crew-player { border:3px solid #9b7855; border-left:5px solid #c49258; background:linear-gradient(115deg,#f2e3c5,#d7ccb7); box-shadow:2px 4px 0 #08131166,inset 0 0 0 1px #fff3; }
 .game-roster .crew-player:nth-child(even) { background:linear-gradient(115deg,#e5eed8,#c9d9ce); border-left-color:#64968b; }
 .crew-name { text-shadow:0 1px 0 #fff5; }
@@ -348,7 +348,7 @@ body {
 .crew-card-count { padding:2px 3px; border:1px solid #657166; border-radius:3px; background:#eee9d4; }
 .played-card-label { background:#eee4cdf2!important; color:#243732; border:1px solid #89795e!important; box-shadow:1px 2px 0 #0004; }
 .played-card-label > span { color:#243732!important; }
-.street-card[data-special="water"] .card-pip-top { box-shadow:2px 2px 0 #c73a36; }
+.street-card[data-special="informant"] .card-pip-top { box-shadow:2px 2px 0 #c73a36; }
 @media(max-width:639px) {
   .crew-name { font-size:10px; gap:2px; }
   .crew-name > span:first-child { max-width:72px; }
@@ -453,7 +453,7 @@ body {
 .exchange-history-section + .exchange-history-section { margin-top:20px; }
 .exchange-history-player { margin-bottom:10px; }
 .game-table { padding-top:98px; }
-.game-center, .game-center > [data-testid="central-trick-cauldron"] { min-width:0; max-width:100%; }
+.game-center, .game-center > [data-testid="central-trick-table"] { min-width:0; max-width:100%; }
 @media(max-width:639px) {
   .game-table { padding-top:98px; }
   .game-table > :first-child { min-height:32px; padding:3px 8px; gap:4px; }
@@ -463,7 +463,7 @@ body {
   .game-roster .crew-player, .game-roster .crew-player:nth-child(even) { padding:4px 5px; gap:4px; }
   .game-roster[data-player-count="4"] .crew-player > :first-child { width:28px!important; height:28px!important; }
   .game-roster[data-player-count="4"] .crew-name { font-size:12px; }
-  .game-center > [data-testid="central-trick-cauldron"] { padding:4px 0 8px; }
+  .game-center > [data-testid="central-trick-table"] { padding:4px 0 8px; }
   .game-center .trick-cards { --trick-gap:6px; --trick-card-max-width:64px; display:flex; max-width:100%; gap:var(--trick-gap); padding:4px 0; }
   .trick-cards .played-card-label { padding:2px 3px; gap:2px; }
   .trick-cards .played-card-label .street-avatar { width:12px!important; height:12px!important; }
@@ -486,7 +486,7 @@ body {
   .game-roster .crew-name, .game-roster[data-player-count="4"] .crew-name { font-size:10px; line-height:1; }
   .game-roster .crew-stats { margin-top:1px; }
   .game-center { padding-top:2px; padding-bottom:2px; }
-  .game-center > [data-testid="central-trick-cauldron"] { padding:2px 0; }
+  .game-center > [data-testid="central-trick-table"] { padding:2px 0; }
   .game-center .trick-cards { --trick-card-max-width:48px; padding:2px 0; }
   .trick-cards .played-card-label { padding:1px 2px; line-height:14px; }
   .game-table .compact-hand > .street-card { width:46px; }
@@ -704,7 +704,7 @@ body { position:fixed; inset:0; }
 .round-summary { height:100%; min-height:0; overscroll-behavior:contain; padding-bottom:32px; }
 .game-table, .game-passing { height:100%; min-height:0; box-sizing:border-box; overflow:hidden; }
 .game-table .game-center { flex:1 1 0; min-height:0; }
-.game-table .game-center > [data-testid="central-trick-cauldron"] { min-height:0; }
+.game-table .game-center > [data-testid="central-trick-table"] { min-height:0; }
 .game-passing > .game-hand-section { min-height:0; }
 .game-passing > .passing-progress { padding:0 6px; margin-bottom:8px; }
 .App::after {
@@ -714,8 +714,8 @@ body { position:fixed; inset:0; }
 }
 .App > * { position:relative; z-index:1; }
 .App > [data-state] { position:fixed; }
-.coven-bg { position:relative; isolation:isolate; }
-.coven-bg::after {
+.street-bg { position:relative; isolation:isolate; }
+.street-bg::after {
   content:"STREET • KINGS"; position:absolute; bottom:24px; left:18px; z-index:-1;
   pointer-events:none; transform:rotate(-9deg); color:#d6b77444;
   font:26px/1 "Permanent Marker",sans-serif; letter-spacing:-1px; text-shadow:2px 2px 0 #0c2119;

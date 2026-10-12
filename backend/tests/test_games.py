@@ -1,9 +1,9 @@
-"""Backend tests for Coven of Witches game endpoints."""
+"""Backend tests for Street Kings game endpoints."""
 import os
 import pytest
 import requests
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://spell-duel-arena-3.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://takeover-duel-arena-3.preview.emergentagent.com').rstrip('/')
 API = f"{BASE_URL}/api"
 
 

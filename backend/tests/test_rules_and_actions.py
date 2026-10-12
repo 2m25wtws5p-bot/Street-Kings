@@ -1,4 +1,4 @@
-"""Tests for updated Amigo rules, replace-with-bot and rematch endpoints."""
+"""Tests for updated Street Kings rules, replace-with-bot and rematch endpoints."""
 import os
 import time
 import uuid
@@ -7,7 +7,7 @@ import requests
 
 import sys
 sys.path.insert(0, "/app/backend")
-import witches_engine as eng
+import street_kings_engine as eng
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL').rstrip('/')
 API = f"{BASE_URL}/api"
@@ -23,14 +23,14 @@ def _by_id(deck, cid):
 
 def test_make_deck_specials_mapping():
     deck = eng.make_deck()
-    assert _by_id(deck, "RED-11")["special"] == "fire"
-    assert _by_id(deck, "GREEN-11")["special"] == "water"
-    assert _by_id(deck, "YELLOW-11")["special"] == "earth"
-    assert _by_id(deck, "BLUE-11")["special"] == "air"
-    assert _by_id(deck, "GREEN-12")["special"] == "pygmy"
-    wizards = [c for c in deck if c["special"] == "wizard"]
-    assert len(wizards) == 4
-    assert all(w["value"] == 0 and w["suit"] is None for w in wizards)
+    assert _by_id(deck, "RED-11")["special"] == "kingpin"
+    assert _by_id(deck, "GREEN-11")["special"] == "informant"
+    assert _by_id(deck, "YELLOW-11")["special"] == "briber"
+    assert _by_id(deck, "BLUE-11")["special"] == "fixer"
+    assert _by_id(deck, "GREEN-12")["special"] == "godmother"
+    runners = [c for c in deck if c["special"] == "runner"]
+    assert len(runners) == 4
+    assert all(w["value"] == 0 and w["suit"] is None for w in runners)
 
 
 def test_pass_info_counts():
@@ -52,33 +52,33 @@ def _card(deck, cid):
 def test_score_round_takeover_variants():
     deck = eng.make_deck()
     reds = _red_cards_all_14()
-    water = _card(deck, "GREEN-11")
-    pygmy = _card(deck, "GREEN-12")
+    informant = _card(deck, "GREEN-11")
+    godmother = _card(deck, "GREEN-12")
 
     # No informant/patin -> NOT takeover. Just normal scoring:
-    # shooter's pile: all 14 reds (fire witch in it). red_pts = 13 (excl fire), fire doubles -> 26, capped 15.
+    # shooter's pile: all 14 reds (kingpin special in it). red_pts = 13 (excl kingpin), kingpin doubles -> 26, capped 15.
     piles = [list(reds), [], []]
     res = eng.score_round(piles)
     assert res["shooter"] == -1
     assert res["results"][0]["total"] == 15
     assert res["results"][1]["total"] == 0
 
-    # + water only -> Takeover 20
-    piles = [list(reds) + [water], [], []]
+    # + informant only -> Takeover 20
+    piles = [list(reds) + [informant], [], []]
     res = eng.score_round(piles)
     assert res["shooter"] == 0
     assert res["results"][0]["total"] == 0
     assert res["results"][1]["total"] == 20
     assert res["results"][2]["total"] == 20
 
-    # + pygmy only -> 25
-    piles = [list(reds) + [pygmy], [], []]
+    # + godmother only -> 25
+    piles = [list(reds) + [godmother], [], []]
     res = eng.score_round(piles)
     assert res["shooter"] == 0
     assert res["results"][1]["total"] == 25
 
     # + both -> 30
-    piles = [list(reds) + [water, pygmy], [], []]
+    piles = [list(reds) + [informant, godmother], [], []]
     res = eng.score_round(piles)
     assert res["shooter"] == 0
     assert res["results"][1]["total"] == 30
@@ -87,43 +87,43 @@ def test_score_round_takeover_variants():
 
 def test_score_round_normal_scoring():
     deck = eng.make_deck()
-    water = _card(deck, "GREEN-11")
-    pygmy = _card(deck, "GREEN-12")
-    earth = _card(deck, "YELLOW-11")
-    air = _card(deck, "BLUE-11")
-    fire = _card(deck, "RED-11")
+    informant = _card(deck, "GREEN-11")
+    godmother = _card(deck, "GREEN-12")
+    briber = _card(deck, "YELLOW-11")
+    fixer = _card(deck, "BLUE-11")
+    kingpin = _card(deck, "RED-11")
     red2 = _card(deck, "RED-2")
     red3 = _card(deck, "RED-3")
 
-    # water +5, no air -> +5
-    piles = [[water], [], []]
+    # informant +5, no fixer -> +5
+    piles = [[informant], [], []]
     r = eng.score_round(piles)["results"]
     assert r[0]["total"] == 5
 
-    # water + air -> 0
-    piles = [[water, air], [], []]
+    # informant + fixer -> 0
+    piles = [[informant, fixer], [], []]
     r = eng.score_round(piles)["results"]
     assert r[0]["total"] == 0
 
-    # pygmy +10, no air
-    piles = [[pygmy], [], []]
+    # godmother +10, no fixer
+    piles = [[godmother], [], []]
     assert eng.score_round(piles)["results"][0]["total"] == 10
 
-    # pygmy + air -> 0
-    assert eng.score_round([[pygmy, air], [], []])["results"][0]["total"] == 0
+    # godmother + fixer -> 0
+    assert eng.score_round([[godmother, fixer], [], []])["results"][0]["total"] == 0
 
-    # The blue witch clears the complete pile, including red/fire points.
-    assert eng.score_round([[red2, red3, air], [], []])["results"][0]["total"] == 0
-    assert eng.score_round([[red2, red3, fire, water, pygmy, air], [], []])["results"][0]["total"] == 0
+    # The blue special clears the complete pile, including red/kingpin points.
+    assert eng.score_round([[red2, red3, fixer], [], []])["results"][0]["total"] == 0
+    assert eng.score_round([[red2, red3, kingpin, informant, godmother, fixer], [], []])["results"][0]["total"] == 0
 
-    # earth -5 min 0 (alone -> 0)
-    assert eng.score_round([[earth], [], []])["results"][0]["total"] == 0
+    # briber -5 min 0 (alone -> 0)
+    assert eng.score_round([[briber], [], []])["results"][0]["total"] == 0
 
-    # 2 red + earth -> 2 - 5 -> min 0
-    assert eng.score_round([[red2, red3, earth], [], []])["results"][0]["total"] == 0
+    # 2 red + briber -> 2 - 5 -> min 0
+    assert eng.score_round([[red2, red3, briber], [], []])["results"][0]["total"] == 0
 
-    # fire witch doubles red pts capped 15: 2 red + fire => 2*2 = 4
-    assert eng.score_round([[red2, red3, fire], [], []])["results"][0]["total"] == 4
+    # kingpin special doubles red pts capped 15: 2 red + kingpin => 2*2 = 4
+    assert eng.score_round([[red2, red3, kingpin], [], []])["results"][0]["total"] == 4
 
 
 def test_api_3player_pass_count_is_4():

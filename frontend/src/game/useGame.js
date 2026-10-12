@@ -179,7 +179,7 @@ function reducer(state, action) {
   }
 }
 
-export function useWitchesGame() {
+export function useStreetKingsGame() {
   const [state, dispatch] = useReducer(reducer, { phase: "setup" });
   const actions = {
     startGame: useCallback((players) => dispatch({ type: "START_GAME", players }), []),

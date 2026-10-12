@@ -31,7 +31,7 @@ export function PassingScreen({ state, onConfirm, readOnly = false }) {
   const passedSeats = players.map((_, seat) => Boolean(state.pendingSelections?.[seat]?.length));
 
   return (
-    <div className="game-passing min-h-screen coven-bg flex flex-col px-3 py-5">
+    <div className="game-passing min-h-screen street-bg flex flex-col px-3 py-5">
       <div className="roster-passing-header">
         <h2 className="font-display gold-text">{t("game.deal")}</h2>
         <PassingProgress players={players} passedSeats={passedSeats} />
@@ -47,6 +47,7 @@ export function PassingScreen({ state, onConfirm, readOnly = false }) {
 
       <div className="game-hand-section flex-1 flex items-center justify-center">
         <HandCards cards={hand} initialCount={dealCount(n)} selectedIds={selected}
+          handScopeKey={`local-${state.roundId || state.roundIndex}-${passSeat}`} canArrange={!readOnly}
           onCardClick={readOnly ? undefined : card => toggle(card.id)} testIdPrefix="pass-card-item-"
           interactionKey={`passing-${state.roundIndex}-${passSeat}`} />
       </div>

@@ -209,7 +209,7 @@ export const sfx = {
   select() { if (enabled) { hat(0, .035); texture(0, .04, .04, 1200); } },
   winTrick() { if (enabled) { bass(.13, .28); rim(.3, .12); chord(.32); } },
   fireBurst() { if (enabled) { sfx.playCard({ special: true }); chord(.14, .22, .016); } },
-  witchReveal() { if (enabled) { texture(0, .16, .08, 1800); chord(.08, .4); } },
+  takeoverReveal() { if (enabled) { texture(0, .16, .08, 1800); chord(.08, .4); } },
   fanfare() {
     if (!enabled) return;
     // Short, swung drum fill, not continuous background music.

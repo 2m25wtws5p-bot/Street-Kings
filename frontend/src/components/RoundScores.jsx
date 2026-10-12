@@ -13,7 +13,7 @@ const SUIT_TONES = { RED: ["#a3232c", "#ffe5dc"], GREEN: ["#146543", "#d8f3df"],
 
 function ScoreStep({ step, scoreCards }) {
   const card = scoreCards[step.cardKey];
-  const Icon = SUIT_ICON[step.suit] || (step.cardKey === "wizard" ? Footprints : Siren);
+  const Icon = SUIT_ICON[step.suit] || (step.cardKey === "runner" ? Footprints : Siren);
   const [ink, paper] = SUIT_TONES[step.suit] || ["#343c49", "#ece5d5"];
   return <li className={`score-step rounded-md p-2.5${card || step.suit ? " score-step-illustrated" : ""}`} data-score-step={step.id} style={{ background: paper, color: ink, border: `1px solid ${ink}55` }}>
     {(card || step.suit) && <SpecialCardReference cardKey={step.cardKey} suit={step.suit} compact />}
@@ -35,25 +35,25 @@ export function RoundScores({ state, onNext, onReady, onReplaceSeat, readySeats 
   const { roundResult, scores, players } = state;
   const { results, shooter } = roundResult;
   const over = isGameOver(scores);
-  const withheld = Boolean(roundResult.spellWithheld || results.some(r => r.spellWithheld || r.total < 0));
+  const withheld = Boolean(roundResult.takeoverWithheld || results.some(r => r.takeoverWithheld || r.total < 0));
   const scoreCards = getScoreCardMeta(t);
   const shooterResult = shooter >= 0 ? results[shooter] : null;
-  const takeoverName = t(shooterResult?.water && shooterResult?.pygmy ? "scores.summary.grandTakeover" : shooterResult?.pygmy ? "scores.summary.godmotherTakeover" : "scores.summary.takeover");
+  const takeoverName = t(shooterResult?.informant && shooterResult?.godmother ? "scores.summary.grandTakeover" : shooterResult?.godmother ? "scores.summary.godmotherTakeover" : "scores.summary.takeover");
 
-  useEffect(() => { if (shooter >= 0) sfx.witchReveal(); }, [shooter]);
+  useEffect(() => { if (shooter >= 0) sfx.takeoverReveal(); }, [shooter]);
   const order = players.map((_, i) => i).sort((a, b) => scores[a] - scores[b]);
   const ready = players.map((player, seat) => Boolean(player.isBot || readySeats[seat]));
   const humans = players.map((player, seat) => ({ ...player, seat })).filter(player => !player.isBot);
   const ownSeat = Number.isInteger(yourSeat) ? yourSeat : null;
   const ownReady = ownSeat != null && ready[ownSeat];
 
-  return <div className="round-summary min-h-screen coven-bg px-3 sm:px-4 py-8 overflow-y-auto">
+  return <div className="round-summary min-h-screen street-bg px-3 sm:px-4 py-8 overflow-y-auto">
     <div className="max-w-2xl mx-auto">
       <h2 className="font-display text-3xl gold-text text-center mb-1">{t("scores.summary.title")}</h2>
       <p className="text-center text-slate-300/80 mb-6 text-sm">{t("scores.summary.round", { round: state.roundIndex + 1 })}</p>
-      {shooter >= 0 && <div className="score-takeover pop-in rounded-lg p-4 mb-5 text-center" data-testid="fire-spell-moon-banner">
+      {shooter >= 0 && <div className="score-takeover pop-in rounded-lg p-4 mb-5 text-center" data-testid="kingpin-takeover-moon-banner">
         <div className="font-display text-2xl flex items-center justify-center gap-2"><Siren size={24} aria-hidden="true" />{takeoverName}!</div>
-        <p className="text-sm mt-2 leading-relaxed">{t("scores.summary.takeoverCollected", { name: players[shooter].name, figures: t(shooterResult.water && shooterResult.pygmy ? "scores.summary.bothFigures" : shooterResult.pygmy ? "scores.summary.godmother" : "scores.summary.informant") })}</p>
+        <p className="text-sm mt-2 leading-relaxed">{t("scores.summary.takeoverCollected", { name: players[shooter].name, figures: t(shooterResult.informant && shooterResult.godmother ? "scores.summary.bothFigures" : shooterResult.godmother ? "scores.summary.godmother" : "scores.summary.informant") })}</p>
         <p className="text-sm mt-1 font-semibold">{t(withheld ? "scores.summary.withheld" : "scores.summary.transferred")}</p>
       </div>}
       <div className="space-y-4">
@@ -62,7 +62,7 @@ export function RoundScores({ state, onNext, onReady, onReplaceSeat, readySeats 
           return <article key={i} className="score-card panel rounded-lg p-3 sm:p-4 rise-in" data-testid={`score-row-player-${i}`}>
             <div className="flex items-center gap-3 mb-3">
               <Avatar avatar={players[i].avatar} size={42} />
-              <div className="flex-1 min-w-0"><h3 className="score-name font-display text-xl font-bold truncate">{players[i].name}</h3><p className="text-xs score-subtitle">{t(results[i].moon ? "scores.summary.shooter" : results[i].spellVictim ? "scores.summary.victim" : "scores.summary.personal")}</p></div>
+              <div className="flex-1 min-w-0"><h3 className="score-name font-display text-xl font-bold truncate">{players[i].name}</h3><p className="text-xs score-subtitle">{t(results[i].moon ? "scores.summary.shooter" : results[i].takeoverVictim ? "scores.summary.victim" : "scores.summary.personal")}</p></div>
               <div className="score-total text-center rounded-md py-1 px-3 shrink-0" data-score-total={explanation.total} style={{ color: explanation.total > 0 ? "#a3232c" : "#146543" }}>
                 <div className="score-delta font-display text-3xl font-bold">{signedScore(explanation.total)}</div><div className="text-[10px] font-semibold uppercase">{t("scores.summary.roundHeat")}</div>
               </div>

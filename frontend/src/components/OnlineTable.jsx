@@ -126,7 +126,7 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
   return (
     <Shell {...shellProps}>
       {!spectator && <ExchangeReveal exchange={view.yourExchange} scopeKey={`${view.code}-${view.roundId || view.roundIndex}-${yourSeat}`} available={phase === "playing" && view.trickNumber === 1} />}
-      <div className="game-table min-h-screen coven-bg flex flex-col pt-10" data-phase={phase}>
+      <div className="game-table min-h-screen street-bg flex flex-col pt-10" data-phase={phase}>
         <div className="game-table-status flex items-center justify-between px-4 pt-2 pb-2">
           <div className="font-mono-stat text-xs text-slate-300/70">
             {t(phase === "passing" ? "online.roundPassing" : "online.roundTrick", { round: (view.roundIndex ?? 0) + 1, trick: view.trickNumber, total: dealCount(n) })}
@@ -143,7 +143,7 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
           onReplaceSeat={view.isHost && !spectator ? seat => { if (window.confirm(t("online.replaceConfirm", { name: nameOf(seat) }))) actions.replaceWithBot(seat); } : undefined} />
         {/* table center */}
         <div className="game-center flex-1 grid place-items-center px-4 py-2">
-          <div className="relative w-full max-w-2xl min-h-[200px] rounded-[40%] grid place-items-center" style={{ background: "radial-gradient(ellipse at center, rgba(239,68,68,0.10), rgba(13,15,19,0) 70%)" }} data-card-drop-zone data-testid="central-trick-cauldron">
+          <div className="relative w-full max-w-2xl min-h-[200px] rounded-[40%] grid place-items-center" style={{ background: "radial-gradient(ellipse at center, rgba(239,68,68,0.10), rgba(13,15,19,0) 70%)" }} data-card-drop-zone data-testid="central-trick-table">
             {trick.length === 0 && phase !== "trickEnd" && (
               <p className="font-serif-fancy text-slate-400/50 italic text-lg">
                 {t(phase === "passing" ? "online.passingEmpty" : "online.playingEmpty")}
@@ -194,6 +194,8 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
               )}
             </div>
             <HandCards cards={yourHand} initialCount={dealCount(n)}
+              handScopeKey={`online-${view.code}-${view.roundId || view.roundIndex}-${yourSeat}`}
+              canArrange={!actions.busy && (phase !== "passing" || !iPassed)}
               selectedIds={phase === "passing" ? iPassed ? confirmedPassIds : selected : yourTurn && armed ? [armed] : []}
               legalIds={legal} dimIds={yourTurn ? yourHand.filter(card => !legal.has(card.id)).map(card => card.id) : []}
               onCardClick={phase === "passing" && !iPassed && !actions.busy ? card => toggleSelect(card.id) : yourTurn && !actions.busy ? clickPlay : undefined}

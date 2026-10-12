@@ -1,0 +1,31 @@
+/* Distinct ink colors and symbols, while the table keeps all reserved sizes. */
+.App .game-table .turn-status-card.turn-clarity[data-state="waiting"] {
+  color:#eaf2f8; background:#263b4a; border-color:#718da1;
+  box-shadow:0 0 0 1px #101c25,2px 4px 0 #07121099;
+}
+.App .game-table .turn-status-card.turn-clarity[data-state="active"] {
+  color:#2b1b05; background:#ffc537; border-color:#ffe792;
+  box-shadow:0 0 0 2px #3b280a,0 0 0 4px #ffc53755,2px 4px 0 #07121099;
+}
+.App .game-table .turn-status-card.turn-clarity[data-state="complete"] {
+  color:#f0fff5; background:#14704f; border-color:#72df9c;
+  box-shadow:0 0 0 1px #093e2d,2px 4px 0 #07121099;
+}
+.App .game-table .turn-clarity .turn-status-title::before { content:none; }
+.App .game-table .turn-clarity .turn-status-title { color:inherit; text-shadow:none; }
+.App .game-table .turn-clarity .turn-status-icon {
+  display:inline-block; width:.9em; height:.9em; margin-right:6px;
+  vertical-align:-.08em; stroke-width:2.5; color:inherit;
+}
+.App .game-table .turn-clarity .turn-status-subtitle,
+.App .game-table .turn-clarity .turn-status-subtitle > span,
+.App .game-table .turn-clarity .turn-status-details .trick-action-panel p { color:inherit; }
+.App .game-table .turn-clarity .turn-reminder-message { color:#452709; }
+.App .game-table .turn-clarity .turn-reminder-pulse { border-color:#fff5c9; }
+.App .game-table .turn-clarity[data-state="complete"] .game-action-button {
+  color:#173c2a; background:#f5e8bc; border-color:#d7efbd;
+}
+.App .game-table .turn-clarity[data-state="complete"] .game-action-button:disabled { opacity:.65; }
+@media(max-width:639px) {
+  .App .game-table .turn-clarity .turn-status-icon { margin-right:4px; }
+}

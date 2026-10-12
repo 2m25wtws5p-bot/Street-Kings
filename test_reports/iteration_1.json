@@ -1,5 +1,5 @@
 {
-  "summary": "Tested backend (POST /api/games, GET /api/games/recent, GET /api/games/summary) and frontend Coven of Witches game flow: setup screen with player-count switching (3/4/5/6), rules/stats dialogs, sound toggle, pass-and-play privacy gates, card passing phase (3 cards for 3-player game), trick play (arm+cast two-tap), lead-suit indicator, and trick resolution/winner banner. All flows work as specified.",
+  "summary": "Tested backend (POST /api/games, GET /api/games/recent, GET /api/games/summary) and frontend Street Kings game flow: setup screen with player-count switching (3/4/5/6), rules/stats dialogs, sound toggle, pass-and-play privacy gates, card passing phase (3 cards for 3-player game), trick play (arm+cast two-tap), lead-suit indicator, and trick resolution/winner banner. All flows work as specified.",
   "backend_issues": {
     "critical": [],
     "minor": []
@@ -21,11 +21,15 @@
     "Round scoring / game-over flow (70-point threshold) was not fully played through end-to-end (would require ~20 tricks per round); reducer logic reviewed and appears sound but not exercised at runtime."
   ],
   "updated_files": [],
-  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "success_rate": {
+    "backend": "100%",
+    "frontend": "100%"
+  },
   "test_credentials": "N/A - no auth",
   "seed_data_creation": "3 game results inserted with TEST_-prefixed player names via backend tests.",
   "retest_needed": false,
   "main_agent_can_self_test": true,
   "context_for_next_testing_agent": "Backend tests live at /app/backend/tests/test_games.py (5 tests, all passing). Frontend Playwright flow verified: 3-player setup with names Alice/Bob/Cara → pass gate → pass 3 cards (x3 players) → play gate → arm+cast one legal card (x3 players) → trick-winner-banner + lead-suit indicator + continue-trick all work. To play a full round to reach roundScores/gameOver would require ~20 tricks; not run in this iteration but reducer/engine code appears correct.",
-  "rca of the issue": "No issues found."
+  "rca of the issue": "No issues found.",
+  "archive_note": "Historical test report. Terminology updated to current project names; these results describe the archived version, not the current release."
 }

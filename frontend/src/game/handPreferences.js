@@ -37,6 +37,37 @@ export function sortHand(cards, { mode = "suit", seed = 1729 } = {}) {
   });
 }
 
+// Card identities stay in component memory only. A personal arrangement must
+// never change an engine hand or become part of a shared room preference.
+export function reconcileManualHand(cards, manualIds = [], preferences) {
+  const remaining = new Map(cards.map(card => [card.id, card]));
+  const arranged = [];
+  for (const id of manualIds) {
+    if (!remaining.has(id)) continue;
+    arranged.push(remaining.get(id));
+    remaining.delete(id);
+  }
+  return arranged.concat(sortHand([...remaining.values()], preferences));
+}
+
+export function moveHandCard(order, cardId, targetId) {
+  const from = order.indexOf(cardId);
+  const to = order.indexOf(targetId);
+  if (from < 0 || to < 0 || from === to) return [...order];
+  const next = [...order];
+  next.splice(from, 1);
+  next.splice(to, 0, cardId);
+  return next;
+}
+
+// Slots are captured before a drag transforms its source. Use the exposed
+// left strip of overlapped cards, not the floating card under the pointer.
+export function handReorderTarget(point, slots) {
+  if (!Number.isFinite(point.x) || !Number.isFinite(point.y)) return null;
+  return slots.find(slot => point.x >= slot.left && point.x <= slot.right
+    && point.y >= slot.top && point.y <= slot.bottom)?.id ?? null;
+}
+
 export function pointInsideDropZone(point, rectangle) {
   return Boolean(rectangle && rectangle.width > 0 && rectangle.height > 0 && Number.isFinite(point.x) && Number.isFinite(point.y)
     && point.x >= rectangle.left && point.x <= rectangle.right && point.y >= rectangle.top && point.y <= rectangle.bottom);

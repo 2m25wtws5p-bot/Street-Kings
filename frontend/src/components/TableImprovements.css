@@ -39,7 +39,7 @@
   .game-table > .play-order .play-order-arrow,
   .game-table > .play-order .play-order-step:last-child .play-order-arrow { top:6px; }
   .game-table .game-center { min-height:144px; flex:1 1 144px; padding-block:2px; }
-  .game-table .game-center > [data-testid="central-trick-cauldron"] { min-height:136px; padding:3px 8px; }
+  .game-table .game-center > [data-testid="central-trick-table"] { min-height:136px; padding:3px 8px; }
   .game-table .game-center .trick-cards { padding:2px 0; margin-bottom:0; }
   .game-table .hand-cards-shell .turn-hand-grid.compact-hand.spread-hand { --hand-card-width:64px; }
 }
@@ -57,7 +57,7 @@
   .game-table > .play-order .play-order-arrow,
   .game-table > .play-order .play-order-step:last-child .play-order-arrow { top:5px; }
   .game-table .game-center { min-height:106px; flex:1 1 106px; }
-  .game-table .game-center > [data-testid="central-trick-cauldron"] { min-height:96px; }
+  .game-table .game-center > [data-testid="central-trick-table"] { min-height:96px; }
   .game-table .hand-sort-toolbar { min-height:22px; }
   .game-table .hand-sort-toolbar select,.game-table .hand-shuffle-button { padding-block:1px; }
   .game-table .hand-card-detail { height:28px; }

@@ -33,7 +33,7 @@ Garantie für Fehlerfreiheit, vollständige Testabdeckung oder eine Sicherheitsz
 | Mittel | Veralteter Einladungscode blieb nach Zurück-Navigation im Zustand bzw. in der Adresse hängen. | Einladungszustand und URL beim Verlassen gelöscht; neue Raum-Erstellung wieder möglich. `App.js`, `OnlineFlow.jsx`. |
 | Mittel | Wiederaufnahme bei vorübergehend unerreichbarem Server verwarf den gespeicherten Zugang; manche asynchronen Antworten setzten Zustand nach Verlassen. | Token bei vorübergehenden Fehlern behalten, abgebrochene/alte Antworten ignorieren. `OnlineFlow.jsx`, `StatsDialog.jsx`. |
 | Niedrig | Gespielte Aktionen aktualisierten die Präsenz nicht zuverlässig; unbenutzte Raumsperren blieben im Speicher; Historienabfragen waren unbegrenzt. | Präsenz aktualisiert, unbenutzte Sperren freigegeben, Abfragegrenze 1–100. `server.py`. |
-| Niedrig | Ungültige Spielerzahl/Deckgröße/Rundenindex sowie leere Stich-/Bot-Eingaben hatten zufällige Fehler oder Kartenverlust zur Folge. | Explizite Grenzprüfungen in beiden Engines; gültige Regeln und Bot-Strategie unverändert. `witches_engine.py`, `engine.js`. |
+| Niedrig | Ungültige Spielerzahl/Deckgröße/Rundenindex sowie leere Stich-/Bot-Eingaben hatten zufällige Fehler oder Kartenverlust zur Folge. | Explizite Grenzprüfungen in beiden Engines; gültige Regeln und Bot-Strategie unverändert. `street_kings_engine.py`, `engine.js`. |
 | Niedrig | Zwischenablage-Verweigerung hatte kein brauchbares Feedback; Wiederverbindungs- und Kingpin-Hilfe waren widersprüchlich. | Kopierfehler erklärt, Raumcode als Alternative; Hilfe beschreibt gespeicherten Zugang, rote-Karten-Verdopplung und tatsächliche Tauschrunden. Komponenten und `constants.js`. |
 | Test / Veröffentlichung | Alte Tests verlangten unsichere Namensübernahme oder verglichen globale Zähler, während andere Tests ebenfalls Partien speicherten. Pages-Standardadresse zeigte auf das alte Railway-Backend. | Tests prüfen sichere Wiederaufnahme und eigene Ergebnis-IDs; parallele CI bleibt aktiviert. Pages-Standardadresse ist der vorhandene Render-Spielserver. TestClient-Abhängigkeit nur für CI ergänzt. |
 
@@ -62,7 +62,7 @@ wurden an sichere Abläufe und parallele Ausführung angepasst, nicht entfernt.
 Zusätzlich wurden 1.000 Python-Bot-Runden mit 60.000 legalen Zügen ausgeführt.
 Bei gültigen Spielzuständen ergab sich dabei kein Wertungs-/Stichgewinnerfehler.
 Das prüft Konsistenz der vorhandenen Regeln, nicht erneut deren Übereinstimmung
-mit einer externen Original-Witches-Anleitung.
+mit einem zusätzlichen externen Regelwerk.
 
 ## Testdurchläufe und tatsächliche Umgebung
 

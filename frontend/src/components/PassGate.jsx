@@ -8,7 +8,7 @@ export function PassGate({ player, headline, note, onReveal, ctaPrefix }) {
   const { t } = useI18n();
   return (
     <div
-      className="min-h-screen coven-bg grid place-items-center px-4"
+      className="min-h-screen street-bg grid place-items-center px-4"
       data-testid="pass-device-gate-screen"
     >
       <div className="text-center max-w-sm rise-in">
