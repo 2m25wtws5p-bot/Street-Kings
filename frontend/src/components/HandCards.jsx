@@ -102,8 +102,9 @@ export function HandCards({ cards, initialCount, selectedIds = [], legalIds = []
       </label>
       {preferences.mode === "chaos" && <button type="button" className="hand-shuffle-button" onClick={() => updatePreferences({ mode: "chaos", seed: Math.floor(Math.random() * 0x7fffffff) })}>{t("hand.reshuffle")}</button>}
     </div>}
-    <div className="hand-card-detail" role="status" aria-live="polite" data-testid="hand-card-detail">
-      {detailCard && !faceDown ? <><strong>{specials[detailCard.special]?.label}:</strong> {t(`hand.effect.${detailCard.special}`)}</> : t(canDrag ? "hand.dragHint" : "hand.sortPrivate")}
+    <div className="hand-card-detail" role="status" aria-live="polite" data-testid="hand-card-detail"
+      title={detailCard && !faceDown ? `${specials[detailCard.special]?.label}: ${t(`hand.effect.${detailCard.special}`)}` : undefined}>
+      {detailCard && !faceDown ? <><strong>{specials[detailCard.special]?.label}:</strong> {t(`hand.effect.${detailCard.special}`)}</> : null}
     </div>
     <div ref={layout.ref} style={layout.style} className="turn-hand-grid compact-hand spread-hand"
       data-initial-count={initialCount} data-testid="own-hand-grid" data-sort-mode={preferences.mode}>

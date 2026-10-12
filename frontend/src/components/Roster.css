@@ -1,0 +1,54 @@
+.App .game-roster.crew-roster { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; width:min(100%,960px); margin-inline:auto; padding:2px 12px 5px; flex:0 0 auto; }
+.App .crew-roster[data-player-count="4"] { grid-template-columns:repeat(4,minmax(0,1fr)); }
+.App .crew-roster[data-player-count="5"] { grid-template-columns:repeat(5,minmax(0,1fr)); }
+.App .crew-roster[data-player-count="6"] { grid-template-columns:repeat(6,minmax(0,1fr)); }
+.App .crew-roster .crew-player, .App .crew-roster .crew-player:nth-child(even) { position:relative; display:flex; align-items:center; min-width:0; min-height:52px; padding:5px 8px; gap:6px; transform:none; }
+.App .crew-roster .crew-chat-identity { flex:1; min-width:0; }
+.App .crew-roster .crew-name { display:flex; align-items:center; min-width:0; gap:3px; }
+.App .crew-roster .crew-name > span:first-child { flex:1 1 auto; }
+.App .crew-roster .crew-order-marker { display:inline-flex; align-items:center; justify-content:center; gap:2px; flex:0 0 auto; min-width:25px; height:16px; padding:0 2px; border:1px solid #7b6b4c99; border-radius:4px; color:#5a4b30; background:#f5e9cf; font:700 10px/1 system-ui,sans-serif; }
+.App .crew-roster [data-current="true"] .crew-order-marker { color:#322a17; background:#f2c65b; border-color:#a77619; }
+.App .crew-roster .crew-own-label { flex:0 0 auto; color:#6b542d; font-size:9px; }
+.App .crew-roster .crew-offline-icon { color:#a34237; flex-shrink:0; }
+.App .crew-roster .crew-review-icon { color:#77581c; flex-shrink:0; }
+.App .crew-roster [data-offline="true"] { opacity:.7; }
+.App .crew-pass-status { display:flex; align-items:center; gap:3px; width:max-content; max-width:100%; margin-top:3px; padding:1px 4px; border-radius:3px; font:700 10px/1.15 system-ui,sans-serif; }
+.App .crew-pass-status > span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.App .crew-pass-status svg { flex-shrink:0; }
+.App .crew-pass-status.is-ready { color:#f3fff0; background:#235a3e; border:1px solid #487f56; }
+.App .crew-pass-status.is-waiting { color:#664018; background:#f3ddb0; border:1px dashed #a47b43; }
+.App .crew-replace-button { flex:0 0 auto; display:grid; place-items:center; width:23px; height:25px; border:1px solid #b25a4c; border-radius:4px; color:#993b30; background:#f2d5bd; }
+.App .crew-replace-button:disabled { opacity:.4; }
+.App .roster-pass-instruction { display:flex; align-items:center; justify-content:center; gap:7px; min-width:0; min-height:32px; margin:0 auto; max-width:100%; padding:3px 8px; color:#eee4ca; font-size:13px; line-height:1.25; text-align:center; }
+.App .roster-pass-instruction > span:first-child { min-width:0; }
+.App .roster-pass-instruction strong { color:#f1ca72; }
+.App .roster-pass-count { flex-shrink:0; color:#f5d681; white-space:nowrap; font-variant-numeric:tabular-nums; }
+.App .game-passing .roster-passing-header { margin:0; padding:4px 0; text-align:center; }
+.App .roster-passing-header h2 { margin:0; font-size:18px; line-height:1.1; }
+.App .roster-passing-header .passing-progress { margin:3px 0; }
+.App .passing-progress-summary { margin-bottom:0; }
+@media(max-width:700px) {
+  .App .game-roster.crew-roster { gap:5px; padding:2px 6px 5px; }
+  .App .crew-roster[data-player-count="4"] { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .App .crew-roster[data-player-count="5"] { grid-template-columns:repeat(6,minmax(0,1fr)); }
+  .App .crew-roster[data-player-count="5"] .crew-player { grid-column:span 2; }
+  .App .crew-roster[data-player-count="5"] .crew-player:nth-child(4) { grid-column:2 / span 2; }
+  .App .crew-roster[data-player-count="5"] .crew-player:nth-child(5) { grid-column:4 / span 2; }
+  .App .crew-roster[data-player-count="6"] { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .App .crew-roster .crew-player, .App .crew-roster .crew-player:nth-child(even) { min-height:48px; padding:3px 4px; gap:4px; border-width:2px; border-left-width:3px; }
+  .App .crew-roster[data-passing="true"] .crew-player { min-height:56px; }
+  .App .crew-roster .crew-player > .street-avatar, .App .crew-roster[data-player-count="4"] .crew-player > .street-avatar { width:23px!important; height:23px!important; }
+  .App .crew-roster .crew-name, .App .crew-roster[data-player-count="4"] .crew-name { font-size:11px; line-height:1.1; }
+  .App .crew-roster .crew-order-marker { min-width:21px; height:14px; font-size:9px; gap:1px; }
+  .App .crew-roster .crew-order-marker svg { width:8px; height:8px; }
+  .App .crew-roster .crew-own-label { font-size:8px; }
+  .App .crew-pass-status { font-size:8px; margin-top:2px; padding:1px 2px; }
+  .App .roster-pass-instruction { min-height:32px; font-size:12px; }
+}
+@media(max-width:360px) {
+  .App .crew-roster .crew-name { gap:2px; font-size:10px; }
+  .App .crew-roster .crew-player > .street-avatar { width:19px!important; height:19px!important; }
+  .App .crew-roster .crew-own-label { display:none; }
+  .App .crew-roster .crew-order-marker { min-width:19px; }
+  .App .crew-pass-status { font-size:7.5px; }
+}

@@ -176,6 +176,24 @@ function airHorn() {
     oscillator.stop(c.currentTime + .47);
   });
 }
+function tone(delay, duration, gain, from, to = from, type = "triangle") {
+  const c = ac();
+  if (!c) return;
+  const at = c.currentTime + delay;
+  const oscillator = c.createOscillator();
+  oscillator.type = type;
+  oscillator.frequency.setValueAtTime(from, at);
+  oscillator.frequency.exponentialRampToValueAtTime(to, at + duration);
+  const filter = c.createBiquadFilter();
+  filter.type = "lowpass";
+  filter.frequency.value = 2400;
+  const amp = envelope(c, at, duration, gain);
+  oscillator.connect(filter);
+  filter.connect(amp);
+  oscillator.onended = () => { oscillator.disconnect(); filter.disconnect(); amp.disconnect(); };
+  oscillator.start(at);
+  oscillator.stop(at + duration + .02);
+}
 const hat = (delay = 0, gain = .07) => texture(delay, .045, gain, 6500, "highpass");
 const rim = (delay = 0, gain = .13) => texture(delay, .075, gain, 1500);
 export const sfx = {
@@ -216,6 +234,46 @@ export const sfx = {
           texture(0, .12, .12, 600); texture(.11, .12, .1, 1500); texture(.22, .14, .09, 450);
           break;
         case "airhorn": airHorn(); break;
+        case "kick":
+          bass(0, .3, .18, 120); bass(.24, .25, .21, 95);
+          break;
+        case "snare":
+          texture(0, .16, .11, 2200); rim(.16, .08); texture(.29, .18, .1, 2400);
+          break;
+        case "hihat":
+          [0, .12, .24, .41].forEach(delay => hat(delay, .065));
+          break;
+        case "clap":
+          [0, .025, .05].forEach(delay => texture(delay, .11, .065, 1200));
+          texture(.27, .14, .08, 1200);
+          break;
+        case "bassdrop":
+          tone(0, .65, .15, 180, 38, "sine");
+          texture(0, .12, .04, 750);
+          break;
+        case "rimshot":
+          tone(0, .075, .055, 480, 430, "triangle");
+          tone(.13, .07, .045, 650, 590, "triangle");
+          rim(.13, .04);
+          break;
+        case "cowbell":
+          [0, .29].forEach(delay => {
+            tone(delay, .16, .024, 740, 740, "square");
+            tone(delay, .13, .018, 1110, 1110, "square");
+          });
+          break;
+        case "vinyl":
+          // A falling record-stop squeak with soft crackle, not a music sample.
+          tone(0, .52, .055, 900, 70, "sawtooth");
+          texture(0, .18, .025, 1800); texture(.25, .15, .02, 650);
+          break;
+        case "radio":
+          // Short radio squelch and two bleeps; no speech or real recordings.
+          texture(0, .12, .045, 1700);
+          tone(.12, .085, .045, 1150, 1150, "sine");
+          tone(.25, .085, .035, 850, 850, "sine");
+          texture(.35, .12, .035, 1700);
+          break;
         default: break;
       }
     } catch { /* Sound messages must never interrupt a turn. */ }

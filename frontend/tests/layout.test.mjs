@@ -98,16 +98,16 @@ test("playing has no conditional preview row and keeps its confirmation hint mou
   }
 });
 
-test("exchange previews reserve a slot for every required card, even before selection", () => {
+test("exchange tokens reserve compact slots without repeating full card artwork", async () => {
   assert.match(preview, /Array\.from\(\s*\{\s*length:\s*count\s*\}/);
-  assert.match(preview, /selected-card-slot/);
-  assert.match(preview, /selected-card-placeholder/);
+  assert.match(preview, /selected-card-token-slot/);
+  assert.match(preview, /selected-card-token-empty/);
+  assert.doesNotMatch(preview, /<CardView/, "Selected cards remain visible in the hand, not as another art fan");
   assert.doesNotMatch(preview, /selected\.map\(/, "Preview height must not depend on selected count");
   assert.equal(finalProperty(".selected-cards-row", "flex-wrap"), "nowrap");
-  assert.equal(finalProperty(".selected-card-slot", "aspect-ratio")?.replace(/\s+/g, ""), "20/29");
-  // Inline buttons add baseline descent below a filled slot; reserving an empty
-  // slot is not enough unless its card is block-level too (browser regression).
-  assert.equal(finalProperty(".selected-card-slot > .street-card", "display"), "block");
+  const layout = await source("components/TableLayout.css");
+  assert.match(layout, /\.App \.selected-cards \{[^}]*height:32px/s);
+  assert.match(layout, /\.App \.selected-card-token-slot \{[^}]*width:32px; height:32px/s);
 });
 
 test("local and online deal/collect controls share the action-button presentation", () => {

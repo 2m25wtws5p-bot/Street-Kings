@@ -7,6 +7,7 @@ import { RulesDialog } from "@/components/RulesDialog";
 import { StatsDialog } from "@/components/StatsDialog";
 import { installSoundUnlock, setSoundEnabled } from "@/game/sound";
 import "@/components/chat.css";
+import "@/components/TableLayout.css";
 
 function App() {
   const [screen, setScreen] = useState("home");

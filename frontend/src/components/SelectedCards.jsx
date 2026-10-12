@@ -1,18 +1,27 @@
 import React from "react";
-import { CardView } from "./CardView";
+import { SUIT_ICON } from "./CardView";
+import { Footprints } from "lucide-react";
 import { useI18n } from "../i18n/I18nProvider";
+import { useGameLabels } from "../i18n/gameLabels";
 
-// Reserve the same preview space before and after selecting exchange cards.
+// The raised cards remain in the hand. Compact removable tokens avoid a
+// second fan of miniature artwork, while keeping the same space when empty.
 export function SelectedCards({ hand, selected, count, onRemove }) {
   const { t } = useI18n();
+  const { suits, specials } = useGameLabels();
   return <div className="selected-cards" data-testid="selected-card-preview" aria-label={t("game.selectedCards")}>
     <span className="selected-cards-label">{t("game.selectionCount", { selected: selected.length, count })}</span>
     <div className="selected-cards-row">
       {Array.from({ length: count }, (_, index) => {
-        const id = selected[index];
-        return <div className="selected-card-slot" key={index}>
-          {id ? <CardView card={hand.find((c) => c.id === id)} size="xs" onClick={() => onRemove(id)} testId={`selected-card-${id}`} /> : <span className="selected-card-placeholder" aria-hidden="true" />}
-        </div>;
+        const card = hand.find(c => c.id === selected[index]);
+        const Icon = SUIT_ICON[card?.suit] || Footprints;
+        const label = card && `${suits[card.suit]?.people || t("cards.wizard.label")} ${card.value}${card.special ? ` · ${specials[card.special]?.label}` : ""}`;
+        return <span className="selected-card-token-slot" key={index}>
+          {card ? <button type="button" className="selected-card-token" data-suit={card.suit || "NEUTRAL"}
+            data-testid={`selected-card-${card.id}`} title={label} aria-label={t("table.removeSelection", { card: label })}
+            onClick={() => onRemove(card.id)}><Icon size={11} aria-hidden="true" /><b>{card.value}</b></button> :
+            <span className="selected-card-token-empty" aria-hidden="true">·</span>}
+        </span>;
       })}
     </div>
   </div>;

@@ -128,6 +128,12 @@ class ReadinessTests(FlowSandbox):
 
 
 class ChatSoundTests(FlowSandbox):
+    def test_chat_catalog_has_twelve_explicit_safe_sound_ids(self):
+        self.assertEqual(server.CHAT_SOUND_IDS, {
+            "siren", "scratch", "airhorn", "kick", "snare", "hihat", "clap",
+            "bassdrop", "rimshot", "cowbell", "vinyl", "radio",
+        })
+
     async def test_only_allowlisted_structured_sound_messages_are_public(self):
         for index, sound in enumerate(sorted(server.CHAT_SOUND_IDS)):
             self.clock.return_value = 100 + index * 2

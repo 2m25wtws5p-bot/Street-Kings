@@ -3,9 +3,18 @@ export const CHAT_COOLDOWN_MS = 1500;
 export const CHAT_BUBBLE_MS = 7000;
 export const CHAT_EMOJIS = ["😎", "😂", "🔥", "👏", "😮", "😈", "❤️", "👍"];
 export const CHAT_SOUNDS = Object.freeze([
-  { id: "siren", labelKey: "chat.sound.siren" },
-  { id: "scratch", labelKey: "chat.sound.scratch" },
-  { id: "airhorn", labelKey: "chat.sound.airhorn" },
+  { id: "siren", labelKey: "chat.sound.siren", icon: "🚨" },
+  { id: "scratch", labelKey: "chat.sound.scratch", icon: "💿" },
+  { id: "airhorn", labelKey: "chat.sound.airhorn", icon: "📣" },
+  { id: "kick", labelKey: "chat.sound.kick", icon: "🥁" },
+  { id: "snare", labelKey: "chat.sound.snare", icon: "⚡" },
+  { id: "hihat", labelKey: "chat.sound.hihat", icon: "✦" },
+  { id: "clap", labelKey: "chat.sound.clap", icon: "👏" },
+  { id: "bassdrop", labelKey: "chat.sound.bassdrop", icon: "🔊" },
+  { id: "rimshot", labelKey: "chat.sound.rimshot", icon: "🪵" },
+  { id: "cowbell", labelKey: "chat.sound.cowbell", icon: "🔔" },
+  { id: "vinyl", labelKey: "chat.sound.vinyl", icon: "📀" },
+  { id: "radio", labelKey: "chat.sound.radio", icon: "📻" },
 ]);
 export const isChatSound = value => CHAT_SOUNDS.some(sound => sound.id === value);
 

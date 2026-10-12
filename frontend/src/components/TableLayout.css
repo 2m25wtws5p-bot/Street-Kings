@@ -1,0 +1,176 @@
+/* One authoritative layout for the actual application cascade. The table,
+   status and hand each own their space; a flex centre must never collapse
+   below the full played-card footprint. */
+.App .game-table {
+  --table-center-height:200px;
+  --table-trick-width:96px;
+  --table-hand-width:88px;
+  --table-row-gap:24px;
+  --table-action-height:88px;
+  display:flex; flex-direction:column; height:100%; min-height:0;
+  padding-top:90px; overflow:hidden;
+}
+.App .game-table > .game-table-status {
+  flex:0 0 auto; min-height:30px; padding:3px 12px 7px;
+  gap:5px 10px; align-items:center;
+}
+.App .game-table > .game-center {
+  position:relative; isolation:isolate; flex:1 0 var(--table-center-height);
+  min-height:var(--table-center-height); width:100%; padding:8px 12px;
+  display:flex; align-items:center; justify-content:center;
+}
+.App .game-table .game-center > [data-testid="central-trick-cauldron"] {
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  min-height:calc(var(--table-center-height) - 16px); height:100%;
+  width:100%; max-width:760px; padding:8px 10px;
+  border:0; border-radius:20px; box-sizing:border-box;
+}
+.App .game-table .game-center .trick-cards {
+  --trick-card-max-width:var(--table-trick-width);
+  display:flex; align-items:flex-start; justify-content:center; flex-wrap:nowrap;
+  width:100%; max-width:760px; height:auto; gap:clamp(5px,2vw,20px);
+  padding:5px 4px 8px; margin:0; grid-template-columns:none;
+}
+.App .game-table .game-center .trick-cards:empty { display:none; }
+.App .game-table .game-center .trick-cards .played-card {
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+  flex:0 1 calc((100% - (var(--trick-player-count) - 1) * clamp(5px,2vw,20px)) / var(--trick-player-count));
+  width:var(--table-trick-width); max-width:var(--table-trick-width); min-width:0;
+}
+.App .game-table .game-center .trick-cards .played-card-art {
+  display:block; flex:0 0 auto; width:100%; aspect-ratio:20 / 29;
+}
+.App .game-table .game-center .trick-cards .played-card-art > .street-card {
+  display:block; width:100%!important; height:auto!important; aspect-ratio:20 / 29;
+}
+.App .game-table .game-center .played-card-label {
+  height:20px; min-height:20px; line-height:16px; padding:1px 4px;
+}
+.App .game-table > .turn-hand-zone {
+  flex:0 0 auto; width:100%; min-height:0; margin:0; padding:0 10px 12px;
+}
+.App .game-table .turn-action-slot {
+  flex:0 0 auto; height:var(--table-action-height); padding:0 6px 10px;
+  display:flex; align-items:center; justify-content:center;
+}
+.App .game-table .turn-status-card {
+  width:min(100%,560px); min-height:0; padding:6px 12px;
+  display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center;
+  gap:2px 12px; text-align:left; border-width:1px 1px 1px 4px;
+}
+.App .game-table .turn-status-title { grid-column:1; font-size:23px; line-height:25px; }
+.App .game-table .turn-status-subtitle { grid-column:1; min-height:16px; font-size:11px; line-height:16px; }
+.App .game-table .turn-status-details {
+  grid-column:2; grid-row:1 / span 2; width:auto; min-width:0;
+  min-height:36px; height:auto; max-width:250px;
+}
+.App .game-table .turn-status-details .game-play-hint { font-size:11px; line-height:15px; white-space:normal; }
+.App .game-table .turn-status-details .turn-wait-note { display:none; }
+.App .game-table .turn-status-details .trick-action-panel { margin:0; gap:0; }
+.App .game-table .turn-status-details .game-action-button {
+  min-height:38px; padding:7px 14px; font-size:17px; white-space:nowrap;
+}
+.App .game-table .turn-status-card[data-state="waiting"] {
+  color:#e4d8ba; background:#1d302bea; border-color:#7d826d;
+  box-shadow:1px 3px 0 #06120c66;
+}
+.App .game-table .turn-status-card[data-state="waiting"] .turn-status-title { font-size:19px; }
+.App .game-table .hand-sort-toolbar { min-height:28px; font-size:11px; }
+.App .game-table .hand-card-detail { height:20px; padding:2px 0; font-size:11px; line-height:15px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.App .game-table .hand-cards-shell .turn-hand-grid.compact-hand.spread-hand {
+  --hand-card-width:var(--table-hand-width); --hand-row-gap:var(--table-row-gap);
+  max-width:1440px; margin:16px auto 0;
+}
+.App .game-table[data-phase="passing"] .game-center { flex:1 1 0; min-height:0; padding:0; }
+.App .game-table[data-phase="passing"] .game-center > * { visibility:hidden; min-height:0; padding:0; }
+.App .game-table[data-phase="passing"] .turn-action-slot { height:46px; padding:0 6px 6px; }
+.App .game-table .game-hand-instructions { width:100%; margin:0; }
+.App .game-table .game-hand-actions,
+.App .game-passing .game-hand-actions { flex:0 0 auto; margin-top:8px; padding-top:0; gap:7px; }
+.App .selected-cards { min-height:32px; height:32px; gap:10px; }
+.App .selected-cards-row { gap:5px; }
+.App .selected-card-token-slot { display:grid; place-items:center; width:32px; height:32px; }
+.App .selected-card-token {
+  display:flex; align-items:center; justify-content:center; gap:3px; width:32px; height:32px;
+  color:#2b3a43; background:#e1e5e8; border:1px solid #9da9b1; border-radius:4px 6px 4px 6px;
+  font:800 15px/1 "Barlow Condensed",sans-serif;
+}
+.App .selected-card-token[data-suit="RED"] { color:#9b202b; background:#ffe2d6; border-color:#d65259; }
+.App .selected-card-token[data-suit="YELLOW"] { color:#704600; background:#ffecad; border-color:#b38a1e; }
+.App .selected-card-token[data-suit="BLUE"] { color:#1557a3; background:#daedff; border-color:#559bdb; }
+.App .selected-card-token[data-suit="GREEN"] { color:#126343; background:#d9f1da; border-color:#49a879; }
+.App .selected-card-token:focus-visible { outline:2px solid #ffe8a4; outline-offset:2px; }
+.App .selected-card-token-empty { color:#cfbd8766; font-size:20px; }
+.App .game-passing .game-hand-actions .selected-cards { min-height:32px; }
+.App .game-passing { padding-bottom:12px; }
+.App .game-passing > .roster-pass-instruction { height:40px; min-height:40px; flex:0 0 40px; margin:0; }
+.App .game-passing > .roster-pass-instruction [data-testid="waiting-indicator"] { padding:0; }
+.App .last-trick-button,
+.App .exchange-history-button { top:48px; min-height:30px; padding:5px 9px; font-size:11px; }
+@media(min-width:1440px) and (min-height:950px) {
+  .App .game-table { --table-hand-width:104px; --table-row-gap:26px; --table-center-height:220px; }
+}
+@media(min-width:640px) and (max-height:850px) {
+  .App .game-table { --table-hand-width:64px; --table-row-gap:18px; --table-center-height:146px; --table-trick-width:70px; --table-action-height:76px; padding-top:80px; }
+  .App .game-table > .game-table-status { min-height:24px; padding-block:2px; }
+  .App .game-table .hand-sort-toolbar { min-height:26px; }
+  .App .game-table .hand-card-detail { height:18px; }
+  .App .game-table .game-center > [data-testid="central-trick-cauldron"] { padding-block:3px; }
+  .App .game-table .turn-status-title { font-size:21px; line-height:23px; }
+}
+@media(min-width:640px) and (min-height:700px) and (max-height:850px) {
+  .App .game-table { --table-hand-width:72px; }
+}
+@media(max-width:639px) {
+  .App .game-table { --table-hand-width:64px; --table-row-gap:20px; --table-center-height:152px; --table-trick-width:74px; --table-action-height:78px; padding-top:88px; }
+  .App .game-table > .game-table-status { min-height:26px; padding:2px 8px 5px; }
+  .App .game-table > .game-center { padding:5px 8px; }
+  .App .game-table .game-center > [data-testid="central-trick-cauldron"] { min-height:calc(var(--table-center-height) - 10px); padding:4px 2px; }
+  .App .game-table .game-center .trick-cards { gap:7px; padding-inline:4px; }
+  .App .game-table .game-center .trick-cards .played-card { flex:0 1 calc((100% - (var(--trick-player-count) - 1) * 7px) / var(--trick-player-count)); gap:4px; }
+  .App .game-table .game-center .played-card-label { height:18px; min-height:18px; font-size:10px; }
+  .App .game-table .game-center .played-card-label .street-avatar { display:none; }
+  .App .game-table > .turn-hand-zone { padding:0 8px 8px; }
+  .App .game-table .turn-action-slot { padding:0 0 8px; }
+  .App .game-table .turn-status-card { padding:5px 8px; gap:1px 8px; }
+  .App .game-table .turn-status-title { font-size:20px; line-height:23px; }
+  .App .game-table .turn-status-subtitle { font-size:10px; line-height:14px; min-height:14px; }
+  .App .game-table .turn-status-details { max-width:155px; min-height:32px; }
+  .App .game-table .turn-status-details .game-action-button { min-height:38px; padding:6px 8px; font-size:15px; white-space:normal; }
+  .App .game-table .turn-status-details .game-play-hint { font-size:10px; line-height:13px; }
+  .App .game-table .hand-sort-toolbar { min-height:26px; font-size:10px; }
+  .App .game-table .hand-sort-toolbar label > span { display:none; }
+  .App .game-table .hand-card-detail { height:18px; padding:1px 0; font-size:10px; line-height:13px; }
+  .App .game-table .hand-cards-shell .turn-hand-grid.compact-hand.spread-hand { margin-top:14px; }
+  .App .game-table[data-phase="passing"] .turn-action-slot { height:42px; }
+  .App .game-table[data-phase="passing"] .game-center > * { display:none; }
+  .App .game-table .game-hand-actions { margin-top:7px; gap:7px; }
+  .App .game-table .game-hand-actions .game-action-button { min-height:42px; padding:7px 20px; font-size:18px; }
+  .App .selected-cards-label { font-size:10px; }
+}
+@media(max-width:639px) and (max-height:740px) {
+  .App .game-table { --table-hand-width:54px; --table-row-gap:16px; --table-center-height:126px; --table-trick-width:58px; --table-action-height:70px; padding-top:82px; }
+  .App .game-table .hand-sort-toolbar { min-height:24px; }
+  .App .game-table .hand-card-detail { height:16px; }
+  .App .game-table .hand-cards-shell .turn-hand-grid.compact-hand.spread-hand { margin-top:12px; }
+  .App .game-table .turn-status-title { font-size:19px; line-height:21px; }
+}
+@media(max-width:639px) and (max-height:600px) {
+  .App .last-trick-button,
+  .App .exchange-history-button { top:43px; min-height:27px; padding:4px 7px; font-size:10px; }
+  .App .game-table { --table-hand-width:38px; --table-row-gap:12px; --table-center-height:94px; --table-trick-width:42px; --table-action-height:62px; padding-top:74px; }
+  .App .game-table > .game-table-status { min-height:22px; padding-block:1px; font-size:10px; }
+  .App .game-table .game-center .played-card-label { height:16px; min-height:16px; padding:0 2px; line-height:14px; }
+  .App .game-table .game-center .played-card-label > span { font-size:8px; }
+  .App .game-table > .turn-hand-zone { padding-bottom:6px; }
+  .App .game-table .turn-action-slot { padding-bottom:5px; }
+  .App .game-table .turn-status-title { font-size:17px; line-height:19px; }
+  .App .game-table .turn-status-subtitle { font-size:9px; line-height:12px; min-height:12px; }
+  .App .game-table .turn-status-details { max-width:125px; }
+  .App .game-table .turn-status-details .game-action-button { min-height:34px; padding:4px 7px; font-size:14px; }
+  .App .game-table .hand-sort-toolbar { min-height:22px; }
+  .App .game-table .hand-card-detail { height:14px; font-size:9px; line-height:12px; }
+  .App .game-table[data-phase="passing"] .turn-action-slot { height:38px; }
+  .App .game-table .game-hand-actions { margin-top:5px; gap:5px; }
+  .App .game-table:has(.crew-roster[data-player-count="3"]) { --table-hand-width:46px; }
+}

@@ -56,7 +56,8 @@ test("chat responses reject unsafe or malformed transcripts and accept HTML as o
 test("sound transcripts accept local allowlisted IDs and reject mixed or external audio payloads", () => {
   const room = { code: "ROOM", status: "lobby", n: 1, version: 1, players: [{ seat: 0, name: "Host" }], yourSeat: 0 };
   const message = { id: "sound-id", seat: 0, name: "Host", text: "", createdAt: 1760000000000 };
-  assert.deepEqual(chat.CHAT_SOUNDS.map(sound => sound.id), ["siren", "scratch", "airhorn"]);
+  assert.equal(chat.CHAT_SOUNDS.length, 12);
+  assert.deepEqual(chat.CHAT_SOUNDS.slice(0, 3).map(sound => sound.id), ["siren", "scratch", "airhorn"]);
   for (const { id } of chat.CHAT_SOUNDS) {
     assert.equal(api.validateRoomView({ ...room, chatMessages: [{ ...message, sound: id }] }).chatMessages[0].sound, id);
   }

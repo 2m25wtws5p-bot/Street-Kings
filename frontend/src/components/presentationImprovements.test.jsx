@@ -2,7 +2,8 @@ import React, { act } from "react";
 import { createRoot } from "react-dom/client";
 import { I18nScope } from "../i18n/I18nProvider";
 import { SPECIAL_MAP } from "../game/constants";
-import { PlayOrder } from "./PlayOrder";
+import { PlayerRoster } from "./PlayerRoster";
+import { PassingProgress } from "./PassingProgress";
 import { RoundScores } from "./RoundScores";
 import { RulesDialog } from "./RulesDialog";
 import { SpecialCardReference } from "./SpecialCardReference";
@@ -29,18 +30,50 @@ const state = (count = 3) => ({
   roundResult: { shooter: -1, results: Array.from({ length: count }, () => ({ total: 0, fireCards: 2, fireWitch: true, water: true, pygmy: true, air: true, earth: true })) },
 });
 
-test.each([3, 4, 5, 6])("play order exposes every seat and the active crew with %i crews", count => {
+test.each([3, 4, 5, 6])("one roster exposes order and active crew without duplicated names with %i crews", count => {
   const crews = players(count);
-  render(<PlayOrder players={crews} currentSeat={count - 1} />);
-  const items = [...container.querySelectorAll("ol > li")];
+  render(<PlayerRoster players={crews} scores={Array(count).fill(0)} handCounts={Array(count).fill(20)} currentSeat={count - 1} />);
+  const items = [...container.querySelectorAll('[role="listitem"]')];
   expect(items).toHaveLength(count);
   expect(items.map(item => Number(item.dataset.orderSeat))).toEqual(crews.map((_, index) => index));
   expect(container.querySelectorAll('[aria-current="step"]')).toHaveLength(1);
   expect(items.at(-1).getAttribute("aria-current")).toBe("step");
-  expect(container.textContent).toContain(`Crew ${count} ist am Zug`);
-  render(<PlayOrder players={crews} currentSeat={0} />);
+  expect(items.at(-1).getAttribute("aria-label")).toContain(`Crew ${count} ist am Zug`);
+  expect(container.querySelectorAll(".crew-order-marker")).toHaveLength(count);
+  for (const crew of crews) expect(container.textContent.split(crew.name)).toHaveLength(2);
+  expect(container.querySelector('[data-testid="play-order"]')).toBeNull();
+  render(<PlayerRoster players={crews} currentSeat={0} />);
   expect(container.querySelector('[aria-current="step"]').dataset.orderSeat).toBe("0");
-  expect(container.querySelectorAll("ol > li")).toHaveLength(count);
+  expect(container.querySelectorAll('[role="listitem"]')).toHaveLength(count);
+});
+
+test("passing statuses live under existing names and the summary does not repeat every crew", () => {
+  const crews = players(3).map((player, seat) => ({ ...player, seat, connected: true }));
+  const passedSeats = [false, true, true];
+  render(<><PassingProgress players={crews} passedSeats={passedSeats} /><PlayerRoster players={crews} passing passedSeats={passedSeats} ownSeat={0} /></>);
+  expect(container.querySelector('[data-testid="passing-progress"]').textContent).toBe("Kartentausch · 2/3 bereit");
+  expect(container.querySelectorAll('[data-testid^="passing-status-"]')).toHaveLength(3);
+  expect(container.querySelector('[data-testid="passing-status-0"]').dataset.ready).toBe("false");
+  expect(container.querySelector('[data-testid="passing-status-1"]').dataset.ready).toBe("true");
+  expect(container.querySelector('[data-testid="passing-status-0"]').textContent).toBe("Gibt noch Karten weiter");
+  expect(container.querySelectorAll(".crew-order-marker")).toHaveLength(0);
+  for (const crew of crews) expect(container.textContent.split(crew.name)).toHaveLength(2);
+  render(<PlayerRoster players={crews} passing passedSeats={passedSeats} />, "en");
+  expect(container.querySelector('[data-testid="passing-status-0"]').textContent).toBe("Still choosing cards to pass");
+  expect(container.querySelector('[data-testid="passing-status-1"]').textContent).toBe("Ready");
+});
+
+test("integrated order follows explicit seats and still preserves host, offline and replacement actions", () => {
+  const crews = [{ ...players(1)[0], seat: 2, connected: true }, { ...players(1)[0], name: "Guest", seat: 4, isBot: false, connected: false }];
+  const onReplaceSeat = jest.fn();
+  render(<PlayerRoster players={crews} currentSeat={4} ownSeat={2} hostSeat={2} online onReplaceSeat={onReplaceSeat} />);
+  expect(container.querySelector('[data-testid="opponent-seat-player-4"]').getAttribute("aria-current")).toBe("step");
+  expect(container.querySelector('[data-testid="player-offline-4"]')).not.toBeNull();
+  expect(container.querySelector(".host-crown")).not.toBeNull();
+  act(() => container.querySelector('[data-testid="btn-replace-bot-4"]').click());
+  expect(onReplaceSeat).toHaveBeenCalledWith(4);
+  render(<PlayerRoster players={crews} ownSeat={2} online />);
+  expect(container.querySelector('[data-testid^="btn-replace-bot-"]')).toBeNull();
 });
 
 test("reference artwork retains the deck's actual special suit and rank", () => {

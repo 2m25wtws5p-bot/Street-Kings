@@ -34,6 +34,7 @@ const sandbox = { window: { AudioContext }, process: { env: {} } };
 const source = fs.readFileSync(path.join(__dirname, '../src/game/sound.js'), 'utf8').replace(/^export /gm, '');
 vm.runInNewContext(source + '\n;globalThis.audioApi = { sfx, setSoundEnabled, isSoundEnabled, unlockSound, installSoundUnlock };', sandbox);
 const { sfx, setSoundEnabled, isSoundEnabled, unlockSound, installSoundUnlock } = sandbox.audioApi;
+const chatSounds = ['siren', 'scratch', 'airhorn', 'kick', 'snare', 'hihat', 'clap', 'bassdrop', 'rimshot', 'cowbell', 'vinyl', 'radio'];
 for (const cue of Object.keys(sfx)) sfx[cue]();
 assert(voices > 20);
 assert(disconnects >= voices * 2, 'Transient audio nodes must be disconnected');
@@ -49,13 +50,16 @@ sfx.turnReminder();
 assert.equal(voices - before, 1, 'Turn reminder uses one bounded siren voice');
 assert(Math.max(...stops.slice(reminderStop)) - Math.min(...starts.slice(reminderStart)) <= 1.5, 'Siren must stop promptly');
 assert.deepEqual(sweeps.filter(value => value >= 680).slice(-8), [1380,680,1420,680,1420,680,1420,680], 'Police siren has a slow wail followed by quick yelps');
-for (const sound of ['siren', 'scratch', 'airhorn']) {
+const cueSignatures = new Set();
+for (const sound of chatSounds) {
   before = voices;
   const firstStart = starts.length, firstStop = stops.length;
   sfx.chatSound(sound);
   assert(voices > before, `${sound} produces an original local cue`);
   assert(Math.max(...stops.slice(firstStop)) - Math.min(...starts.slice(firstStart)) <= 1.5, 'Chat cues are bounded');
+  cueSignatures.add(JSON.stringify([starts.slice(firstStart), stops.slice(firstStop)]));
 }
+assert.equal(cueSignatures.size, 12, 'Every cue has its own original rhythm/envelope');
 before = voices;
 for (const invalid of ['', 'https://example.com/audio.mp3', '<audio>', 'constructor', null]) sfx.chatSound(invalid);
 assert.equal(voices, before, 'Unknown sound IDs never produce audio');
@@ -73,7 +77,7 @@ before = voices;
 setSoundEnabled(false);
 assert.equal(isSoundEnabled(), false);
 for (const cue of Object.keys(sfx)) sfx[cue]();
-sfx.chatSound('siren'); sfx.chatSound('scratch'); sfx.chatSound('airhorn');
+for (const sound of chatSounds) sfx.chatSound(sound);
 assert.equal(voices, before);
 assert.equal(targets.at(-1), 0);
 setSoundEnabled(true);
@@ -91,6 +95,7 @@ for (const window of [
   const restricted = { window, process: { env: {} } };
   vm.runInNewContext(source + '\n;globalThis.audioApi = { sfx };', restricted);
   assert.doesNotThrow(() => restricted.audioApi.sfx.turnReminder(), 'Refused audio must not interrupt visual reminders');
+  for (const sound of chatSounds) assert.doesNotThrow(() => restricted.audioApi.sfx.chatSound(sound), 'Refused chat audio must not interrupt gameplay');
 }
 const blocked = { window: { AudioContext: class extends AudioContext { resume() { return Promise.resolve(); } } }, process: { env: {} } };
 vm.runInNewContext(source + '\n;globalThis.audioApi = { sfx, unlockSound };', blocked);
@@ -99,4 +104,4 @@ for (let poll = 0; poll < 20; poll++) { blocked.audioApi.sfx.playCard(); blocked
 assert.equal(voices, before, 'Suspended audio must never accumulate a polling/reminder backlog');
 blocked.audioApi.unlockSound();
 assert.equal(voices, before + 1, 'Only a silent gesture-unlock source may start on a suspended context');
-console.log('PASS: street cues, police siren, gesture/iOS unlock, cleanup, mute and refused audio');
+console.log('PASS: 12 original chat cues, police siren, gesture/iOS unlock, cleanup, mute and refused audio');

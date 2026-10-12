@@ -136,7 +136,10 @@ MAX_PLAYER_NAME_LENGTH = 24
 MAX_CHAT_LENGTH = 140
 MAX_CHAT_MESSAGES = 30
 CHAT_COOLDOWN_SECONDS = 1.5
-CHAT_SOUND_IDS = frozenset(("siren", "scratch", "airhorn"))
+CHAT_SOUND_IDS = frozenset((
+    "siren", "scratch", "airhorn", "kick", "snare", "hihat", "clap",
+    "bassdrop", "rimshot", "cowbell", "vinyl", "radio",
+))
 BOT_PLAY_DELAY = float(os.environ.get("BOT_PLAY_DELAY", "0.95"))
 TRICK_HOLD_SECONDS = float(os.environ.get("TRICK_HOLD_SECONDS", "1.0"))
 

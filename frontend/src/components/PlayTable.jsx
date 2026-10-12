@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { HandCards } from "./HandCards";
 import { LeadSuitIndicator } from "./LeadSuitIndicator";
-import { Avatar } from "./Avatar";
-import { PlayerIdentity } from "./PlayerIdentity";
+import { PlayerRoster } from "./PlayerRoster";
 import { TrickCards } from "./TrickCards";
 import { TurnStatus } from "./TurnStatus";
-import { PlayOrder } from "./PlayOrder";
 import { useTurnReminder } from "../game/useTurnReminder";
 import { legalCardIds, leadSuit, dealCount } from "../game/engine";
 import { sfx } from "../game/sound";
@@ -89,29 +87,9 @@ export function PlayTable({ state, onPlay, onContinueTrick, hideHand = false, di
       </div>
 
       {/* opponents roster */}
-      <div className="game-roster flex flex-wrap gap-2 justify-center px-3 pb-2" data-player-count={n}>
-        {players.map((p, i) => (
-          <div
-            key={i}
-            data-testid={`opponent-seat-player-${i}`}
-            data-current={!isTrickEnd && i === currentSeat ? "true" : undefined}
-            data-own-turn={canPlay && i === handSeat ? "true" : undefined}
-            data-winner={isTrickEnd && i === lastWinner ? "true" : undefined}
-            className={`crew-player flex items-center gap-2 rounded-md px-2.5 py-1.5 border transition-all ${
-              !isTrickEnd && i === currentSeat
-                ? "bg-amber-500/15 border-amber-400/70"
-                : isTrickEnd && i === lastWinner
-                ? "bg-emerald-500/15 border-emerald-400/60"
-                : "bg-black/30 border-white/10"
-            }`}
-          >
-            <Avatar avatar={p.avatar} size={30} active={!isTrickEnd && i === currentSeat} />
-            <PlayerIdentity name={p.name} heat={scores[i]} cards={hands[i].length}/>
-          </div>
-        ))}
-      </div>
-
-      <PlayOrder players={players} currentSeat={isTrickEnd ? null : currentSeat} />
+      <PlayerRoster players={players} scores={scores} handCounts={hands.map(hand => hand.length)}
+        currentSeat={isTrickEnd ? null : currentSeat} winner={isTrickEnd ? lastWinner : null}
+        ownSeat={persistentHand ? handSeat : null} ownTurn={canPlay} />
 
       {/* table center */}
       <div className="game-center flex-1 grid place-items-center px-4 py-2">

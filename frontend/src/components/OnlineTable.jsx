@@ -1,10 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { HandCards } from "./HandCards";
 import { ExchangeReveal } from "./ExchangeReveal";
-import { PlayOrder } from "./PlayOrder";
+import { PlayerRoster } from "./PlayerRoster";
 import { LeadSuitIndicator } from "./LeadSuitIndicator";
-import { Avatar } from "./Avatar";
-import { PlayerIdentity } from "./PlayerIdentity";
 import { LastTrickButton } from "./LastTrickButton";
 import { ExchangeHistoryButton } from "./ExchangeHistoryButton";
 import { TrickCards } from "./TrickCards";
@@ -16,15 +14,13 @@ import { RulesDialog } from "./RulesDialog";
 import { StatsDialog } from "./StatsDialog";
 import { TurnStatus } from "./TurnStatus";
 import { ChatPanel } from "./ChatPanel";
-import { ChatBubble } from "./ChatBubble";
-import { HostCrown } from "./HostCrown";
 import { PassingProgress } from "./PassingProgress";
 import { hostSeat } from "../game/chat";
 import { copyText, invitationLink } from "../game/clipboard";
 import { legalCardIds, leadSuit, dealCount } from "../game/engine";
 import { useTurnReminder } from "../game/useTurnReminder";
 import { rememberPlayedCard } from "../game/cardMotion";
-import { Trophy, Check, LogOut, Copy, Link, Eye, WifiOff, Bot } from "lucide-react";
+import { Trophy, LogOut, Copy, Link, Eye } from "lucide-react";
 import { sfx } from "../game/sound";
 import { useI18n } from "../i18n/I18nProvider";
 
@@ -140,37 +136,11 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
         </div>
 
         {/* roster */}
-        <div className="game-roster flex flex-wrap gap-2 justify-center px-3 pb-2" data-player-count={n}>
-          {players.map((p) => {
-            const i = p.seat;
-            const isCurrent = phase === "playing" && i === currentSeat;
-            const isWinner = phase === "trickEnd" && i === lastWinner;
-            const passed = phase === "passing" && view.passedSeats?.[i];
-            const offline = !p.isBot && !p.connected;
-            return (
-              <div key={i} data-testid={`opponent-seat-player-${i}`} data-current={isCurrent ? "true" : undefined} data-own-turn={yourTurn && i === yourSeat ? "true" : undefined} data-winner={isWinner ? "true" : undefined} className={`crew-player flex items-center gap-2 rounded-md px-2.5 py-1.5 border transition-all ${isCurrent ? "bg-amber-500/15 border-amber-400/70" : isWinner ? "bg-emerald-500/15 border-emerald-400/60" : "bg-black/30 border-white/10"} ${offline ? "opacity-60" : ""}`}>
-                <Avatar avatar={p.avatar} size={30} active={isCurrent} />
-                <div className="crew-chat-identity">
-                  <PlayerIdentity name={p.name} heat={scores[i]} cards={handCounts[i]}>
-                    {i === hostSeat(view) && <HostCrown />}
-                    {i === yourSeat && <span className="text-amber-300/80 text-[9px]">{t("online.you")}</span>}
-                    {passed && <Check size={11} className="text-emerald-400" />}
-                    {offline && <WifiOff size={11} className="text-red-400" aria-label={t("online.offline")} data-testid={`player-offline-${i}`} />}
-                    {p.reviewingLastTrick && <Eye size={13} className="text-amber-200" aria-label={t("online.reviewing")} />}
-                  </PlayerIdentity>
-                  <ChatBubble messages={view.chatMessages} seat={i} />
-                </div>
-                {offline && view.isHost && i !== yourSeat && (
-                  <button disabled={actions.busy} onClick={() => { if (window.confirm(t("online.replaceConfirm", { name: p.name }))) actions.replaceWithBot(i); }} data-testid={`btn-replace-bot-${i}`} title={t("online.replaceBot")} aria-label={t("online.replaceBot")} className="ml-1 grid place-items-center w-7 h-7 rounded-md bg-red-950/60 border border-red-500/60 text-red-200 hover:bg-red-900/70 transition-colors disabled:opacity-40">
-                    <Bot size={14} />
-                  </button>
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        {phase !== "passing" && <PlayOrder players={players} currentSeat={phase === "playing" ? currentSeat : null} />}
+        <PlayerRoster players={players} scores={scores} handCounts={handCounts}
+          currentSeat={phase === "playing" ? currentSeat : null} winner={phase === "trickEnd" ? lastWinner : null}
+          ownSeat={spectator ? null : yourSeat} ownTurn={yourTurn} hostSeat={hostSeat(view)}
+          passing={phase === "passing"} passedSeats={view.passedSeats} chatMessages={view.chatMessages} online busy={actions.busy}
+          onReplaceSeat={view.isHost && !spectator ? seat => { if (window.confirm(t("online.replaceConfirm", { name: nameOf(seat) }))) actions.replaceWithBot(seat); } : undefined} />
         {/* table center */}
         <div className="game-center flex-1 grid place-items-center px-4 py-2">
           <div className="relative w-full max-w-2xl min-h-[200px] rounded-[40%] grid place-items-center" style={{ background: "radial-gradient(ellipse at center, rgba(239,68,68,0.10), rgba(13,15,19,0) 70%)" }} data-card-drop-zone data-testid="central-trick-cauldron">
@@ -190,12 +160,11 @@ export function OnlineTable({ view, actions, onLeave, sound, setSound }) {
           <div className="turn-hand-zone game-hand-section px-2 pb-4" data-testid={phase === "passing" && !iPassed ? "passing-hand-container" : yourTurn ? "active-player-hand-container" : "own-hand-container"}>
             <div className="turn-action-slot">
               {phase === "passing" ? (
-                <div className="game-hand-instructions text-center font-serif-fancy text-slate-300/80" data-testid="passing-phase-instructions">
-                  {iPassed ? <span data-testid="waiting-indicator">{t("online.passedWait", { count: (view.passedSeats || []).filter(Boolean).length, total: n })}</span> : <>
-                  {t("online.choosePass", { count: view.passCount, name: nameOf(view.passTarget) })}
-                  <span className="font-mono-stat text-amber-300 text-sm ml-2" data-testid="passing-phase-selected-count">{selected.length}/{view.passCount}</span>
+                <div className="game-hand-instructions roster-pass-instruction" data-testid="passing-phase-instructions">
+                  {iPassed ? <span data-testid="waiting-indicator">{t("roster.passed", { name: nameOf(view.passTarget) })}</span> : <>
+                    <span>{t("roster.choosePass", { count: view.passCount })} <strong data-testid="passing-recipient">{nameOf(view.passTarget)}</strong></span>
+                    <span className="roster-pass-count" data-testid="passing-phase-selected-count">{selected.length}/{view.passCount}</span>
                   </>}
-                  {Number.isInteger(view.passTarget) && <div className="passing-recipient">{t("improvements.recipient")} <strong>{nameOf(view.passTarget)}</strong></div>}
                 </div>
               ) : (
                 <TurnStatus

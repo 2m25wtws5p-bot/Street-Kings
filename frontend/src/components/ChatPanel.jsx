@@ -4,6 +4,7 @@ import { CHAT_EMOJIS, CHAT_LIMIT, CHAT_SOUNDS, isChatSound, chatLength, limitCha
 import { useI18n } from "../i18n/I18nProvider";
 import { sfx, unlockSound } from "../game/sound";
 import "./TableImprovements.css";
+import "./CompactChatSounds.css";
 
 export function ChatPanel({ view, actions, inline = false }) {
   const { t, locale } = useI18n();
@@ -50,10 +51,13 @@ export function ChatPanel({ view, actions, inline = false }) {
         </div>) : <p className="chat-empty">{t("chat.empty")}</p>}
       </div>
       {canSend ? <>
-        <div className="chat-sound-choices" aria-label={t("improvements.chatSounds")}>
-          {CHAT_SOUNDS.map(sound => <button type="button" key={sound.id} disabled={actions.chatBusy} data-testid={`chat-sound-${sound.id}`} onClick={() => { unlockSound(); actions.sendChatSound(sound.id); }}><Volume2 size={14} />{t(sound.labelKey)}</button>)}
-        </div>
-        <p className="chat-sound-note">{t("improvements.soundNote")}</p>
+        <details className="chat-sound-palette" data-testid="chat-sound-palette">
+          <summary><Volume2 size={15} aria-hidden="true" /><span>{t("chat.soundPalette", { count: CHAT_SOUNDS.length })}</span></summary>
+          <div className="chat-sound-choices" aria-label={t("improvements.chatSounds")}>
+            {CHAT_SOUNDS.map(sound => <button type="button" key={sound.id} disabled={actions.chatBusy} data-testid={`chat-sound-${sound.id}`} title={t("chat.sendSound", { sound: t(sound.labelKey) })} aria-label={t("chat.sendSound", { sound: t(sound.labelKey) })} onClick={() => { unlockSound(); actions.sendChatSound(sound.id); }}><span className="chat-sound-icon" aria-hidden="true">{sound.icon}</span><span>{t(`chat.soundShort.${sound.id}`)}</span></button>)}
+          </div>
+          <p className="chat-sound-note">{t("improvements.soundNote")}</p>
+        </details>
         <div className="chat-quick-emojis" aria-label={t("chat.quick")}>
           {CHAT_EMOJIS.map(emoji => <button key={emoji} type="button" onClick={() => submit(emoji)} disabled={actions.chatBusy} aria-label={t("chat.sendEmoji", { emoji })} data-testid={`chat-emoji-${emoji}`}>{emoji}</button>)}
         </div>
