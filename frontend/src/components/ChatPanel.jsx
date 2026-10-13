@@ -3,11 +3,15 @@ import { MessageCircle, Send, X, Volume2 } from "lucide-react";
 import { CHAT_EMOJIS, CHAT_LIMIT, CHAT_SOUNDS, isChatSound, chatLength, limitChatText } from "../game/chat";
 import { useI18n } from "../i18n/I18nProvider";
 import { sfx, unlockSound } from "../game/sound";
+import { useTheme } from "../themes/ThemeProvider";
+import { getChatSoundPresentation } from "../themes/chatPresentation";
 import "./TableImprovements.css";
 import "./CompactChatSounds.css";
 
 export function ChatPanel({ view, actions, inline = false }) {
   const { t, locale } = useI18n();
+  const { theme } = useTheme();
+  const soundChoices = getChatSoundPresentation(theme);
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const dialog = useRef(null);
@@ -54,7 +58,7 @@ export function ChatPanel({ view, actions, inline = false }) {
         <details className="chat-sound-palette" data-testid="chat-sound-palette">
           <summary><Volume2 size={15} aria-hidden="true" /><span>{t("chat.soundPalette", { count: CHAT_SOUNDS.length })}</span></summary>
           <div className="chat-sound-choices" aria-label={t("improvements.chatSounds")}>
-            {CHAT_SOUNDS.map(sound => <button type="button" key={sound.id} disabled={actions.chatBusy} data-testid={`chat-sound-${sound.id}`} title={t("chat.sendSound", { sound: t(sound.labelKey) })} aria-label={t("chat.sendSound", { sound: t(sound.labelKey) })} onClick={() => { unlockSound(); actions.sendChatSound(sound.id); }}><span className="chat-sound-icon" aria-hidden="true">{sound.icon}</span><span>{t(`chat.soundShort.${sound.id}`)}</span></button>)}
+            {soundChoices.map(sound => <button type="button" key={sound.id} disabled={actions.chatBusy} data-testid={`chat-sound-${sound.id}`} title={t("chat.sendSound", { sound: t(sound.labelKey) })} aria-label={t("chat.sendSound", { sound: t(sound.labelKey) })} onClick={() => { unlockSound(); actions.sendChatSound(sound.id); }}><span className="chat-sound-icon" aria-hidden="true">{sound.icon}</span><span>{t(`chat.soundShort.${sound.id}`)}</span></button>)}
           </div>
           <p className="chat-sound-note">{t("improvements.soundNote")}</p>
         </details>

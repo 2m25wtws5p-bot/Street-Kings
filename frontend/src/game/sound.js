@@ -2,6 +2,8 @@
 let ctx = null, master = null, noise = null;
 let enabled = true;
 let lastCardCue = null;
+let soundTheme = "street";
+const themedVoices = new Set();
 const configuredVolume = Number(process.env.REACT_APP_SFX_VOLUME);
 const volume = Number.isFinite(configuredVolume) && configuredVolume > 0 ? Math.min(configuredVolume, .8) : .48;
 const vary = (base, amount = .08) => base * (1 + (Math.random() * 2 - 1) * amount);
@@ -44,6 +46,24 @@ export function setSoundEnabled(value) {
   }
 }
 export function isSoundEnabled() { return enabled; }
+// Presentation only: cue IDs, game timing, mute and browser unlock stay shared.
+export function setSoundTheme(theme) {
+  const next = theme === "animal" || theme === "space" ? theme : "street";
+  if (next !== soundTheme) {
+    // Cancel delayed notes when leaving a world, so no old melody bleeds into
+    // the next room. This never touches mute, card deduplication or game timers.
+    for (const voice of themedVoices) {
+      try {
+        voice.amp.gain.cancelScheduledValues(ctx.currentTime);
+        voice.amp.gain.setTargetAtTime(.0001, ctx.currentTime, .008);
+        voice.oscillator.stop(ctx.currentTime + .035);
+      } catch { /* A stopped or refused node is already silent. */ }
+    }
+    themedVoices.clear();
+  }
+  soundTheme = next;
+}
+export function getSoundTheme() { return soundTheme; }
 
 // iOS requires resume and a started source synchronously in a user gesture.
 export function unlockSound() {
@@ -196,28 +216,144 @@ function tone(delay, duration, gain, from, to = from, type = "triangle") {
 }
 const hat = (delay = 0, gain = .07) => texture(delay, .045, gain, 6500, "highpass");
 const rim = (delay = 0, gain = .13) => texture(delay, .075, gain, 1500);
+
+// The two additional worlds use quiet, rounded oscillators rather than samples,
+// sirens or percussion. Every transient disconnects its complete audio graph.
+function gentleNote(delay, duration, from, to = from, gain = .055, type = "sine") {
+  const c = ac();
+  if (!c) return;
+  const at = c.currentTime + delay;
+  const oscillator = c.createOscillator();
+  oscillator.type = type;
+  oscillator.frequency.setValueAtTime(from, at);
+  oscillator.frequency.exponentialRampToValueAtTime(to, at + duration * .85);
+  const filter = c.createBiquadFilter();
+  filter.type = "lowpass";
+  filter.frequency.value = 1900;
+  filter.Q.value = .5;
+  const amp = c.createGain();
+  amp.gain.setValueAtTime(.0001, at);
+  amp.gain.linearRampToValueAtTime(gain, at + Math.min(.025, duration * .2));
+  amp.gain.exponentialRampToValueAtTime(.0001, at + duration);
+  amp.connect(master);
+  oscillator.connect(filter);
+  filter.connect(amp);
+  const voice = { oscillator, amp };
+  themedVoices.add(voice);
+  oscillator.onended = () => {
+    themedVoices.delete(voice);
+    oscillator.disconnect(); filter.disconnect(); amp.disconnect();
+  };
+  oscillator.start(at);
+  oscillator.stop(at + duration + .025);
+}
+function chimes(notes, gap = .12, duration = .22, delay = 0, gain = .045, type = "sine") {
+  notes.forEach((frequency, index) => gentleNote(delay + index * gap, duration, frequency, frequency, gain, type));
+}
+function birdSong(delay = 0) {
+  gentleNote(delay, .1, 830, 1190, .045);
+  gentleNote(delay + .15, .12, 960, 1320, .04);
+  gentleNote(delay + .33, .17, 1175, 880, .035);
+}
+function bubbles(delay = 0) {
+  gentleNote(delay, .12, 310, 610, .06);
+  gentleNote(delay + .14, .14, 390, 750, .05);
+  gentleNote(delay + .31, .16, 490, 880, .04);
+}
+function spaceSignal(delay = 0) {
+  chimes([392, 587.33, 783.99], .14, .18, delay, .04, "triangle");
+}
+const animalCues = {
+  playCard(card) {
+    gentleNote(0, .12, 390, 560, .055, "triangle");
+    if (card?.special) chimes([659.25, 880], .13, .18, .1, .035);
+  },
+  select() { gentleNote(0, .12, 620, 760, .035); },
+  winTrick() { chimes([523.25, 659.25, 783.99], .16, .25, 0, .05); },
+  fireBurst() { birdSong(); chimes([659.25, 880], .16, .25, .37, .035); },
+  takeoverReveal() { chimes([392, 523.25, 659.25, 783.99], .17, .28, 0, .05, "triangle"); },
+  fanfare() { chimes([523.25, 659.25, 783.99, 1046.5, 783.99, 1046.5], .16, .3, 0, .05); },
+  reveal() { bubbles(); },
+  turnReminder() { birdSong(); chimes([659.25, 783.99], .17, .23, .58, .04); },
+  chat: {
+    siren() { birdSong(); },
+    scratch() { chimes([329.63, 440, 523.25], .18, .13, 0, .065, "triangle"); },
+    airhorn() { gentleNote(0, .29, 350, 270, .065); gentleNote(.35, .32, 380, 290, .055); },
+    kick() { gentleNote(0, .14, 260, 350, .075); gentleNote(.23, .16, 290, 380, .065); },
+    snare() { chimes([220, 246.94, 220, 261.63], .11, .23, 0, .04, "triangle"); },
+    hihat() { gentleNote(0, .08, 1050, 1400, .03); gentleNote(.12, .1, 1180, 1510, .025); },
+    clap() { bubbles(); },
+    bassdrop() { gentleNote(0, .52, 196, 146.83, .07); chimes([293.66], .1, .3, .48, .03); },
+    rimshot() { gentleNote(0, .18, 280, 450, .055); gentleNote(.27, .2, 330, 520, .05); },
+    cowbell() { chimes([880, 659.25, 783.99, 1046.5], .16, .27, 0, .035); },
+    vinyl() { gentleNote(0, .38, 293.66, 329.63, .035, "triangle"); gentleNote(.2, .43, 392, 349.23, .025); },
+    radio() { chimes([587.33, 493.88, 659.25, 523.25, 783.99], .105, .19, 0, .03); },
+  },
+};
+const spaceCues = {
+  playCard(card) {
+    gentleNote(0, .16, 260, 520, .045, "triangle");
+    gentleNote(.07, .15, 780, 650, .025);
+    if (card?.special) spaceSignal(.18);
+  },
+  select() { gentleNote(0, .09, 740, 880, .03, "triangle"); gentleNote(.07, .11, 1100, 990, .02); },
+  winTrick() { spaceSignal(); gentleNote(.38, .34, 196, 293.66, .045); },
+  fireBurst() { gentleNote(0, .42, 170, 760, .05); chimes([880, 1174.66], .13, .2, .3, .025); },
+  takeoverReveal() { gentleNote(0, .65, 130.81, 523.25, .045, "triangle"); spaceSignal(.4); },
+  fanfare() { chimes([261.63, 392, 523.25, 659.25, 783.99], .19, .34, 0, .045, "triangle"); chimes([1046.5, 1318.51], .16, .24, .85, .025); },
+  reveal() { gentleNote(0, .3, 220, 880, .035); gentleNote(.2, .24, 660, 330, .025); },
+  turnReminder() { spaceSignal(); spaceSignal(.62); },
+  chat: {
+    siren() { chimes([440, 880, 440], .21, .25, 0, .035); },
+    scratch() { gentleNote(0, .36, 180, 1080, .04, "triangle"); gentleNote(.3, .28, 980, 250, .03); },
+    airhorn() { chimes([261.63, 329.63, 392], 0, .47, 0, .025, "triangle"); chimes([523.25], .1, .22, .46, .025); },
+    kick() { gentleNote(0, .21, 150, 310, .065); gentleNote(.32, .25, 190, 380, .05, "triangle"); },
+    snare() { chimes([660, 990, 660, 1320], .095, .09, 0, .025, "triangle"); },
+    hihat() { chimes([1200, 1000, 1400], .17, .13, 0, .025); },
+    clap() { gentleNote(0, .15, 390, 260, .05, "triangle"); chimes([587.33, 783.99], .18, .2, .19, .035); },
+    bassdrop() { gentleNote(0, .58, 440, 110, .05, "triangle"); gentleNote(.14, .48, 880, 220, .025); },
+    rimshot() { spaceSignal(); },
+    cowbell() { chimes([698.46, 1046.5, 1396.91, 1046.5], .14, .24, 0, .025, "triangle"); },
+    vinyl() { gentleNote(0, .48, 246.94, 740.82, .035); gentleNote(.13, .55, 369.99, 1109.98, .025, "triangle"); },
+    radio() { chimes([880, 660], .1, .09, 0, .03, "triangle"); chimes([440, 660, 880], .14, .16, .26, .03); },
+  },
+};
+function playThemed(event, detail) {
+  if (soundTheme === "street") return false;
+  if (!enabled) return true;
+  try {
+    const cues = soundTheme === "animal" ? animalCues : spaceCues;
+    if (event === "chatSound") {
+      if (typeof detail === "string" && Object.prototype.hasOwnProperty.call(cues.chat, detail)) cues.chat[detail]();
+    } else cues[event]?.(detail);
+  } catch { /* The visual game must work even if a browser refuses audio. */ }
+  return true;
+}
 export const sfx = {
   playCard(card, cueKey) {
     if (!enabled) return;
     if (cueKey && lastCardCue === cueKey) return;
     if (cueKey) lastCardCue = cueKey;
+    if (playThemed("playCard", card)) return;
     texture(0, .09, .09, 2400); // cardboard slide
     bass(.1, card?.special ? .27 : .18, .16, 115); // soft table tap / kick
     rim(.105, .035);
     if (card?.special) hat(.16, .05);
   },
-  select() { if (enabled) { hat(0, .035); texture(0, .04, .04, 1200); } },
-  winTrick() { if (enabled) { bass(.13, .28); rim(.3, .12); chord(.32); } },
-  fireBurst() { if (enabled) { sfx.playCard({ special: true }); chord(.14, .22, .016); } },
-  takeoverReveal() { if (enabled) { texture(0, .16, .08, 1800); chord(.08, .4); } },
+  select() { if (playThemed("select")) return; if (enabled) { hat(0, .035); texture(0, .04, .04, 1200); } },
+  winTrick() { if (playThemed("winTrick")) return; if (enabled) { bass(.13, .28); rim(.3, .12); chord(.32); } },
+  fireBurst() { if (playThemed("fireBurst")) return; if (enabled) { sfx.playCard({ special: true }); chord(.14, .22, .016); } },
+  takeoverReveal() { if (playThemed("takeoverReveal")) return; if (enabled) { texture(0, .16, .08, 1800); chord(.08, .4); } },
   fanfare() {
     if (!enabled) return;
+    if (playThemed("fanfare")) return;
     // Short, swung drum fill, not continuous background music.
     bass(0, .3); hat(.18); rim(.37); bass(.56, .22); hat(.77); rim(.96); chord(.98, .5, .035);
   },
-  reveal() { if (enabled) { texture(0, .18, .09, 1400); hat(.12, .045); } },
+  reveal() { if (playThemed("reveal")) return; if (enabled) { texture(0, .18, .09, 1400); hat(.12, .045); } },
   turnReminder() {
     if (!enabled) return;
+    if (playThemed("turnReminder")) return;
     try {
       // Spaced ten seconds apart by the existing turn scheduler.
       policeSiren();
@@ -227,6 +363,7 @@ export const sfx = {
   },
   chatSound(id) {
     if (!enabled) return;
+    if (playThemed("chatSound", id)) return;
     try {
       switch (id) {
         case "siren": policeSiren(); break;

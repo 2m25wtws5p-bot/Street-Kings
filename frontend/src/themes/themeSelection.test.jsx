@@ -9,7 +9,7 @@ import { Lobby } from "../components/OnlineFlow";
 import { useOnlineGame } from "../game/useOnlineGame";
 import { roomApi } from "../game/api";
 
-jest.mock("../game/sound", () => ({ sfx: { select: jest.fn(), fanfare: jest.fn() } }));
+jest.mock("../game/sound", () => ({ sfx: { select: jest.fn(), fanfare: jest.fn() }, getSoundTheme: jest.fn(() => "street"), setSoundTheme: jest.fn() }));
 
 let container, root;
 beforeEach(() => {

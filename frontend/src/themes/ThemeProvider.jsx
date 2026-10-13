@@ -1,10 +1,12 @@
 import React, { createContext, useContext, useLayoutEffect, useMemo, useRef } from "react";
 import { DEFAULT_THEME, normalizeTheme } from "./themeConfig";
+import { getSoundTheme, setSoundTheme } from "../game/sound";
 import "./ThemeLayout.css";
 
 const ThemeContext = createContext({ theme: DEFAULT_THEME, setTheme: null });
 const mountedThemes = new Map();
 let originalThemeAttribute = null;
+let originalSoundTheme = null;
 
 // Dialog portals live outside the provider's DOM wrapper. A temporary root
 // attribute gives them the same appearance, without persisting another room's theme.
@@ -20,9 +22,14 @@ function updateRootTheme() {
     while (parent) { if (parent.classList.contains("theme-surface")) depth++; parent = parent.parentElement; }
     if (depth >= activeDepth) { active = value; activeDepth = depth; }
   }
-  if (active) document.documentElement.dataset.gameTheme = active.theme;
-  else if (originalThemeAttribute == null) delete document.documentElement.dataset.gameTheme;
-  else document.documentElement.dataset.gameTheme = originalThemeAttribute;
+  if (active) {
+    document.documentElement.dataset.gameTheme = active.theme;
+    setSoundTheme(active.theme);
+  } else {
+    if (originalThemeAttribute == null) delete document.documentElement.dataset.gameTheme;
+    else document.documentElement.dataset.gameTheme = originalThemeAttribute;
+    setSoundTheme(originalSoundTheme);
+  }
 }
 
 export function ThemeProvider({ theme = DEFAULT_THEME, onThemeChange, children }) {
@@ -30,7 +37,10 @@ export function ThemeProvider({ theme = DEFAULT_THEME, onThemeChange, children }
   const owner = useRef(Symbol("theme-scope"));
   const surface = useRef(null);
   useLayoutEffect(() => {
-    if (mountedThemes.size === 0) originalThemeAttribute = document.documentElement.getAttribute("data-game-theme");
+    if (mountedThemes.size === 0) {
+      originalThemeAttribute = document.documentElement.getAttribute("data-game-theme");
+      originalSoundTheme = getSoundTheme();
+    }
     const key = owner.current;
     mountedThemes.set(key, { theme: selected, element: surface.current });
     updateRootTheme();

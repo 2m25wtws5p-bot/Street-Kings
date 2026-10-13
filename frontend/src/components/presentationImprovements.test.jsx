@@ -8,7 +8,7 @@ import { RoundScores } from "./RoundScores";
 import { RulesDialog } from "./RulesDialog";
 import { SpecialCardReference } from "./SpecialCardReference";
 
-jest.mock("../game/sound", () => ({ sfx: { takeoverReveal: jest.fn(), select: jest.fn(), reveal: jest.fn() } }));
+jest.mock("../game/sound", () => ({ sfx: { takeoverReveal: jest.fn(), select: jest.fn(), reveal: jest.fn() }, getSoundTheme: jest.fn(() => "street"), setSoundTheme: jest.fn() }));
 
 let container;
 let root;

@@ -23,8 +23,8 @@ const { roomApi, validateRoomView, onlineErrorMessage } = await import(moduleUrl
 
 test("theme identities are stable, bounded, and unknown/old rooms default to New York", () => {
   assert.equal(DEFAULT_THEME, "street");
-  assert.deepEqual(THEMES.map(theme => theme.id), ["street", "animal"]);
-  for (const theme of ["street", "animal"]) { assert.equal(isTheme(theme), true); assert.equal(normalizeTheme(theme), theme); }
+  assert.deepEqual(THEMES.map(theme => theme.id), ["street", "animal", "space"]);
+  for (const theme of ["street", "animal", "space"]) { assert.equal(isTheme(theme), true); assert.equal(normalizeTheme(theme), theme); }
   for (const theme of [undefined, null, "ANIMAL", "__proto__", "constructor", {}, [], true, 1]) {
     assert.equal(isTheme(theme), false); assert.equal(normalizeTheme(theme), "street");
   }
@@ -32,7 +32,7 @@ test("theme identities are stable, bounded, and unknown/old rooms default to New
 
 test("shared room theme validation accepts known themes and older rooms but rejects malformed values", () => {
   const room = { code: "ROOM", status: "lobby", phase: "lobby", n: 1, version: 1, players: [{ seat: 0, name: "Host" }], yourSeat: 0 };
-  for (const theme of [undefined, null, "street", "animal"]) {
+  for (const theme of [undefined, null, "street", "animal", "space"]) {
     const view = { ...room, theme }; assert.equal(validateRoomView(view), view);
   }
   for (const theme of ["unknown", "ANIMAL", "__proto__", {}, [], true, 1]) {
@@ -44,6 +44,8 @@ test("room creation sends a neutral theme ID without changing avatar or player i
   const avatar = { key: "boss", color: "#abc" };
   await roomApi.create("Host", avatar, "animal");
   assert.deepEqual(sent.at(-1).payload, { name: "Host", avatar, theme: "animal" });
+  await roomApi.create("Host", avatar, "space");
+  assert.deepEqual(sent.at(-1).payload, { name: "Host", avatar, theme: "space" });
   await roomApi.create("Host", avatar);
   assert.deepEqual(sent.at(-1).payload, { name: "Host", avatar });
 });

@@ -5,7 +5,7 @@ import { useChatSounds } from "../game/useChatSounds";
 import { sfx } from "../game/sound";
 import { ExchangeReveal, EXCHANGE_REVEAL_MS } from "./ExchangeReveal";
 
-jest.mock("../game/sound", () => ({ sfx: { chatSound: jest.fn() } }));
+jest.mock("../game/sound", () => ({ sfx: { chatSound: jest.fn() }, getSoundTheme: jest.fn(() => "street"), setSoundTheme: jest.fn() }));
 
 let container;
 let root;

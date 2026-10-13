@@ -1,0 +1,155 @@
+/* Space Smugglers: spacecraft instrument panels, never street paper or garden.
+   Presentation-only; existing table/hand geometry and suit identities remain. */
+html[data-game-theme="space"] {
+  --space-ink:#e3f4ff; --space-muted:#b4cbdc; --space-panel:#102333; --space-line:#526f88;
+  --space-font:"Trebuchet MS","Segoe UI",Arial,sans-serif;
+  --background:210 58% 7%; --foreground:204 100% 95%;
+  --card:206 48% 13%; --card-foreground:204 100% 95%;
+  --popover:206 48% 13%; --popover-foreground:204 100% 95%;
+  --primary:183 69% 68%; --primary-foreground:205 60% 10%;
+  --secondary:208 38% 23%; --secondary-foreground:204 100% 95%;
+  --muted:210 34% 20%; --muted-foreground:205 36% 78%;
+  --accent:207 42% 24%; --accent-foreground:204 100% 95%;
+  --border:209 26% 43%; --input:209 26% 43%; --ring:183 69% 68%;
+}
+html[data-game-theme="space"] body, html[data-game-theme="space"] .App { color:var(--space-ink); background:#07131f; font-family:var(--space-font); }
+html[data-game-theme="space"] .App .street-bg, [data-theme="space"] .street-bg {
+  color:var(--space-ink); background-color:#07131f;
+  background-image:linear-gradient(180deg,#07152126,#07152155),url("../assets/space-smugglers/orbital-deck.webp");
+  background-size:cover; background-position:center; background-repeat:no-repeat;
+}
+html[data-game-theme="space"] :is(.App,.street-bg)::after, html[data-game-theme="space"] .grain::before { content:none; }
+html[data-game-theme="space"] :is(.font-display,.font-serif-fancy,.font-mono-stat,.street-wordmark,.crew-name,.score-name,.card-special-name,.card-special-rule,.card-impact-label,.lead-suit-name,.room-code-text) {
+  font-family:var(--space-font)!important; font-style:normal; text-shadow:none; letter-spacing:.015em;
+}
+html[data-game-theme="space"] :is(.font-display,.crew-name,.score-name,.card-special-name) { font-weight:800; }
+html[data-game-theme="space"] :is(.card-special-name,.card-special-rule,.card-impact-label) { letter-spacing:0; text-transform:none; }
+html[data-game-theme="space"] :is(.gold-text,h1.gold-text) { color:#a1eef2; text-shadow:0 2px 8px #060f18; }
+html[data-game-theme="space"] :is(.candle-flicker,.float-slow) { animation:none; }
+html[data-game-theme="space"] :is(.hazard-tape,.card-concrete) { background-image:none; }
+html[data-game-theme="space"] .hazard-tape { color:#b7f2f5; background:#173748; clip-path:none!important; border-color:#6ca9b9; }
+html[data-game-theme="space"] .panel { color:var(--space-ink); background:linear-gradient(130deg,#152b3df7,#0e1f30fa); border-color:#5c7d98; border-radius:7px; box-shadow:inset 0 1px 0 #a4ddff33,0 5px 0 #030b14b3,0 12px 30px #02091255; backdrop-filter:none; }
+html[data-game-theme="space"] :is(.street-bg,.panel) :is(input,select,textarea) { color:#e3f4ff; background:#0a1b2a; border-color:#6086a0; border-radius:5px; }
+html[data-game-theme="space"] :is(.street-bg,.panel) :is(input,textarea)::placeholder { color:#a7c0d3; opacity:1; }
+html[data-game-theme="space"] :is(.street-bg,.panel) :is([class*="text-slate-"],[class*="text-white"]) { color:#cfdfeb; }
+html[data-game-theme="space"] :is(.street-bg,.panel) :is([class*="text-amber-"],[class*="text-yellow-"]) { color:#f8d491; }
+html[data-game-theme="space"] :is(.street-bg,.panel) [class*="border-white/"] { border-color:#52728a; }
+html[data-game-theme="space"] :is(.street-bg,.panel) :is([data-testid^="lobby-player-"],[data-testid="lobby-spectators"]) { background:#102738; border-color:#4f718b; }
+html[data-game-theme="space"] :is(.street-bg,.panel,.online-room-header,.last-trick-dialog,.exchange-history-dialog) button:not(.street-card):not(.selected-card-token):not([data-testid^="btn-avatar-"]) { border-radius:6px; font-family:var(--space-font); }
+html[data-game-theme="space"] :is(.street-bg,.panel) :is(button[class*="bg-black/"],button[class*="bg-white/"],button[class*="bg-amber-"]) { color:#dcf2ff; background:#173448; border-color:#638da6; }
+html[data-game-theme="space"] :is(.street-bg,.panel) button[class*="bg-gradient-to-r"], html[data-game-theme="space"] :is(.score-next,.game-action-button) { color:#092332; background:linear-gradient(180deg,#a4eff2,#6ecbd7); border-color:#88dce7; border-radius:6px; box-shadow:inset 0 1px 0 #fff8,0 3px 0 #17445c; font-family:var(--space-font); }
+html[data-game-theme="space"] :is(.score-next,.game-action-button):not(:disabled):hover { background:#b5f5f7; }
+html[data-game-theme="space"] .game-action-button:disabled { color:#a9c3d3; background:#263c4b; border-color:#567183; box-shadow:none; }
+html[data-game-theme="space"] .glow-ring { box-shadow:0 0 0 2px #7ad6e066,inset 0 1px 0 #adf5ff44; }
+html[data-game-theme="space"] .language-selector { color:#cce9f4; background:#152b3c; border-color:#60859c; border-radius:6px; }
+html[data-game-theme="space"] .theme-selector-heading { color:#9ce6ef; }
+html[data-game-theme="space"] .theme-selector-option { color:#ddf1ff; background:#102839; border-color:#547791; border-radius:6px; }
+html[data-game-theme="space"] .theme-selector-option[data-selected="true"] { background:#20465a; border-color:#84dfe8; box-shadow:inset 0 0 0 1px #84dfe855; }
+html[data-game-theme="space"] :is(.theme-selector-copy small,.theme-selector-note,.theme-selector-scope) { color:#bdd4e2; }
+html[data-game-theme="space"] :is(.theme-selector-icon,.theme-selector-check) { color:#91e7ee; }
+html[data-game-theme="space"] .grain > .fixed.top-0.inset-x-0 { background-image:linear-gradient(180deg,#07131ffa,#102333bb,transparent); }
+html[data-game-theme="space"] .grain > .fixed.top-0.inset-x-0 button, html[data-game-theme="space"] :is(.room-code-button,.room-link-icon-button,.chat-toggle-button,.last-trick-button,.exchange-history-button) { color:#caf1ff; background:#102b3e; border-color:#6e9eb6; border-radius:6px; text-shadow:none; box-shadow:inset 0 1px 0 #a5ddff22,0 2px 6px #0005; }
+html[data-game-theme="space"] .online-room-header { color:#c7dfed; background-image:linear-gradient(180deg,#07131ff5,#0c2233cc,transparent)!important; }
+html[data-game-theme="space"] :is(.room-code-text,.room-invite-link-button,.room-copy-feedback) { color:#9de6ee; }
+html[data-game-theme="space"] .host-crown { color:#ffd583; filter:drop-shadow(0 1px 2px #0008); }
+html[data-game-theme="space"] .trick-review-notice { color:#d2edf7; background:#133448; border-color:#608ca5; border-radius:6px; }
+html[data-game-theme="space"] .App .game-roster.crew-roster .crew-player { color:#e3f4ff; background:#142d40; background-image:linear-gradient(110deg,#142d40,#1c354c); border-color:#6a8ba4; border-radius:6px; box-shadow:inset 0 1px 0 #9fdbff33,0 3px 0 #040d17; transition-property:border-color,box-shadow,opacity; }
+html[data-game-theme="space"] .App .crew-roster .crew-player :is(.crew-name,.crew-name > span,.crew-own-label) { color:inherit; }
+html[data-game-theme="space"] .App .crew-roster .crew-order-marker { color:#cceff7; background:#1d465a; border-color:#699dae; }
+html[data-game-theme="space"] .street-avatar { border-radius:8px!important; outline-color:#7ca4bc; filter:none; }
+html[data-game-theme="space"] .crew-heat { color:#8d2131; background:#ffe5dc; border-color:#db8590; border-radius:4px; }
+html[data-game-theme="space"] .crew-card-count { color:#1c4b64; background:#d5edf7; border-color:#7fb0c2; border-radius:4px; }
+html[data-game-theme="space"] .App .crew-pass-status.is-ready { color:#eafff1; background:#216447; border-color:#89d2ae; }
+html[data-game-theme="space"] .App .crew-pass-status.is-waiting { color:#ffebc0; background:#4c3d25; border-color:#be9b59; }
+html[data-game-theme="space"] :is(.roster-pass-instruction,.roster-pass-count,.passing-progress-summary,.game-table-status,.game-center > div > p) { color:#d9ecf7; }
+html[data-game-theme="space"] .roster-pass-instruction strong { color:#a7eff3; }
+html[data-game-theme="space"] .App .game-roster.crew-roster .crew-player:is([data-current="true"],[data-own-turn="true"]) { color:#2b1b05; background:#ffc537; background-image:none; border-color:#ffe792; box-shadow:0 0 0 2px #81590f,0 3px 0 #0a1522; }
+html[data-game-theme="space"] .App .game-roster.crew-roster .crew-player[data-winner="true"] { color:#f0fff5; background:#14704f; background-image:none; border-color:#72df9c; }
+html[data-game-theme="space"] .App .crew-roster [data-current="true"] .crew-order-marker { color:#fff4da; background:#67420b; border-color:#67420b; }
+html[data-game-theme="space"] .App .game-table .turn-status-card.turn-clarity { border-radius:6px; }
+html[data-game-theme="space"] .App .game-table .turn-status-card.turn-clarity[data-state="waiting"] { color:#eaf2f8; background:#263b4a; border-color:#8db6c9; }
+html[data-game-theme="space"] .App .game-table .turn-status-card.turn-clarity[data-state="active"] { color:#2b1b05; background:#ffc537; border-color:#ffe792; }
+html[data-game-theme="space"] .App .game-table .turn-status-card.turn-clarity[data-state="complete"] { color:#f0fff5; background:#14704f; border-color:#72df9c; }
+html[data-game-theme="space"] .App .game-table .turn-clarity :is(.turn-status-title,.turn-status-subtitle,.turn-status-subtitle > span,.game-play-hint,.trick-action-panel p) { color:inherit; }
+html[data-game-theme="space"] .turn-reminder-message { color:#382408; }
+html[data-game-theme="space"] :is(.street-card,.street-card-back) { border-radius:6px; }
+html[data-game-theme="space"] .street-card { container-type:inline-size; box-shadow:0 3px 10px #02091299,0 0 0 1px #a8d4e688!important; }
+html[data-game-theme="space"] .street-card[data-selected="true"] { box-shadow:0 0 0 2px #e8fbff,0 0 0 4px var(--suit-accent),0 7px 15px #02091299!important; }
+html[data-game-theme="space"] .card-print-shade { opacity:.3; }
+html[data-game-theme="space"] .card-pip { border-radius:3px; box-shadow:none; }
+html[data-game-theme="space"] :is(.card-special-stamp,.card-suit-stamp) { border-radius:4px; transform:none; box-shadow:0 1px 3px #0006; }
+html[data-game-theme="space"] .street-card[data-impact="risk"] .card-special-banner { color:#fff0e5; background:#5b202a; }
+html[data-game-theme="space"] .street-card[data-impact="risk"] :is(.card-special-rule,.card-impact-label) { color:#ffe3cf; }
+html[data-game-theme="space"] .street-card[data-impact="help"] .card-special-banner { color:#e4fff6; background:#17473c; }
+html[data-game-theme="space"] .street-card[data-impact="help"] :is(.card-special-rule,.card-impact-label) { color:#dcfff2; }
+html[data-game-theme="space"] .street-card[data-impact="neutral"] .card-special-banner { color:#e7f5ff; background:#243f54; }
+html[data-game-theme="space"] .compact-hand .card-effect-in-pip { position:static; top:auto; left:auto; flex:none; width:auto; min-width:100%; min-height:0; margin-top:1px; padding:1px; font:800 9px/1 var(--space-font); border-radius:3px; }
+html[data-game-theme="space"] .card-effect-in-pip > svg { display:none; }
+html[data-game-theme="space"] .compact-hand .card-pip-top > .font-display { font-size:12px!important; font-size:clamp(10px,28cqw,24px)!important; line-height:1; }
+html[data-game-theme="space"] .compact-hand .card-pip-top > svg { width:6px; height:6px; width:clamp(5px,12cqw,12px); height:clamp(5px,12cqw,12px); }
+html[data-game-theme="space"] .compact-hand [data-impact="risk"] .card-hand-effect { color:#fff7ec; background:#9d293e; border-color:#ffd9bb; }
+html[data-game-theme="space"] .compact-hand [data-impact="help"] .card-hand-effect { color:#f0fff7; background:#216747; border-color:#c3efd3; }
+html[data-game-theme="space"] .compact-hand [data-impact="neutral"] .card-hand-effect { color:#edf9ff; background:#294d66; border-color:#c5e7f7; }
+html[data-game-theme="space"] .card-selection-check { color:#092e40; background:#b3f0f5; border-color:#498ba4; }
+html[data-game-theme="space"] .street-card-back { color:#9ddde9; background-color:#173248; border-color:#739eb7; background-image:radial-gradient(ellipse at center,#295c71,transparent 70%),repeating-linear-gradient(120deg,#a5e7ef18 0 1px,transparent 1px 16px); }
+html[data-game-theme="space"] .space-back-mark { display:flex; flex-direction:column; align-items:center; gap:3px; color:#b3eff7; font:800 12px var(--space-font); }
+html[data-game-theme="space"] :is(.hand-sort-toolbar,.hand-card-detail,.selected-cards-label) { color:#cce3f0; }
+html[data-game-theme="space"] :is(.hand-sort-toolbar select,.hand-shuffle-button,.hand-arrange-button) { color:#d6f2ff; background:#142f43; border-color:#6b99b0; border-radius:4px; }
+html[data-game-theme="space"] .hand-arrange-button[aria-pressed="true"] { color:#d8ffff; background:#205567; border-color:#9ce6e9; }
+html[data-game-theme="space"] .hand-card-detail strong { color:#9eeaf0; }
+html[data-game-theme="space"] :is(.passing-recipient,.exchange-receipt) { color:#d9f0fa; background:#102b3e; border-color:#7ba4ba; border-radius:6px; }
+html[data-game-theme="space"] .App .selected-card-token { border-radius:4px; }
+html[data-game-theme="space"] .App .selected-card-token-empty { color:#86acc1; }
+html[data-game-theme="space"] .App .game-table .played-card-label { color:#dbf0fa; background:#153348!important; border-color:#6c99af!important; border-radius:5px; box-shadow:0 2px 0 #020b16; }
+html[data-game-theme="space"] .App .game-table .played-card-label > span { color:#dbf0fa!important; }
+html[data-game-theme="space"] .lead-suit-indicator { background:#102c40; border-color:#6c99af; border-left-color:var(--lead-color); border-radius:5px; box-shadow:0 2px 0 #020b16; }
+html[data-game-theme="space"] .lead-suit-label { color:#bdd5e3; }
+html[data-game-theme="space"] .lead-suit-name { color:#e2f4ff; }
+html[data-game-theme="space"] .lead-suit-icon { color:var(--lead-color); }
+html[data-game-theme="space"] :is(.street-dialog,.last-trick-dialog,.exchange-history-dialog,.chat-dialog) { color:#daedf9!important; background:linear-gradient(130deg,#162f43,#0c2032)!important; border-color:#6b9ab5!important; border-radius:8px!important; box-shadow:inset 0 1px 0 #b8f3ff44,0 12px 45px #020817cc; }
+html[data-game-theme="space"] :is(.last-trick-dialog,.exchange-history-dialog,.chat-dialog)::backdrop { background:#020a17bb; backdrop-filter:blur(4px); }
+html[data-game-theme="space"] .fixed.inset-0[data-state][class*="bg-black/80"] { background:#020a17bb; }
+html[data-game-theme="space"] .street-dialog-header { border-bottom-color:#5b849f; }
+html[data-game-theme="space"] :is(.street-dialog-title,.street-dialog-kicker,.rule-section h3,.stats-place) { color:#a2eaf0; font-family:var(--space-font)!important; text-shadow:none; }
+html[data-game-theme="space"] .street-dialog-description { color:#c0d9e8!important; }
+html[data-game-theme="space"] .rule-section { border-bottom-color:#50748d; }
+html[data-game-theme="space"] :is(.rule-note,.rule-example,.stats-metric,.stats-crew,.stats-recent,.stats-empty) { color:#d3e9f7; background:#19374d; border-color:#6289a2; border-radius:6px; }
+html[data-game-theme="space"] .rule-step { color:#0b2634; background:#93e0e9; border-radius:4px; }
+html[data-game-theme="space"] .rule-table :is(th,td) { border-color:#5f87a0; }
+html[data-game-theme="space"] .rule-table th { color:#d6f5ff; background:#24485f; }
+html[data-game-theme="space"] :is(.rule-suit,.rule-special,.score-step) { border-radius:5px; }
+html[data-game-theme="space"] :is(.rule-suit,.rule-special,.score-step) :is([class*="text-slate-"],[class*="text-white"]) { color:inherit; }
+html[data-game-theme="space"] :is(.score-card,.score-card:nth-child(even)) { color:#d9edf9; background:#142e42; border-color:#739db5; border-radius:7px; }
+html[data-game-theme="space"] :is(.score-name,.score-subtitle,.score-ledger,.stats-crew-metrics) { color:#d9edf9; }
+html[data-game-theme="space"] :is(.score-total,.score-delta) { background:#f7e5be; border-color:#d3b06e; border-radius:5px; }
+html[data-game-theme="space"] .score-ledger { border-top-color:#5e89a5; }
+html[data-game-theme="space"] .score-takeover { color:#e1f7ff; background:#17485e; border-color:#74c4d2; border-radius:7px; }
+html[data-game-theme="space"] :is(.round-readiness,.round-readiness-player) { color:#d8edf8; background:#173449; border-color:#638ba4; border-radius:6px; }
+html[data-game-theme="space"] .round-readiness-player[data-ready="true"] { color:#e6fff0; background:#21583e; border-color:#85cda4; }
+html[data-game-theme="space"] .round-readiness-player[data-ready="false"] { color:#ffebbf; background:#493b23; border-color:#baa065; }
+html[data-game-theme="space"] .round-readiness-button { color:#103346; background:#9edce7; border-color:#82bfcc; border-radius:5px; }
+html[data-game-theme="space"] .stats-clear { color:#ffb6c5; }
+html[data-game-theme="space"] .chat-bubble { color:#d9f5ff; background:#183d52; border-color:#78adbe; border-radius:6px; box-shadow:0 3px 8px #020b16aa; font-family:var(--space-font); }
+html[data-game-theme="space"] .chat-bubble::before { background:#183d52; border-color:#78adbe; }
+html[data-game-theme="space"] :is(.chat-heading h2,.chat-message-meta,.chat-room-code) { color:#a5e9f1; }
+html[data-game-theme="space"] :is(.chat-message-meta time,.chat-empty,.chat-compose-footer > span,.chat-spectator-note,.chat-retention-note,.chat-sound-note) { color:#b8d3e4; }
+html[data-game-theme="space"] .chat-message { color:#d6edf9; background:#1a3b50; border-color:#547d97; border-radius:6px; }
+html[data-game-theme="space"] .chat-message-own { background:#24445f; border-color:#709bb6; }
+html[data-game-theme="space"] :is(.chat-close-button,.chat-quick-emojis button) { color:#d1effa; background:#153348; border-color:#618aa4; border-radius:5px; }
+html[data-game-theme="space"] .chat-compose textarea { color:#e0f4ff; background:#0a1e30; border-color:#6b94ad; border-radius:6px; }
+html[data-game-theme="space"] .chat-compose-footer button { color:#103347; background:#9adce5; border-color:#75b7c5; border-radius:5px; }
+html[data-game-theme="space"] :is(.chat-sound-palette,.chat-sound-choices button,.chat-replay-sound) { color:#ceeef9; background:#17374c; border-color:#608ca6; border-radius:5px; }
+html[data-game-theme="space"] .chat-sound-palette .chat-sound-choices button { color:#daf1fa; background:#1f435a; border-color:#719eb4; }
+html[data-game-theme="space"] :is(.chat-error,[class*="text-red-300"]) { color:#ffb4c1; }
+html[data-game-theme="space"] ::selection { color:#07283b; background:#a4e9f1; }
+@media(max-width:639px) {
+  html[data-game-theme="space"] .compact-hand .card-effect-in-pip { padding:0 1px; font-size:7px; font-size:clamp(6px,17cqw,9px); }
+  html[data-game-theme="space"] .compact-hand .card-special-banner { padding:1px 0; border-top-width:1px; }
+  html[data-game-theme="space"] .compact-hand .card-special-name { font-size:8px!important; line-height:9px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  html[data-game-theme="space"] .compact-hand .card-special-rule { font-size:6px; line-height:7px; white-space:nowrap; }
+  html[data-game-theme="space"] .compact-hand .card-impact-label { display:none; }
+}
+html[data-game-theme="space"] ::-webkit-scrollbar-track { background:#102638; }
+html[data-game-theme="space"] ::-webkit-scrollbar-thumb { background:#577d98; border-radius:5px; }
+html[data-game-theme="space"] :is(button,input,select,textarea,summary):focus-visible { outline-color:#9feaf1; }
+@media(prefers-reduced-motion:reduce) { html[data-game-theme="space"] :is(.rise-in,.pop-in,.candle-flicker,.float-slow) { animation:none!important; } }

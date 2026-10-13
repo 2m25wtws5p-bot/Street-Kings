@@ -5,7 +5,7 @@ import { I18nScope } from "../i18n/I18nProvider";
 import { CHAT_SOUNDS } from "../game/chat";
 import { sfx, unlockSound } from "../game/sound";
 
-jest.mock("../game/sound", () => ({ sfx: { chatSound: jest.fn() }, unlockSound: jest.fn() }));
+jest.mock("../game/sound", () => ({ sfx: { chatSound: jest.fn() }, unlockSound: jest.fn(), getSoundTheme: jest.fn(() => "street"), setSoundTheme: jest.fn() }));
 
 let container, root;
 const view = { code: "SOUND", yourSeat: 0, players: [{ seat: 0, name: "Nia", isBot: false }], chatMessages: [] };

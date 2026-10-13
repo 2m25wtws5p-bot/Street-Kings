@@ -34,8 +34,8 @@ class RoomThemeTests(unittest.IsolatedAsyncioTestCase):
             await request
         self.assertEqual(raised.exception.status_code, status)
 
-    async def test_new_rooms_default_to_street_and_accept_explicit_animal_theme(self):
-        for index, extra in enumerate(({}, {"theme": "street"}, {"theme": "animal"})):
+    async def test_new_rooms_default_to_street_and_accept_explicit_visual_themes(self):
+        for index, extra in enumerate(({}, {"theme": "street"}, {"theme": "animal"}, {"theme": "space"})):
             code = f"NEW0{index}"
             with patch.object(server, "_gen_code", return_value=code):
                 session = await server.create_room(server.CreateRoom(name="Host", avatar=AVATAR, **extra))
@@ -56,7 +56,7 @@ class RoomThemeTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_host_selection_is_shared_with_every_player_and_spectator(self):
         self.rooms.docs["STABLE"]["spectators"] = [{"name": "Watcher", "token": "spectator-secret"}]
-        for theme in ("animal", "street", "animal"):
+        for theme in ("animal", "space", "street", "space", "animal"):
             selected = await self.select(theme)
             self.assertEqual(selected["theme"], theme)
             for token in ("player-0", "player-1", "player-2", "spectator-secret", "unknown", ""):
@@ -141,30 +141,46 @@ class RoomThemeTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.rooms.replace_calls, [({"_id": "STABLE", "$or": [
             {"version": 0}, {"version": {"$exists": False}}]}, False)])
 
-    async def test_theme_survives_join_start_reconnect_next_round_and_rematch(self):
+    async def assert_theme_survives_lifecycle(self, theme):
         self.rooms.docs["STABLE"] = lobby()
-        await self.select()
+        await self.select(theme)
         for seat in (1, 2):
             await server.join_room("STABLE", server.JoinRoom(name=f"Crew {seat}", avatar=AVATAR))
         started = await server.start_room("STABLE", server.TokenReq(token="player-0"))
-        self.assertEqual(started["theme"], "animal")
+        self.assertEqual(started["theme"], theme)
         self.assertEqual(sum(started["handCounts"]), 60)
         joined_token = self.rooms.docs["STABLE"]["players"][1]["token"]
         rejoined = await server.join_room("STABLE", server.JoinRoom(
             name="Crew 1", avatar=AVATAR, token=joined_token))
         self.assertTrue(rejoined["rejoined"])
-        self.assertEqual((await server.get_room("STABLE", joined_token))["theme"], "animal")
+        self.assertEqual((await server.get_room("STABLE", joined_token))["theme"], theme)
         state = self.rooms.docs["STABLE"]
         state.update(phase="roundScores", readySeats=[False, True, True])
         next_round = await server.room_action("STABLE", server.ActionReq(
             token="player-0", type="nextRound", roundId=state["roundId"]))
-        self.assertEqual(next_round["theme"], "animal")
+        self.assertEqual(next_round["theme"], theme)
         self.assertEqual(next_round["roundIndex"], 1)
         self.rooms.docs["STABLE"].update(status="gameOver", phase="gameOver")
         rematch = await server.rematch_room("STABLE", server.TokenReq(token="player-0"))
-        self.assertEqual(rematch["theme"], "animal")
+        self.assertEqual(rematch["theme"], theme)
         self.assertEqual(rematch["roundIndex"], 0)
         self.assertEqual(sum(rematch["handCounts"]), 60)
+
+    async def test_theme_survives_join_start_reconnect_next_round_and_rematch(self):
+        for theme in ("animal", "space"):
+            with self.subTest(theme=theme):
+                await self.assert_theme_survives_lifecycle(theme)
+
+    async def test_space_theme_keeps_host_and_lobby_permissions(self):
+        before = copy.deepcopy(self.rooms.docs["STABLE"])
+        await self.assert_http_error(403, self.select("space", token="player-1"))
+        self.assertEqual(self.rooms.docs["STABLE"], before)
+        for phase in ("passing", "playing", "trickEnd", "roundScores", "gameOver"):
+            state = playing(phase=phase)
+            state["theme"] = "animal"
+            self.rooms.docs["STABLE"] = copy.deepcopy(state)
+            await self.assert_http_error(409, self.select("space"))
+            self.assertEqual(self.rooms.docs["STABLE"], state)
 
     def test_legacy_rooms_default_to_street_in_every_phase_without_mutation(self):
         for phase in ("lobby", "passing", "playing", "trickEnd", "roundScores", "gameOver"):

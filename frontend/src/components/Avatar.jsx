@@ -2,6 +2,7 @@ import React from "react";
 import streetFaces from "../assets/avatars/street-faces-comic.webp";
 import extraFaces from "../assets/avatars/street-faces-extra-comic.webp";
 import animalFaces from "../assets/animal-crews/portraits-friendly.webp";
+import spaceFaces from "../assets/space-smugglers/portraits-atlas.webp";
 import { useTheme } from "../themes/ThemeProvider";
 import { atlasPosition } from "../themes/presentation";
 import { useI18n } from "../i18n/I18nProvider";
@@ -24,8 +25,9 @@ export function Avatar({ avatar, size = 40, active = false, className = "" }) {
   const color = avatar?.color || "#94A3B8";
   const extraIndex = /^street-(0[1-9]|1[0-2])$/.test(avatar?.key || "") ? Number(avatar.key.slice(-2)) - 1 : -1;
   const animalIndex = extraIndex >= 0 ? extraIndex + 6 : Math.max(0, Object.keys(MAP).indexOf(avatar?.key));
-  const image = theme === "animal" ? animalFaces : extraIndex >= 0 ? extraFaces : streetFaces;
-  const position = theme === "animal" ? atlasPosition(animalIndex, 6, 3)
+  const illustrated = theme === "animal" || theme === "space";
+  const image = theme === "animal" ? animalFaces : theme === "space" ? spaceFaces : extraIndex >= 0 ? extraFaces : streetFaces;
+  const position = illustrated ? atlasPosition(animalIndex, 6, 3)
     : extraIndex >= 0 ? `${(extraIndex % 3) * 50}% ${Math.floor(extraIndex / 3) * 100 / 3}%` : MAP[avatar?.key] || MAP.boss;
   return (
     <div
@@ -43,7 +45,7 @@ export function Avatar({ avatar, size = 40, active = false, className = "" }) {
         borderRadius: "42% 48% 40% 46%",
       }}
     >
-      <span aria-hidden="true" style={{ display: "block", width: "100%", height: "100%", backgroundImage: `url(${image})`, backgroundSize: theme === "animal" ? "600% 300%" : extraIndex >= 0 ? "300% 400%" : "200% 300%", backgroundPosition: position, borderRadius: "inherit" }} />
+      <span aria-hidden="true" style={{ display: "block", width: "100%", height: "100%", backgroundImage: `url(${image})`, backgroundSize: illustrated ? "600% 300%" : extraIndex >= 0 ? "300% 400%" : "200% 300%", backgroundPosition: position, borderRadius: "inherit" }} />
     </div>
   );
 }

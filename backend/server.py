@@ -159,7 +159,7 @@ def _lock(code: str) -> asyncio.Lock:
 class CreateRoom(BaseModel):
     name: str
     avatar: Dict[str, str]
-    theme: Literal["street", "animal"] = "street"
+    theme: Literal["street", "animal", "space"] = "street"
 
 
 class JoinRoom(BaseModel):
@@ -207,7 +207,7 @@ class ActionReq(BaseModel):
     cardId: Optional[str] = None
     reviewing: Optional[bool] = None
     roundId: Optional[str] = None
-    theme: Optional[Literal["street", "animal"]] = None
+    theme: Optional[Literal["street", "animal", "space"]] = None
 
 
 def _gen_code() -> str:
@@ -444,7 +444,7 @@ def _redact(room, token):
         "status": room["status"],
         # Themes are shared presentation only. Older rooms keep their existing
         # Street Kings look without a write or any change to their game state.
-        "theme": room.get("theme") if room.get("theme") in ("street", "animal") else "street",
+        "theme": room.get("theme") if room.get("theme") in ("street", "animal", "space") else "street",
         "phase": room.get("phase", "lobby"),
         "n": n,
         "players": players_pub,
