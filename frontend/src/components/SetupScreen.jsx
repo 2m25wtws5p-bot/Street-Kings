@@ -6,6 +6,8 @@ import { sfx } from "../game/sound";
 import { useI18n } from "../i18n/I18nProvider";
 import { useGameLabels } from "../i18n/gameLabels";
 import { LanguageSelector } from "./LanguageSelector";
+import { ThemeSelector } from "../themes/ThemeSelector";
+import { DEFAULT_THEME, normalizeTheme } from "../themes/themeConfig";
 
 const PRESETS = [
   { n: 3 },
@@ -35,7 +37,7 @@ function makeBotDefaults(customNames = []) {
   });
 }
 
-export function SetupScreen({ onStart }) {
+export function SetupScreen({ onStart, theme = DEFAULT_THEME, onThemeChange }) {
   const { t, language } = useI18n();
   const { avatars: avatarLabels } = useGameLabels();
   const [languages, setLanguages] = useState(() => Array(MAX_PLAYERS).fill(null));
@@ -94,7 +96,7 @@ export function SetupScreen({ onStart }) {
       language: languages[i] || language,
     }));
     sfx.fanfare();
-    onStart(players);
+    onStart(players, { theme: normalizeTheme(theme) });
   };
 
   return (
@@ -104,7 +106,7 @@ export function SetupScreen({ onStart }) {
           <div className="inline-flex items-center gap-2 text-amber-400/80 font-display text-xs uppercase tracking-[0.3em] mb-3">
             <Siren size={14} /> {t('home.tagline')} <Siren size={14} />
           </div>
-          <h1 className="font-display text-5xl sm:text-6xl font-black gold-text candle-flicker">Street Kings</h1>
+          <h1 className="font-display text-5xl sm:text-6xl font-black gold-text candle-flicker">{t('theme.brand')}</h1>
           <p className="font-serif-fancy text-slate-300/80 text-lg mt-3 max-w-lg mx-auto">
             {t('setup.description')}
           </p>
@@ -113,6 +115,7 @@ export function SetupScreen({ onStart }) {
         <div className="home-language-choice"><LanguageSelector /></div>
 
         <div className="panel rounded-lg p-5 sm:p-7 rise-in" style={{ animationDelay: "0.1s" }}>
+          <ThemeSelector theme={theme} onChange={onThemeChange} testId="local-theme-selector" />
           <div className="flex items-center gap-2 mb-3 text-amber-300 font-display">
             <Users size={18} /> {t('setup.playerCount')}
           </div>

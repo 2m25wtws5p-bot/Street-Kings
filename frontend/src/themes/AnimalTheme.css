@@ -1,0 +1,34 @@
+/* Appearance only: preserve every existing table and printed-card dimension. */
+html[data-game-theme="animal"] .App .street-bg,
+[data-theme="animal"] .street-bg {
+  background-color:#172b2c;
+  background-image:linear-gradient(180deg,#10282b94,#102122c9),url("../assets/animal-crews/backstreet.webp");
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+}
+html[data-game-theme="animal"] .App::after { content:"ANIMAL CREWS"; color:#e6bb62; }
+html[data-game-theme="animal"] .street-bg::after { content:"ANIMAL • CREWS"; color:#d0ba74; opacity:.16; }
+html[data-game-theme="animal"] .panel {
+  background:linear-gradient(135deg,#182e30f5,#102426f5);
+  border-color:#b78b52;
+  box-shadow:3px 5px 0 #07191c88;
+}
+html[data-game-theme="animal"] .street-card,
+html[data-game-theme="animal"] .street-card-back { border-radius:6px 9px 6px 8px; }
+.street-card .animal-card-art { background-repeat:no-repeat; }
+html[data-game-theme="animal"] .card-print-shade { opacity:.75; }
+html[data-game-theme="animal"] .street-card-back {
+  color:#f1d89e; background-color:#16383c;
+  background-image:repeating-linear-gradient(135deg,#e9c27b18 0 2px,transparent 2px 9px),radial-gradient(ellipse,#42675f,transparent 75%);
+  border-color:#dbb970;
+}
+.animal-back-mark { display:flex; flex-direction:column; align-items:center; gap:2px; font:700 14px "Permanent Marker",sans-serif; transform:rotate(-9deg); }
+html[data-game-theme="animal"] .street-avatar { outline:1px solid #e7ce9b99; }
+html[data-game-theme="animal"] .street-dialog {
+  background:linear-gradient(115deg,#f2e8ce,#d8decd)!important;
+  border-color:#81734e!important;
+}
+html[data-game-theme="animal"] .street-dialog-title { color:#26494a; }
+html[data-game-theme="animal"] .street-dialog-kicker { color:#72552c; }
+/* Never override turn-state colors, suit colors, hit areas or hand transforms. */

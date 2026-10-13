@@ -22,16 +22,21 @@ import { sfx } from "@/game/sound";
 import { Home } from "lucide-react";
 import { I18nScope, useI18n } from "../i18n/I18nProvider";
 import { localLanguageSeat } from "../i18n/localLanguage";
+import { ThemeProvider } from "../themes/ThemeProvider";
+import { DEFAULT_THEME, normalizeTheme } from "../themes/themeConfig";
 
 export function LocalGame(props) {
   const game = useStreetKingsGame();
+  const [theme, setTheme] = useState(DEFAULT_THEME);
   const viewerRef = useRef(null);
   viewerRef.current = localLanguageSeat(game.state, viewerRef.current);
   const language = game.state.players?.[viewerRef.current]?.language;
-  return <I18nScope language={language}><LocalGameView {...props} game={game} /></I18nScope>;
+  return <ThemeProvider theme={theme} onThemeChange={setTheme}><I18nScope language={language}>
+    <LocalGameView {...props} game={game} theme={theme} onThemeChange={setTheme} />
+  </I18nScope></ThemeProvider>;
 }
 
-function LocalGameView({ onExit, sound, setSound, game }) {
+function LocalGameView({ onExit, sound, setSound, game, theme, onThemeChange }) {
   const { state, actions } = game;
   const { t, language } = useI18n();
   const [rulesOpen, setRulesOpen] = useState(false);
@@ -114,13 +119,14 @@ function LocalGameView({ onExit, sound, setSound, game }) {
             data-testid="nav-brand-title"
             className="font-display text-sm gold-text flex items-center gap-1.5 hover:opacity-80"
           >
-            <Home size={15} /> Street Kings
+            <Home size={15} /> {t('theme.brand')}
           </button>
           <GameHeaderButtons sound={sound} setSound={setSound} onRules={() => setRulesOpen(true)} onStats={() => setStatsOpen(true)} />
         </div>
       )}
 
-      {state.phase === "setup" && <SetupScreen onStart={actions.startGame} />}
+      {state.phase === "setup" && <SetupScreen theme={theme} onThemeChange={onThemeChange}
+        onStart={(players, options) => { onThemeChange(normalizeTheme(options?.theme)); actions.startGame(players); }} />}
       {state.phase !== "setup" && <LastTrickButton trick={state.lastTrick} players={state.players} winner={state.lastWinner} />}
       <ExchangeHistoryButton exchange={exchangeSeat == null ? null : state.exchangeHistory?.[exchangeSeat]} phase={state.phase} trickNumber={state.trickNumber} scopeKey={`${state.roundIndex}-${exchangeSeat}`} />
       <ExchangeReveal exchange={exchangeSeat == null ? null : state.exchangeHistory?.[exchangeSeat]} scopeKey={`${state.roundId || state.roundIndex}-${exchangeSeat}`} available={exchangeSeat != null && state.phase === "playing" && state.trickNumber === 1} />

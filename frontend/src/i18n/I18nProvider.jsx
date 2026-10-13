@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { createTranslator, DEFAULT_LANGUAGE, getLocale, normalizeLanguage, readLanguage, saveLanguage } from './core';
+import { useTheme } from '../themes/ThemeProvider';
+import { getThemeMessages } from '../themes/presentation';
 
 function browserStorage() {
   try { return typeof window === 'undefined' ? null : window.localStorage; } catch { return null; }
@@ -34,4 +36,8 @@ export function I18nScope({ language, children }) {
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }
 
-export function useI18n() { return useContext(I18nContext); }
+export function useI18n() {
+  const value = useContext(I18nContext);
+  const { theme } = useTheme();
+  return useMemo(() => ({ ...value, t: createTranslator(value.language, getThemeMessages(theme, value.language)) }), [value, theme]);
+}

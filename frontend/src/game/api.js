@@ -1,9 +1,11 @@
 import axios from "axios";
 import { de as baseOnlineGerman } from "../i18n/messages/online";
 import { de as flowGerman } from "../i18n/messages/flowImprovements";
+import { de as themesGerman } from "../i18n/messages/themes";
+import { isTheme, normalizeTheme } from "../themes/themeConfig";
 import { isChatSound } from "./chat";
 
-const onlineGerman = { ...baseOnlineGerman, ...flowGerman };
+const onlineGerman = { ...baseOnlineGerman, ...flowGerman, ...themesGerman };
 
 const backendUrl = (process.env.REACT_APP_BACKEND_URL || "").trim().replace(/\/+$/, "");
 let configurationError = "";
@@ -80,6 +82,7 @@ export function validateRoomView(view) {
       Number.isSafeInteger(message.createdAt) && message.createdAt >= 0 && message.createdAt <= 8640000000000000));
   const valid = view && typeof view === "object" && typeof view.code === "string" &&
     ["lobby", "playing", "gameOver"].includes(view.status) &&
+    (view.theme == null || isTheme(view.theme)) &&
     Number.isInteger(view.n) && view.n >= (view.status === "lobby" ? 1 : 3) && view.n <= 6 &&
     Number.isSafeInteger(view.version) && view.version >= 0 &&
     Array.isArray(view.players) && view.players.length === view.n &&
@@ -127,7 +130,7 @@ export function validateRoomSession(session) {
 const sessionResponse = response => validateRoomSession(response.data);
 
 export const roomApi = {
-  create: (name, avatar) => client.post(`${API}/rooms`, { name, avatar }).then(sessionResponse),
+  create: (name, avatar, theme) => client.post(`${API}/rooms`, { name, avatar, ...(theme == null ? {} : { theme: normalizeTheme(theme) }) }).then(sessionResponse),
   join: (code, name, avatar, token) => client.post(`${API}/rooms/${code}/join`, { name, avatar, ...(token ? { token } : {}) }).then(sessionResponse),
   watch: (code, name) => client.post(`${API}/rooms/${code}/watch`, { name }).then(sessionResponse),
   get: (code, token, options = {}) => client.get(`${API}/rooms/${code}`, { params: { token }, signal: options.signal }).then(roomResponse),

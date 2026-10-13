@@ -10,12 +10,13 @@ import { de as rosterDe, en as rosterEn } from './messages/rosterImprovements.js
 import { de as paletteDe, en as paletteEn } from './messages/soundPalette.js';
 import { de as layoutDe, en as layoutEn } from './messages/tableLayout.js';
 import { de as manualDe, en as manualEn } from './messages/manualSort.js';
+import { de as themesDe, en as themesEn } from './messages/themes.js';
 
 // Only presentation text lives here. Never translate room, suit, phase or card IDs.
 // A future language can be added as a new complete flat-key message pack.
 export const catalogs = {
-  de: { ...commonDe, ...onlineDe, ...gameDe, ...rulesDe, ...cardsDe, ...flowDe, ...presentationDe, ...tableDe, ...rosterDe, ...paletteDe, ...layoutDe, ...manualDe },
-  en: { ...commonEn, ...onlineEn, ...gameEn, ...rulesEn, ...cardsEn, ...flowEn, ...presentationEn, ...tableEn, ...rosterEn, ...paletteEn, ...layoutEn, ...manualEn },
+  de: { ...commonDe, ...onlineDe, ...gameDe, ...rulesDe, ...cardsDe, ...flowDe, ...presentationDe, ...tableDe, ...rosterDe, ...paletteDe, ...layoutDe, ...manualDe, ...themesDe },
+  en: { ...commonEn, ...onlineEn, ...gameEn, ...rulesEn, ...cardsEn, ...flowEn, ...presentationEn, ...tableEn, ...rosterEn, ...paletteEn, ...layoutEn, ...manualEn, ...themesEn },
 };
 
 export const SUPPORTED_LANGUAGES = [

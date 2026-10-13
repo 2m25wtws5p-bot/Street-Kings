@@ -8,6 +8,8 @@ const chat = await import(moduleUrl(await source("game/chat.js")));
 const clipboard = await import(moduleUrl(await source("game/clipboard.js")));
 const onlineMessagesUrl = moduleUrl(await source("i18n/messages/online.js"));
 const flowMessagesUrl = moduleUrl(await source("i18n/messages/flowImprovements.js"));
+const themeMessagesUrl = moduleUrl(await source("i18n/messages/themes.js"));
+const themeConfigUrl = moduleUrl(await source("themes/themeConfig.js"));
 const chatUrl = moduleUrl(await source("game/chat.js"));
 const { de, en } = await import(onlineMessagesUrl);
 const translator = language => (key, params = {}) => {
@@ -18,6 +20,8 @@ const translator = language => (key, params = {}) => {
 const api = await import(moduleUrl((await source("game/api.js"))
   .replace('from "../i18n/messages/online"', `from "${onlineMessagesUrl}"`)
   .replace('from "../i18n/messages/flowImprovements"', `from "${flowMessagesUrl}"`)
+  .replace('from "../i18n/messages/themes"', `from "${themeMessagesUrl}"`)
+  .replace('from "../themes/themeConfig"', `from "${themeConfigUrl}"`)
   .replace('from "./chat"', `from "${chatUrl}"`)
   .replace('import axios from "axios";', 'const axios={create:()=>({interceptors:{request:{use(){}}}})};')));
 

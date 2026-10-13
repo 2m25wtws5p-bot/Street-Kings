@@ -13,6 +13,9 @@ import { copyText, invitationLink } from "../game/clipboard";
 import { roomApi, onlineErrorMessage } from "../game/api";
 import { useOnlineGame } from "../game/useOnlineGame";
 import { sfx } from "../game/sound";
+import { ThemeProvider } from "../themes/ThemeProvider";
+import { ThemeSelector } from "../themes/ThemeSelector";
+import { DEFAULT_THEME } from "../themes/themeConfig";
 import { loadRoomSession, saveRoomSession, clearRoomSession } from "../game/storage";
 import { Wifi, Plus, LogIn, ArrowLeft, Copy, Link, Bot, Play, UserPlus, Loader, Eye, WifiOff } from "lucide-react";
 
@@ -113,7 +116,7 @@ export function OnlineFlow({ initialCode, onExit, sound, setSound }) {
   }
 
   // A transient failure must not unmount the table and erase a selected deal.
-  return <>
+  return <ThemeProvider theme={online.view.theme}>
     {online.view.status === "lobby"
       ? <Lobby view={online.view} actions={online} onLeave={leave} />
       : <OnlineTable view={online.view} actions={online} onLeave={leave} sound={sound} setSound={setSound} />}
@@ -122,10 +125,17 @@ export function OnlineFlow({ initialCode, onExit, sound, setSound }) {
       {online.error ? <p className="text-slate-300 mt-1">{t("online.retrying")}</p>
         : <button type="button" onClick={online.dismissActionError} className="text-amber-300 mt-1">{t("online.close")}</button>}
     </div>}
-  </>;
+  </ThemeProvider>;
 }
 
 function CreateJoin({ initialCode, onExit, onSession }) {
+  const [theme, setTheme] = useState(DEFAULT_THEME);
+  return <ThemeProvider theme={theme} onThemeChange={setTheme}>
+    <CreateJoinView initialCode={initialCode} onExit={onExit} onSession={onSession} theme={theme} onThemeChange={setTheme} />
+  </ThemeProvider>;
+}
+
+function CreateJoinView({ initialCode, onExit, onSession, theme, onThemeChange }) {
   const { t } = useI18n();
   const { avatars } = useGameLabels();
   const [name, setName] = useState("");
@@ -167,7 +177,7 @@ function CreateJoin({ initialCode, onExit, onSession }) {
     return true;
   };
 
-  const create = () => run(() => roomApi.create(displayName, avatar), sfx.fanfare);
+  const create = () => run(() => roomApi.create(displayName, avatar, theme), sfx.fanfare);
   const join = () => validCode() && run(() => roomApi.join(code.trim().toUpperCase(), displayName, avatar), sfx.reveal);
   const watch = () => validCode() && run(() => roomApi.watch(code.trim().toUpperCase(), name.trim() || t('online.defaultSpectator')), sfx.select);
 
@@ -203,6 +213,7 @@ function CreateJoin({ initialCode, onExit, onSession }) {
 
           {!invited && (
             <>
+              <ThemeSelector theme={theme} onChange={onThemeChange} disabled={busy} testId="create-theme-selector" />
               <button onClick={create} disabled={busy} aria-describedby="create-room-hint" data-testid="btn-create-room" className="w-full rounded-md py-3.5 font-display text-lg font-bold text-black bg-gradient-to-r from-yellow-300 to-amber-400 glow-ring flex items-center justify-center gap-2 disabled:opacity-60">
                 <Plus size={20} /> {t("online.create")}
               </button>
@@ -237,7 +248,7 @@ function CreateJoin({ initialCode, onExit, onSession }) {
   );
 }
 
-function Lobby({ view, actions, onLeave }) {
+export function Lobby({ view, actions, onLeave }) {
   const { t } = useI18n();
   const [copyMessage, setCopyMessage] = useState("");
   useEffect(() => {
@@ -274,6 +285,8 @@ function Lobby({ view, actions, onLeave }) {
 
         <div className="panel rounded-lg p-4 rise-in">
           <p className="text-slate-200 text-xs leading-relaxed mb-4" data-testid="lobby-controls-guide">{t(view.isHost ? "improvements.lobby.hostHint" : "improvements.lobby.guestHint")}</p>
+          <ThemeSelector theme={view.theme} onChange={view.isHost && !view.isSpectator ? actions.setTheme : undefined}
+            disabled={actions.busy || !view.isHost || view.isSpectator} shared testId="lobby-theme-selector" />
           <div className="flex items-center justify-between mb-3">
             <span className="font-display text-amber-300 text-sm">{t("online.crewCount", { count: n })}</span>
             {view.isHost && (

@@ -22,12 +22,13 @@ export function saveLanguage(storage, value) {
   return language;
 }
 
-export function translate(language, key, params = {}) {
+export function translate(language, key, params = {}, overrides = null) {
   const selected = normalizeLanguage(language);
   const pack = catalogs[selected];
   const defaults = catalogs[DEFAULT_LANGUAGE];
   const values = params && typeof params === 'object' ? params : {};
-  let message = Object.hasOwn(pack, key) ? pack[key] : Object.hasOwn(defaults, key) ? defaults[key] : undefined;
+  let message = overrides && Object.hasOwn(overrides, key) ? overrides[key]
+    : Object.hasOwn(pack, key) ? pack[key] : Object.hasOwn(defaults, key) ? defaults[key] : undefined;
   if (message && typeof message === 'object') {
     const category = new Intl.PluralRules(getLocale(selected)).select(Number(values.count));
     message = Object.hasOwn(message, category) ? message[category] : Object.hasOwn(message, 'other') ? message.other : undefined;
@@ -40,6 +41,6 @@ export function translate(language, key, params = {}) {
   });
 }
 
-export function createTranslator(language = DEFAULT_LANGUAGE) {
-  return (key, params) => translate(language, key, params);
+export function createTranslator(language = DEFAULT_LANGUAGE, overrides = null) {
+  return (key, params) => translate(language, key, params, overrides);
 }

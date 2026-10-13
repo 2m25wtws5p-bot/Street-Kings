@@ -16,10 +16,14 @@ const { reducer } = await import(moduleUrl(`${reducerSource}\nexport { reducer }
 const { botPass, botPlay } = await import(engineUrl);
 const onlineMessagesUrl = moduleUrl(await source("i18n/messages/online.js"));
 const flowMessagesUrl = moduleUrl(await source("i18n/messages/flowImprovements.js"));
+const themeMessagesUrl = moduleUrl(await source("i18n/messages/themes.js"));
+const themeConfigUrl = moduleUrl(await source("themes/themeConfig.js"));
 const chatUrl = moduleUrl(await source("game/chat.js"));
 const apiSource = (await source("game/api.js"))
   .replace('from "../i18n/messages/online"', `from "${onlineMessagesUrl}"`)
   .replace('from "../i18n/messages/flowImprovements"', `from "${flowMessagesUrl}"`)
+  .replace('from "../i18n/messages/themes"', `from "${themeMessagesUrl}"`)
+  .replace('from "../themes/themeConfig"', `from "${themeConfigUrl}"`)
   .replace('from "./chat"', `from "${chatUrl}"`)
   .replace('import axios from "axios";', 'const axios={create:()=>({interceptors:{request:{use(){}}}})};');
 const { validateRoomView, validateRoomSession, normalizeRecentGames } = await import(moduleUrl(apiSource));

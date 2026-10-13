@@ -1,0 +1,31 @@
+export const de = {
+  "theme.brand": "Street Kings",
+  "theme.heading": "Motto & Design",
+  "theme.forEveryone": "Für den ganzen Raum",
+  "theme.rulesUnchanged": "Gleiche Regeln · neuer Look",
+  "theme.street.name": "New York",
+  "theme.street.description": "Die originalen Street Crews",
+  "theme.animal.name": "Animal Crews",
+  "theme.animal.description": "Tiergangs im Comic-Noir-Stil",
+  "theme.hostHint": "Du wählst das Motto für alle. Die Spielregeln bleiben gleich.",
+  "theme.hostChooses": "Der Spielführer wählt das Motto vor dem Spielstart für alle.",
+  "error.themeInvalid": "Ungültiges Motto",
+  "error.themeLobbyOnly": "Das Motto kann nur vor Spielbeginn geändert werden",
+  "error.themeHostOnly": "Nur der Host kann das Motto ändern",
+};
+
+export const en = {
+  "theme.brand": "Street Kings",
+  "theme.heading": "Theme & Design",
+  "theme.forEveryone": "For the whole room",
+  "theme.rulesUnchanged": "Same rules · new look",
+  "theme.street.name": "New York",
+  "theme.street.description": "The original street crews",
+  "theme.animal.name": "Animal Crews",
+  "theme.animal.description": "Animal gangs in comic-noir style",
+  "theme.hostHint": "You choose the theme for everyone. The game rules stay the same.",
+  "theme.hostChooses": "The host chooses the theme for everyone before the game starts.",
+  "error.themeInvalid": "This theme is not available.",
+  "error.themeLobbyOnly": "The theme can only be changed before the game starts.",
+  "error.themeHostOnly": "Only the host can change the theme.",
+};

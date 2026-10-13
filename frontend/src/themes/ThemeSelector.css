@@ -1,0 +1,21 @@
+.theme-selector { margin: 0 0 1.25rem; min-width: 0; }
+.theme-selector-heading { display: flex; justify-content: space-between; align-items: baseline; gap: .75rem; margin-bottom: .55rem; color: #f1d69b; font-size: .9rem; font-weight: 800; }
+.theme-selector-scope { color: #c4c9c5; font-size: .65rem; font-weight: 500; text-align: right; }
+.theme-selector-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .55rem; }
+.theme-selector-option { display: flex; align-items: center; gap: .55rem; min-height: 78px; padding: .65rem .55rem; border: 2px solid #75857c; border-radius: 10px; background: #202e2a; color: #ece8da; text-align: left; position: relative; transition: border-color .18s, background .18s; }
+.theme-selector-option[data-selected="true"] { border-color: #efc86c; background: #3d3927; box-shadow: inset 0 0 0 1px #efc86c44; }
+.theme-selector-option:focus-visible { outline: 3px solid #fff1be; outline-offset: 3px; }
+.theme-selector-option:disabled { cursor: default; opacity: 1; }
+.theme-selector-option:not(:disabled):hover { border-color: #fff1be; }
+.theme-selector-icon { flex: 0 0 auto; color: #efc86c; }
+.theme-selector-copy { min-width: 0; display: flex; flex-direction: column; gap: .2rem; }
+.theme-selector-copy strong { font-size: .85rem; line-height: 1.15; }
+.theme-selector-copy small { font-size: .65rem; line-height: 1.35; color: #d3d8cf; }
+.theme-selector-check { position: absolute; right: .3rem; top: .1rem; color: #efc86c; font-size: .75rem; font-weight: 900; }
+.theme-selector-note { margin: .45rem 0 0; color: #cbd2c9; font-size: .7rem; line-height: 1.4; }
+@media (max-width: 360px) {
+  .theme-selector-option { gap: .35rem; padding: .6rem .4rem; }
+  .theme-selector-icon { width: 18px; height: 18px; }
+  .theme-selector-copy strong { font-size: .78rem; }
+  .theme-selector-copy small { font-size: .6rem; }
+}

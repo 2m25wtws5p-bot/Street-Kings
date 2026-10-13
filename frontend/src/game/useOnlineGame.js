@@ -158,6 +158,7 @@ export function useOnlineGame(code, token) {
     sendChatSound: sound => submitChat({ sound }),
     dismissActionError: () => setActionError(null),
     pass: (cards) => doAction({ type: "pass", cards }),
+    setTheme: (theme) => doAction({ type: "setTheme", theme }),
     play: (cardId) => doAction({ type: "play", cardId }),
     continueTrick: () => doAction({ type: "continueTrick" }),
     nextRound: () => doAction({ type: "nextRound", roundId: viewIdentity.current === identity ? view?.roundId : undefined }),

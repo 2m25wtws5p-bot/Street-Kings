@@ -11,7 +11,7 @@ import random
 import string
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict, model_validator
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Literal
 import uuid
 import time
 import weakref
@@ -159,6 +159,7 @@ def _lock(code: str) -> asyncio.Lock:
 class CreateRoom(BaseModel):
     name: str
     avatar: Dict[str, str]
+    theme: Literal["street", "animal"] = "street"
 
 
 class JoinRoom(BaseModel):
@@ -201,11 +202,12 @@ class ReplaceReq(BaseModel):
 
 class ActionReq(BaseModel):
     token: str
-    type: str  # 'pass' | 'play' | 'continueTrick' | 'nextRound'
+    type: str  # 'pass' | 'play' | 'continueTrick' | 'nextRound' | 'setTheme'
     cards: Optional[List[str]] = None
     cardId: Optional[str] = None
     reviewing: Optional[bool] = None
     roundId: Optional[str] = None
+    theme: Optional[Literal["street", "animal"]] = None
 
 
 def _gen_code() -> str:
@@ -440,6 +442,9 @@ def _redact(room, token):
     view = {
         "code": room["_id"],
         "status": room["status"],
+        # Themes are shared presentation only. Older rooms keep their existing
+        # Street Kings look without a write or any change to their game state.
+        "theme": room.get("theme") if room.get("theme") in ("street", "animal") else "street",
         "phase": room.get("phase", "lobby"),
         "n": n,
         "players": players_pub,
@@ -530,6 +535,7 @@ async def create_room(payload: CreateRoom):
             "host_token": token,
             "status": "lobby",
             "phase": "lobby",
+            "theme": payload.theme,
             "players": [{"token": token, "name": _display_name(payload.name, "Boss"), "avatar": payload.avatar, "isBot": False, "seat": 0, "last_seen": time.time()}],
             "spectators": [],
             "chatMessages": [],
@@ -778,6 +784,20 @@ async def get_room(code: str, token: str = ""):
 async def room_action(code: str, payload: ActionReq):
     async with _lock(code):
         room = await _get_room(code)
+        if payload.type == "setTheme":
+            me = _player_by_token(room, payload.token)
+            if not me or me["isBot"] or room["host_token"] != payload.token:
+                raise HTTPException(status_code=403, detail="Nur der Host kann das Motto ändern")
+            if room["status"] != "lobby":
+                raise HTTPException(status_code=409, detail="Das Motto kann nur vor Spielbeginn geändert werden")
+            if payload.theme is None:
+                raise HTTPException(status_code=400, detail="Ungültiges Motto")
+            room["theme"] = payload.theme
+            me["last_seen"] = time.time()
+            # Use the usual room lock and compare-and-swap persistence, but do
+            # not advance bots/deal cards for a presentation-only lobby action.
+            await _save_room(room)
+            return _redact(room, payload.token)
         if payload.type == "reviewLastTrick":
             me = _player_by_token(room, payload.token)
             if not me or me["isBot"]:

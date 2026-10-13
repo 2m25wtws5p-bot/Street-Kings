@@ -1,0 +1,12 @@
+/* display:contents does not flatten CSS child selectors. Keep the existing
+   app viewport rules intact underneath a theme scope, for both designs. */
+.App > .theme-surface > .min-h-screen,
+.App > .theme-surface > .min-h-screen > .min-h-screen { height:100%; min-height:0; }
+.App > .theme-surface > .min-h-screen { overflow:auto; overscroll-behavior:contain; position:relative; z-index:1; }
+.App > .theme-surface > .grain { overflow:hidden; }
+.App > .theme-surface > .grain > .min-h-screen { height:100%; }
+.App > .theme-surface > .grain > .min-h-screen:not(.game-table):not(.game-passing) { overflow:auto; overscroll-behavior:contain; }
+.App > .theme-surface > .grain > .pt-10 { height:100%; overflow:hidden; }
+@media(max-width:639px) {
+  .App > .theme-surface > .grain > .fixed.top-0 { padding-inline:8px; gap:4px; }
+}
