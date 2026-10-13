@@ -17,9 +17,22 @@ test("animal translations cover the same keys and placeholders without changing 
     const normal = getGameLabels(language), animal = getGameLabels(language, "animal");
     assert.deepEqual(animal.avatars.map(item => item.key), AVATARS.map(item => item.key));
     assert.equal(new Set(animal.avatars.map(item => item.label)).size, 18);
-    for (const key of Object.keys(SPECIAL_MAP)) {
-      assert.equal(animal.specials[key].label, normal.specials[key].label);
-      assert.equal(animal.specials[key].short, normal.specials[key].short);
+    const expectedLabels = language === "de"
+      ? { kingpin: "Wirbelrabe", informant: "Naschmaus", briber: "Glückshyäne", fixer: "Helferfuchs", godmother: "Wirbeleule", runner: "Hoppelhase" }
+      : { kingpin: "Mischief Raven", informant: "Snack Mouse", briber: "Happy Hyena", fixer: "Helper Fox", godmother: "Mischief Owl", runner: "Hopping Rabbit" };
+    for (const key of Object.keys(normal.specials)) {
+      assert.equal(animal.specials[key].key, normal.specials[key].key);
+      assert.equal(animal.specials[key].tag, normal.specials[key].tag);
+      assert.equal(animal.specials[key].label, expectedLabels[key]);
+      if (key === "fixer") {
+        assert.match(normal.specials[key].short, /neutral/i);
+        assert.match(animal.specials[key].short, /Ø/);
+        assert.match(animal.specials[key].desc, /neutral/i);
+      } else {
+        // Presentation may change words, never the numeric effect or its sign.
+        const effect = text => text.match(/(?:x|[+−-])?\d+/g)?.map(value => value.replace("−", "-"));
+        assert.deepEqual(effect(animal.specials[key].short), effect(normal.specials[key].short), key);
+      }
     }
     for (const key of Object.keys(normal.suits)) assert.equal(animal.suits[key].primary, normal.suits[key].primary);
   }
@@ -32,9 +45,9 @@ test("theme translations preserve plural rules, parameters and personal language
   assert.equal(animalEn("theme.brand"), "Animal Crews");
   assert.equal(animalDe("game.playerTurn", { name: "Fox Kingpin" }), "Fox Kingpin ist am Zug.");
   assert.equal(animalEn("game.playerTurn", { name: "Fox Kingpin" }), "It’s Fox Kingpin’s turn.");
-  assert.equal(animalDe("over.title", { count: 1 }), "Die Top-Crew");
-  assert.equal(animalDe("over.title", { count: 2 }), "Die Top-Crews");
-  assert.match(animalDe("cards.fixer.desc"), /Fuchs/);
+  assert.equal(animalDe("over.title", { count: 1 }), "Der Gartenchampion");
+  assert.equal(animalDe("over.title", { count: 2 }), "Die Gartenchampions");
+  assert.match(animalDe("cards.fixer.desc"), /Helferfuchs/);
   assert.match(animalEn("cards.fixer.desc"), /Fox/);
   assert.equal(createTranslator("en")("theme.brand"), "Street Kings");
   assert.equal(getThemeMessages("unknown", "de"), null);

@@ -1,6 +1,6 @@
 import React from "react";
 import { PawPrint } from "lucide-react";
-import cards from "../assets/animal-crews/cards-atlas.webp";
+import cards from "../assets/animal-crews/cards-friendly.webp";
 import { ANIMAL_CARD_CELLS, atlasPosition } from "./presentation";
 import "./AnimalTheme.css";
 

@@ -59,7 +59,7 @@ jobs:
       - name: Test personal sorting, drag guards, status contrast and private archive upgrades
         run: node --test frontend/tests/hand-preferences.test.mjs frontend/tests/chat-sounds.test.mjs frontend/tests/presentation-messages.test.mjs frontend/tests/storage-compatibility.test.mjs frontend/tests/turn-clarity.test.mjs
       - name: Test shared room themes and animal presentation without rule changes
-        run: node --test frontend/tests/themes.test.mjs frontend/tests/animal-presentation.test.mjs
+        run: node --test frontend/tests/themes.test.mjs frontend/tests/animal-presentation.test.mjs frontend/tests/animal-friendly-copy.test.mjs
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"

@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "./ui/dialog";
 import { loadStats, clearStats } from "../game/storage";
-import { Trophy, Siren, ScrollText, Trash2, Crown } from "lucide-react";
+import { Trophy, ScrollText, Trash2, Crown } from "lucide-react";
 import { gameApi } from "../game/api";
 import { useI18n } from "../i18n/I18nProvider";
+import { useCardIcons } from "../themes/cardIcons";
 
 export function StatsDialog({ open, onOpenChange }) {
   const { t, formatNumber } = useI18n();
+  const { heat: HeatIcon } = useCardIcons();
   const [stats, setStats] = useState(loadStats);
   const [recent, setRecent] = useState([]);
 
@@ -37,7 +39,7 @@ export function StatsDialog({ open, onOpenChange }) {
       <div className="grid grid-cols-3 gap-2 sm:gap-3">
         <Stat icon={<Trophy size={21} />} label={t("stats.games")} value={formatNumber(stats.gamesPlayed || 0)} />
         <Stat icon={<ScrollText size={21} />} label={t("stats.rounds")} value={formatNumber(stats.roundsPlayed || 0)} />
-        <Stat icon={<Siren size={21} />} label={t("stats.lowest")} value={stats.lowestScore == null ? "—" : formatNumber(stats.lowestScore)} />
+        <Stat icon={<HeatIcon size={21} />} label={t("stats.lowest")} value={stats.lowestScore == null ? "—" : formatNumber(stats.lowestScore)} />
       </div>
 
       <section>

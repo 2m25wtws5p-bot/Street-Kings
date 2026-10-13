@@ -7,8 +7,8 @@ export function getThemeMessages(theme, language) {
 }
 
 export const ANIMAL_AVATAR_NAMES = {
-  de: ["Rabe", "Waschbär", "Wolf", "Biber", "Fuchs", "Eule", "Ratte", "Hyäne", "Hase", "Panther", "Bär", "Luchs", "Kojote", "Dachs", "Otter", "Roter Panda", "Wildschwein", "Elster"],
-  en: ["Raven", "Raccoon", "Wolf", "Beaver", "Fox", "Owl", "Rat", "Hyena", "Rabbit", "Panther", "Bear", "Lynx", "Coyote", "Badger", "Otter", "Red panda", "Boar", "Magpie"],
+  de: ["Rabe", "Waschbär", "Wolf", "Biber", "Fuchs", "Eule", "Maus", "Hyäne", "Hase", "Panther", "Bär", "Luchs", "Kojote", "Dachs", "Otter", "Roter Panda", "Wildschwein", "Elster"],
+  en: ["Raven", "Raccoon", "Wolf", "Beaver", "Fox", "Owl", "Mouse", "Hyena", "Rabbit", "Panther", "Bear", "Lynx", "Coyote", "Badger", "Otter", "Red panda", "Boar", "Magpie"],
 };
 
 export const ANIMAL_CARD_CELLS = Object.freeze({

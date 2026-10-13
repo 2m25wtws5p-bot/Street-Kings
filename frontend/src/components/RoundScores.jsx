@@ -2,8 +2,8 @@ import React, { useEffect } from "react";
 import { Avatar } from "./Avatar";
 import { WIN_THRESHOLD } from "../game/constants";
 import { isGameOver } from "../game/engine";
-import { Siren, Crown, Footprints, CheckCircle2, Clock3, Bot } from "lucide-react";
-import { SUIT_ICON } from "./CardView";
+import { Crown, CheckCircle2, Clock3, Bot } from "lucide-react";
+import { useCardIcons } from "../themes/cardIcons";
 import { SpecialCardReference } from "./SpecialCardReference";
 import { explainRoundScore, getScoreCardMeta, signedScore } from "../game/scoreExplanation";
 import { sfx } from "../game/sound";
@@ -12,8 +12,9 @@ import { useI18n } from "../i18n/I18nProvider";
 const SUIT_TONES = { RED: ["#a3232c", "#ffe5dc"], GREEN: ["#146543", "#d8f3df"], BLUE: ["#1655a6", "#dceeff"], YELLOW: ["#704600", "#fff0b8"] };
 
 function ScoreStep({ step, scoreCards }) {
+  const icons = useCardIcons();
   const card = scoreCards[step.cardKey];
-  const Icon = SUIT_ICON[step.suit] || (step.cardKey === "runner" ? Footprints : Siren);
+  const Icon = icons.suits[step.suit] || (step.cardKey === "runner" ? icons.runner : icons.heat);
   const [ink, paper] = SUIT_TONES[step.suit] || ["#343c49", "#ece5d5"];
   return <li className={`score-step rounded-md p-2.5${card || step.suit ? " score-step-illustrated" : ""}`} data-score-step={step.id} style={{ background: paper, color: ink, border: `1px solid ${ink}55` }}>
     {(card || step.suit) && <SpecialCardReference cardKey={step.cardKey} suit={step.suit} compact />}
@@ -32,6 +33,7 @@ function ScoreStep({ step, scoreCards }) {
 
 export function RoundScores({ state, onNext, onReady, onReplaceSeat, readySeats = state.readySeats || [], yourSeat, busy = false, spectator = false }) {
   const { t } = useI18n();
+  const { heat: HeatIcon } = useCardIcons();
   const { roundResult, scores, players } = state;
   const { results, shooter } = roundResult;
   const over = isGameOver(scores);
@@ -52,7 +54,7 @@ export function RoundScores({ state, onNext, onReady, onReplaceSeat, readySeats 
       <h2 className="font-display text-3xl gold-text text-center mb-1">{t("scores.summary.title")}</h2>
       <p className="text-center text-slate-300/80 mb-6 text-sm">{t("scores.summary.round", { round: state.roundIndex + 1 })}</p>
       {shooter >= 0 && <div className="score-takeover pop-in rounded-lg p-4 mb-5 text-center" data-testid="kingpin-takeover-moon-banner">
-        <div className="font-display text-2xl flex items-center justify-center gap-2"><Siren size={24} aria-hidden="true" />{takeoverName}!</div>
+        <div className="font-display text-2xl flex items-center justify-center gap-2"><HeatIcon size={24} aria-hidden="true" />{takeoverName}!</div>
         <p className="text-sm mt-2 leading-relaxed">{t("scores.summary.takeoverCollected", { name: players[shooter].name, figures: t(shooterResult.informant && shooterResult.godmother ? "scores.summary.bothFigures" : shooterResult.godmother ? "scores.summary.godmother" : "scores.summary.informant") })}</p>
         <p className="text-sm mt-1 font-semibold">{t(withheld ? "scores.summary.withheld" : "scores.summary.transferred")}</p>
       </div>}

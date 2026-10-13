@@ -1,7 +1,7 @@
 import React from "react";
 import streetFaces from "../assets/avatars/street-faces-comic.webp";
 import extraFaces from "../assets/avatars/street-faces-extra-comic.webp";
-import animalFaces from "../assets/animal-crews/portraits-atlas.webp";
+import animalFaces from "../assets/animal-crews/portraits-friendly.webp";
 import { useTheme } from "../themes/ThemeProvider";
 import { atlasPosition } from "../themes/presentation";
 import { useI18n } from "../i18n/I18nProvider";

@@ -1,7 +1,7 @@
 import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "./ui/dialog";
 import { SUIT_ORDER, WIN_THRESHOLD } from "../game/constants";
-import { SUIT_ICON, SPECIAL_ICON } from "./CardView";
+import { useCardIcons } from "../themes/cardIcons";
 import { getScoreCardMeta } from "../game/scoreExplanation";
 import { Crown, ArrowRight } from "lucide-react";
 import { useI18n } from "../i18n/I18nProvider";
@@ -32,6 +32,7 @@ function RuleSection({ number, title, children }) {
 export function RulesDialog({ open, onOpenChange }) {
   const { t } = useI18n();
   const { suits } = useGameLabels();
+  const icons = useCardIcons();
   const scoreCards = getScoreCardMeta(t);
   return <Dialog open={open} onOpenChange={onOpenChange}>
     <DialogContent className="street-dialog rule-dialog w-[calc(100vw-1.5rem)] max-w-2xl max-h-[88dvh] overflow-y-auto p-4 sm:p-6" data-testid="rules-dialog">
@@ -56,7 +57,7 @@ export function RulesDialog({ open, onOpenChange }) {
           </div>
           <p className="mt-2">{t("rules.passing.start")}</p>
           <div className="grid grid-cols-2 gap-2 mt-3">{SUIT_ORDER.map(key => {
-            const s = suits[key]; const Icon = SUIT_ICON[key];
+            const s = suits[key]; const Icon = icons.suits[key];
             const meta = Object.values(scoreCards).find(card => card.suit === key);
             return <div key={key} className="rule-suit rounded-md p-2 flex items-center gap-2" style={{ color: meta.ink, background: meta.paper, border: `1px solid ${meta.ink}55` }}>
               <Icon size={22} aria-hidden="true" /><div><div className="font-display font-bold">{t(`scores.color.${key}`)} · {s.people}</div><div className="text-xs">{t("rules.suit.values")}</div></div>
@@ -77,7 +78,7 @@ export function RulesDialog({ open, onOpenChange }) {
         <RuleSection number="04" title={t("rules.specials.title")}>
           <p className="mb-3"><RuleText text={t("rules.specials.text")} /></p>
           <div className="grid gap-2">{SPECIAL_RULES.map(key => {
-            const card = scoreCards[key]; const Icon = SUIT_ICON[card.suit] || SPECIAL_ICON[key];
+            const card = scoreCards[key]; const Icon = icons.suits[card.suit] || icons.specials[key];
             return <div key={key} className="rule-special rule-special-illustrated rounded-md p-3" data-rule-card={key} style={{ color: card.ink, background: card.paper, border: `1px solid ${card.ink}66` }}>
               <SpecialCardReference cardKey={key} />
               <div className="rule-special-copy">

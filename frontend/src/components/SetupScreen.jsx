@@ -1,13 +1,14 @@
 import React, { useState } from "react";
 import { AVATARS, randomAvatarIndex, randomBotName } from "../game/constants";
 import { Avatar } from "./Avatar";
-import { Siren, Users, Play, Bot, User } from "lucide-react";
+import { Users, Play, Bot, User } from "lucide-react";
 import { sfx } from "../game/sound";
 import { useI18n } from "../i18n/I18nProvider";
 import { useGameLabels } from "../i18n/gameLabels";
 import { LanguageSelector } from "./LanguageSelector";
 import { ThemeSelector } from "../themes/ThemeSelector";
 import { DEFAULT_THEME, normalizeTheme } from "../themes/themeConfig";
+import { useCardIcons } from "../themes/cardIcons";
 
 const PRESETS = [
   { n: 3 },
@@ -40,6 +41,7 @@ function makeBotDefaults(customNames = []) {
 export function SetupScreen({ onStart, theme = DEFAULT_THEME, onThemeChange }) {
   const { t, language } = useI18n();
   const { avatars: avatarLabels } = useGameLabels();
+  const { heat: ThemeMark } = useCardIcons();
   const [languages, setLanguages] = useState(() => Array(MAX_PLAYERS).fill(null));
   const [count, setCount] = useState(4);
   const [names, setNames] = useState(() => Array(MAX_PLAYERS).fill(""));
@@ -104,7 +106,7 @@ export function SetupScreen({ onStart, theme = DEFAULT_THEME, onThemeChange }) {
       <div className="relative max-w-3xl mx-auto px-4 py-10 sm:py-16">
         <div className="text-center mb-10 rise-in">
           <div className="inline-flex items-center gap-2 text-amber-400/80 font-display text-xs uppercase tracking-[0.3em] mb-3">
-            <Siren size={14} /> {t('home.tagline')} <Siren size={14} />
+            <ThemeMark size={14} /> {t('home.tagline')} <ThemeMark size={14} />
           </div>
           <h1 className="font-display text-5xl sm:text-6xl font-black gold-text candle-flicker">{t('theme.brand')}</h1>
           <p className="font-serif-fancy text-slate-300/80 text-lg mt-3 max-w-lg mx-auto">

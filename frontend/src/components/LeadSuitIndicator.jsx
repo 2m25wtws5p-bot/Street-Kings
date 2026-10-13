@@ -1,5 +1,5 @@
 import React from "react";
-import { SUIT_ICON } from "./CardView";
+import { useCardIcons } from "../themes/cardIcons";
 import { useI18n } from "../i18n/I18nProvider";
 import { useGameLabels } from "../i18n/gameLabels";
 
@@ -9,9 +9,10 @@ const SUIT_INK = { RED: "#a3232c", YELLOW: "#704600", BLUE: "#1655a6", GREEN: "#
 export function LeadSuitIndicator({ suit }) {
   const { t } = useI18n();
   const { suits } = useGameLabels();
+  const { suits: suitIcons } = useCardIcons();
   const definition = suits[suit];
   if (!definition) return null;
-  const Icon = SUIT_ICON[suit];
+  const Icon = suitIcons[suit];
   return (
     <div
       className="lead-suit-indicator"

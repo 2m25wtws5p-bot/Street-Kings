@@ -1,13 +1,12 @@
 import React from "react";
-import { Siren, Banknote, Package, VenetianMask, Crown, Handshake, Coins, Eye, Gem, Footprints, TriangleAlert, ShieldCheck } from "lucide-react";
 import { useI18n } from "../i18n/I18nProvider";
 import { useGameLabels } from "../i18n/gameLabels";
 import { CARD_ART } from "../game/cardArt";
 import { useTheme } from "../themes/ThemeProvider";
 import { AnimalCardArt, AnimalBackMark } from "../themes/AnimalArtwork";
+import { useCardIcons } from "../themes/cardIcons";
 
-export const SUIT_ICON = { RED: Siren, YELLOW: VenetianMask, BLUE: Banknote, GREEN: Package };
-export const SPECIAL_ICON = { kingpin: Crown, informant: Eye, briber: Coins, fixer: Handshake, godmother: Gem, runner: Footprints };
+export { SUIT_ICON, SPECIAL_ICON } from "../themes/cardIcons";
 // Width is responsive; one printed-card ratio governs every size and state.
 const SIZES = { xs: "w-11", sm: "w-16", md: "w-20", lg: "w-[104px]" };
 const NUM = { xs: "text-sm", sm: "text-lg", md: "text-2xl", lg: "text-4xl" };
@@ -32,18 +31,19 @@ export function CardView({ card, size = "md", faceDown = false, selected = false
   const { t } = useI18n();
   const { theme } = useTheme();
   const { suits: SUITS, specials: SPECIALS } = useGameLabels();
+  const icons = useCardIcons();
   const sizeCls = SIZES[size] || SIZES.md;
   if (faceDown || !card) return <CardBack sizeCls={sizeCls} className={className} testId={testId} style={style} />;
   const suit = SUITS[card.suit];
   const special = SPECIALS[card.special];
   const isRunner = card.special === "runner";
-  const Icon = SUIT_ICON[card.suit] || Footprints;
-  const SpecialIcon = SPECIAL_ICON[card.special];
+  const Icon = icons.suits[card.suit] || icons.runner;
+  const SpecialIcon = icons.specials[card.special];
   const ink = INK[card.suit] || "#273444";
   const paper = PAPER[card.suit] || "#edf2f8";
   const accent = suit?.primary || "#a7b3c5";
   const impact = CARD_IMPACT[card.special];
-  const ImpactIcon = impact === "risk" ? TriangleAlert : impact === "help" ? ShieldCheck : SpecialIcon;
+  const ImpactIcon = impact === "risk" ? icons.risk : impact === "help" ? icons.help : SpecialIcon;
   const effect = t(impact === "risk" ? 'cards.effectRisk' : impact === "help" ? 'cards.effectHelp' : 'cards.effectNeutral');
   const numeral = isRunner ? "0" : card.value;
   const artwork = CARD_ART[card.special] || CARD_ART[card.suit];

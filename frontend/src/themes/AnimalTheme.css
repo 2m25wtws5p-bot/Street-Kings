@@ -1,34 +1,229 @@
-/* Appearance only: preserve every existing table and printed-card dimension. */
+/* Animal Crews: a sunny illustrated garden, not a second street skin.
+   Appearance only. No card ratios, table geometry, hit areas or state change. */
+html[data-game-theme="animal"] {
+  --animal-ink:#254638; --animal-muted:#536c5d; --animal-paper:#fffdf2;
+  --animal-line:#9fbe9b; --animal-mint:#dff2d8; --animal-sky:#e2f2fb; --animal-peach:#ffe8ce;
+  --animal-font:"Trebuchet MS","Arial Rounded MT Bold",Arial,sans-serif;
+  --background:80 48% 93%; --foreground:151 31% 21%;
+  --card:51 100% 97%; --card-foreground:151 31% 21%;
+  --popover:51 100% 97%; --popover-foreground:151 31% 21%;
+  --primary:44 94% 62%; --primary-foreground:32 73% 12%;
+  --secondary:108 46% 90%; --secondary-foreground:151 31% 21%;
+  --muted:98 29% 89%; --muted-foreground:144 13% 36%;
+  --accent:200 64% 91%; --accent-foreground:151 31% 21%;
+  --border:112 19% 68%; --input:112 19% 68%; --ring:156 35% 35%;
+}
+html[data-game-theme="animal"] body,
+html[data-game-theme="animal"] .App {
+  color:var(--animal-ink); background-color:#e8f3dc; font-family:var(--animal-font);
+}
 html[data-game-theme="animal"] .App .street-bg,
 [data-theme="animal"] .street-bg {
-  background-color:#172b2c;
-  background-image:linear-gradient(180deg,#10282b94,#102122c9),url("../assets/animal-crews/backstreet.webp");
-  background-size:cover;
-  background-position:center;
-  background-repeat:no-repeat;
+  color:var(--animal-ink); background-color:#e8f3dc;
+  background-image:linear-gradient(180deg,#fffcf033,#ecf4de44),url("../assets/animal-crews/meadow.webp");
+  background-size:cover; background-position:center; background-repeat:no-repeat;
 }
-html[data-game-theme="animal"] .App::after { content:"ANIMAL CREWS"; color:#e6bb62; }
-html[data-game-theme="animal"] .street-bg::after { content:"ANIMAL • CREWS"; color:#d0ba74; opacity:.16; }
+html[data-game-theme="animal"] .App::after,
+html[data-game-theme="animal"] .street-bg::after { content:none; }
+html[data-game-theme="animal"] .grain::before { content:none; }
+html[data-game-theme="animal"] :is(.font-display,.font-serif-fancy,.font-mono-stat,.street-wordmark,.crew-name,.score-name,.round-summary h2,.card-special-name,.card-special-rule,.card-impact-label,.room-code-text,.lead-suit-name,.animal-back-mark) {
+  font-family:var(--animal-font)!important; text-transform:none;
+  letter-spacing:normal; text-shadow:none; font-style:normal;
+}
+html[data-game-theme="animal"] :is(.font-display,.street-wordmark,.crew-name,.score-name,.card-special-name) { font-weight:800; }
+html[data-game-theme="animal"] :is(h1.gold-text,.gold-text) { color:#285c43; text-shadow:0 2px 0 #ffffffb3; }
+html[data-game-theme="animal"] :is(.candle-flicker,.float-slow) { animation:none; }
+html[data-game-theme="animal"] :is(.hazard-tape,.card-concrete) { background-image:none; }
+html[data-game-theme="animal"] .hazard-tape { border-radius:999px; clip-path:none!important; color:#60420b; background:#ffe69e; }
+
+/* Light surfaces need dark ink rather than inherited street-theme utilities. */
+html[data-game-theme="animal"] :is(.street-bg,.panel,.last-trick-dialog,.exchange-history-dialog,.chat-dialog,.street-dialog) :is([class*="text-slate-"],[class*="text-amber-"],[class*="text-yellow-"],[class*="text-white"]) { color:var(--animal-ink); }
+html[data-game-theme="animal"] :is(.street-bg,.panel,.last-trick-dialog,.exchange-history-dialog,.chat-dialog,.street-dialog) :is([class*="text-red-"],[class*="text-rose-"]) { color:#a02d3d; }
+html[data-game-theme="animal"] :is(.street-bg,.panel,.last-trick-dialog,.exchange-history-dialog,.chat-dialog,.street-dialog) [class*="text-emerald-"] { color:#216344; }
+html[data-game-theme="animal"] :is(.home-language-choice p,.theme-selector-note,.theme-selector-scope,.theme-selector-copy small,.hand-sort-toolbar small,.hand-card-detail,.online-room-header,.passing-progress,.room-copy-feedback,.exchange-history-note,.game-table-status,.game-center > div > p) { color:var(--animal-muted); }
+
+/* Soft paper layers and rounded controls; all existing dimensions remain. */
 html[data-game-theme="animal"] .panel {
-  background:linear-gradient(135deg,#182e30f5,#102426f5);
-  border-color:#b78b52;
-  box-shadow:3px 5px 0 #07191c88;
+  color:var(--animal-ink); background:linear-gradient(135deg,#fffdf6fa,#f0f8e9fa);
+  border-color:var(--animal-line); border-radius:18px;
+  box-shadow:0 4px 0 #b0c99b66,0 8px 22px #41644814; backdrop-filter:none;
 }
-html[data-game-theme="animal"] .street-card,
-html[data-game-theme="animal"] .street-card-back { border-radius:6px 9px 6px 8px; }
-.street-card .animal-card-art { background-repeat:no-repeat; }
-html[data-game-theme="animal"] .card-print-shade { opacity:.75; }
+html[data-game-theme="animal"] :is(.street-bg,.panel) :is(input,select,textarea) {
+  color:var(--animal-ink); background:#fffef8; border-color:#9fbe9b;
+  border-radius:10px; font-family:var(--animal-font);
+}
+html[data-game-theme="animal"] :is(.street-bg,.panel) :is(input,textarea)::placeholder { color:#536c5d; opacity:1; }
+html[data-game-theme="animal"] :is(.street-bg,.panel) :is(input,select,textarea):focus { border-color:#3d8565; }
+html[data-game-theme="animal"] :is(.street-bg,.panel,.online-room-header,.game-header,.last-trick-dialog,.exchange-history-dialog) button:not(.street-card):not(.selected-card-token):not([data-testid^="btn-avatar-"]) {
+  border-radius:12px; font-family:var(--animal-font); text-transform:none;
+}
+html[data-game-theme="animal"] :is(.street-bg,.panel,.online-room-header,.last-trick-dialog) :is(button[class*="bg-black/"],button[class*="bg-white/"],button[class*="bg-amber-"]) { color:var(--animal-ink); background:#fffdf3; border-color:#a7bea0; }
+html[data-game-theme="animal"] :is(.street-bg,.panel) :is([data-testid^="lobby-player-"],[data-testid="lobby-spectators"]) { background:#eef6e6; border-color:#b6cba9; }
+html[data-game-theme="animal"] :is(.street-bg,.panel) [class*="border-white/"] { border-color:#b9cdae; }
+html[data-game-theme="animal"] :is(.street-bg,.panel) button[class*="bg-gradient-to-r"],
+html[data-game-theme="animal"] .score-next,
+html[data-game-theme="animal"] .game-action-button {
+  color:#382b10; background:linear-gradient(180deg,#ffeab4,#ffd778);
+  border-color:#c28f34; border-radius:13px;
+  box-shadow:0 3px 0 #c6a45b88,inset 0 1px 0 #fff8;
+  font-family:var(--animal-font); text-transform:none;
+}
+html[data-game-theme="animal"] :is(.street-bg,.panel) button[class*="bg-gradient-to-r"]:not(:disabled):hover,
+html[data-game-theme="animal"] .game-action-button:not(:disabled):hover,
+html[data-game-theme="animal"] .score-next:not(:disabled):hover { background:linear-gradient(180deg,#fff1c8,#ffdf91); }
+html[data-game-theme="animal"] .game-action-button:disabled { color:#64705c; background:#e4e7d6; border-color:#aab5a0; box-shadow:0 2px 0 #bfccb466; }
+html[data-game-theme="animal"] .glow-ring { box-shadow:0 0 0 2px #e6b73a77,0 4px 0 #c2a25d44; }
+html[data-game-theme="animal"] .language-selector { color:#345840; background:#f5f9ed; border-color:#a7c399; border-radius:12px; font-family:var(--animal-font); }
+html[data-game-theme="animal"] .language-selector select { color:#315541; background:#fffdf4; border-color:#a7c399; }
+html[data-game-theme="animal"] .theme-selector-heading { color:#315d43; }
+html[data-game-theme="animal"] .theme-selector-option { color:#315541; background:#f6faef; border-color:#b4cda8; border-radius:14px; }
+html[data-game-theme="animal"] .theme-selector-option[data-selected="true"] { background:#e1f4d7; border-color:#4b9469; box-shadow:inset 0 0 0 1px #95c87966; }
+html[data-game-theme="animal"] :is(.theme-selector-icon,.theme-selector-check) { color:#387d55; }
+html[data-game-theme="animal"] .theme-selector-option:not(:disabled):hover { border-color:#548e68; }
+
+/* Room controls stay at the exact same positions and keep their hit areas. */
+html[data-game-theme="animal"] .grain > .fixed.top-0.inset-x-0 { background-image:linear-gradient(180deg,#fffdf6fa,#eef7e4db,transparent); }
+html[data-game-theme="animal"] .grain > .fixed.top-0.inset-x-0 button { color:#31563e; background-color:#fffdf3f5; border-color:#9cb78f; border-radius:12px; }
+html[data-game-theme="animal"] :is(.online-room-header,.game-header) { color:#31563e; }
+html[data-game-theme="animal"] :is(.room-code-button,.room-link-icon-button,.chat-toggle-button,.last-trick-button,.exchange-history-button) {
+  color:#31563e; background:#fffdf3f5; border-color:#9cb78f; border-radius:12px;
+  text-shadow:none; box-shadow:0 3px 0 #b7cba855,0 4px 10px #415a3512;
+}
+html[data-game-theme="animal"] :is(.room-code-button,.room-link-icon-button,.chat-toggle-button,.last-trick-button,.exchange-history-button):not(:disabled):hover { background:#e9f5dd; border-color:#658f59; }
+html[data-game-theme="animal"] :is(.room-invite-link-button,.room-copy-feedback) { color:#356a4b; }
+html[data-game-theme="animal"] .room-code-text { color:#31563e; }
+html[data-game-theme="animal"] .host-crown { color:#b67b16; filter:drop-shadow(0 1px 0 #fff2c9); }
+html[data-game-theme="animal"] .trick-review-notice { color:#385a46; background:#fffdf0; border-color:#aac294; border-radius:12px; }
+
+/* One friendly set of name tiles, including the existing turn signals. */
+html[data-game-theme="animal"] .App .game-roster.crew-roster .crew-player { color:#294d37; background:#fffdf1; background-image:none; border-color:#a9c795; border-radius:13px; box-shadow:0 3px 0 #9fbf8b55; }
+/* Text and its state background switch together to stay legible mid-transition. */
+html[data-game-theme="animal"] .App .game-roster.crew-roster .crew-player { transition-property:border-color,box-shadow,opacity; }
+html[data-game-theme="animal"] :is(.crew-name,.crew-own-label) { color:inherit; }
+html[data-game-theme="animal"] .App .crew-roster .crew-order-marker { color:#355c42; background:#e4f2d9; border-color:#a1bf8e; border-radius:999px; }
+html[data-game-theme="animal"] .street-avatar { outline-color:#81ad72; filter:none; box-shadow:0 2px 0 #c1d4ae66; }
+html[data-game-theme="animal"] .crew-heat { color:#963744; background:#ffebe5; border-color:#d29890; border-radius:6px; }
+html[data-game-theme="animal"] .crew-heat[data-heat="high"] { color:#a3233e; background:#ffddd9; }
+html[data-game-theme="animal"] .crew-heat[data-heat="warm"] { color:#9a4a24; background:#ffead8; }
+html[data-game-theme="animal"] .crew-card-count { color:#335d48; background:#e9f5dc; border-color:#9ebd8e; border-radius:6px; }
+html[data-game-theme="animal"] .App .crew-pass-status.is-ready,
+html[data-game-theme="animal"] .passing-progress .passing-player-status.is-ready { color:#f3fff0; background:#246645; border-color:#8bc899; border-radius:7px; }
+html[data-game-theme="animal"] .App .crew-pass-status.is-waiting,
+html[data-game-theme="animal"] .passing-progress .passing-player-status.is-waiting { color:#6d491b; background:#fff0c7; border-color:#bd9b56; border-radius:7px; }
+html[data-game-theme="animal"] .App :is(.roster-pass-instruction,.roster-pass-count,.passing-progress-summary) { color:#375e42; }
+html[data-game-theme="animal"] .App .roster-pass-instruction strong { color:#245f41; }
+html[data-game-theme="animal"] .crew-replace-button { color:#963e4a; background:#ffe7df; border-color:#c68c85; border-radius:7px; }
+html[data-game-theme="animal"] .App .game-roster.crew-roster .crew-player:is([data-current="true"],[data-own-turn="true"]) { color:#2b1b05; background:#ffc537; border-color:#ffe792; box-shadow:0 0 0 2px #b07e18,0 4px 0 #b9964755; }
+html[data-game-theme="animal"] .App .game-roster.crew-roster .crew-player[data-winner="true"] { color:#f0fff5; background:#14704f; border-color:#72df9c; box-shadow:0 3px 0 #568e6355; }
+html[data-game-theme="animal"] .App .crew-roster [data-current="true"] .crew-order-marker { color:#fff5d5; background:#68430b; border-color:#68430b; }
+html[data-game-theme="animal"] .App .crew-roster [data-winner="true"] :is(.crew-name,.crew-own-label) { color:#f0fff5; }
+html[data-game-theme="animal"] .App .game-roster.crew-roster .crew-player:is([data-current="true"],[data-own-turn="true"]) :is(.crew-name,.crew-own-label) { color:#2b1b05; }
+html[data-game-theme="animal"] .App .game-roster.crew-roster .crew-player:is([data-current="true"],[data-own-turn="true"]) :is(.host-crown,.crew-review-icon,.crew-offline-icon) { color:#68430b; }
+html[data-game-theme="animal"] .App .game-roster.crew-roster .crew-player[data-winner="true"] :is(.crew-name,.crew-own-label,.host-crown,.crew-review-icon,.crew-offline-icon) { color:#f0fff5; }
+
+/* Preserve active/waiting/complete colors and their high-contrast symbols. */
+html[data-game-theme="animal"] .App .game-table .turn-status-card.turn-clarity { border-radius:15px; }
+html[data-game-theme="animal"] .App .game-table .turn-status-card.turn-clarity[data-state="waiting"] { color:#eaf2f8; background:#263b4a; border-color:#8db6c9; box-shadow:0 3px 0 #87a7b24d; }
+html[data-game-theme="animal"] .App .game-table .turn-status-card.turn-clarity[data-state="active"] { color:#2b1b05; background:#ffc537; border-color:#ffe792; box-shadow:0 0 0 2px #aa7d1b,0 4px 0 #c49c4355; }
+html[data-game-theme="animal"] .App .game-table .turn-status-card.turn-clarity[data-state="complete"] { color:#f0fff5; background:#14704f; border-color:#72df9c; box-shadow:0 3px 0 #80a77e66; }
+html[data-game-theme="animal"] .App .game-table .turn-clarity :is(.turn-status-title,.turn-status-subtitle,.turn-status-subtitle > span,.game-play-hint,.trick-action-panel p) { color:inherit; }
+html[data-game-theme="animal"] .App .game-table .turn-clarity[data-state="complete"] .game-action-button { color:#285139; background:#f0f8dc; border-color:#bfdea7; }
+html[data-game-theme="animal"] .turn-reminder-pulse { border-radius:18px; border-color:#fff6c3; }
+html[data-game-theme="animal"] .App .game-table .turn-reminder-message { color:#452709; }
+
+/* Cards retain suit identity, values and their exact printed proportions. */
+html[data-game-theme="animal"] :is(.street-card,.street-card-back) { border-radius:11px; }
+html[data-game-theme="animal"] .street-card { box-shadow:0 3px 7px #4d70412b,0 0 0 1px #ffffffd9!important; }
+html[data-game-theme="animal"] .street-card[data-selected="true"] { box-shadow:0 0 0 2px #fffef6,0 0 0 4px var(--suit-accent),0 5px 10px #47743d33!important; }
+html[data-game-theme="animal"] .street-card::before { border-right-color:var(--suit-paper); }
+html[data-game-theme="animal"] .street-card .animal-card-art { background-repeat:no-repeat; }
+html[data-game-theme="animal"] .card-print-shade { opacity:.12; }
+html[data-game-theme="animal"] :is(.card-pip,.card-special-banner,.card-hand-effect) { box-shadow:none; }
+html[data-game-theme="animal"] .card-pip { border-radius:5px; }
+html[data-game-theme="animal"] :is(.card-suit-stamp,.card-special-stamp) { border-radius:50%; box-shadow:0 1px 2px #45603926; transform:none; }
+html[data-game-theme="animal"] .street-card[data-impact="risk"] .card-special-banner { color:#892f3c; background:#fff0df; }
+html[data-game-theme="animal"] .street-card[data-impact="risk"] :is(.card-special-rule,.card-impact-label) { color:#8b3340; }
+html[data-game-theme="animal"] .street-card[data-impact="risk"] .card-special-stamp { color:#fff9ed; background:#b13b50; border-color:#ffe6ce; border-radius:50%; }
+html[data-game-theme="animal"] .street-card[data-impact="help"] .card-special-banner { color:#245f42; background:#edf8df; }
+html[data-game-theme="animal"] .street-card[data-impact="help"] :is(.card-special-rule,.card-impact-label) { color:#245f42; }
+html[data-game-theme="animal"] .street-card[data-impact="help"] .card-special-stamp { color:#f1fff0; background:#2c7651; border-color:#e3f7d5; }
+html[data-game-theme="animal"] .street-card[data-impact="neutral"] .card-special-banner { color:#38556c; background:#edf5fa; }
+html[data-game-theme="animal"] .compact-hand .card-hand-effect { border-radius:6px; font-family:var(--animal-font); }
+html[data-game-theme="animal"] .compact-hand [data-impact="risk"] .card-hand-effect { color:#fff9f0; background:#a82e47; border-color:#ffe0cd; }
+html[data-game-theme="animal"] .compact-hand [data-impact="help"] .card-hand-effect { color:#f4fff0; background:#256a49; border-color:#d6efbf; }
+html[data-game-theme="animal"] .compact-hand [data-impact="neutral"] .card-hand-effect { color:#fff; background:#3d5c76; border-color:#e3f1f7; }
+html[data-game-theme="animal"] .card-selection-check { color:#215437; background:#eaffcb; border-color:#6d9d50; box-shadow:0 1px 3px #42673933; }
 html[data-game-theme="animal"] .street-card-back {
-  color:#f1d89e; background-color:#16383c;
-  background-image:repeating-linear-gradient(135deg,#e9c27b18 0 2px,transparent 2px 9px),radial-gradient(ellipse,#42675f,transparent 75%);
-  border-color:#dbb970;
+  color:#2e6850; background-color:#d7edc8; border-color:#7fa56e;
+  background-image:radial-gradient(circle at 25% 25%,#ffffff70 0 9%,transparent 10%),radial-gradient(circle at 75% 75%,#ffffff70 0 9%,transparent 10%),linear-gradient(145deg,#f2f9d8,#c3e7c2);
+  box-shadow:0 3px 7px #4d70412b;
 }
-.animal-back-mark { display:flex; flex-direction:column; align-items:center; gap:2px; font:700 14px "Permanent Marker",sans-serif; transform:rotate(-9deg); }
-html[data-game-theme="animal"] .street-avatar { outline:1px solid #e7ce9b99; }
-html[data-game-theme="animal"] .street-dialog {
-  background:linear-gradient(115deg,#f2e8ce,#d8decd)!important;
-  border-color:#81734e!important;
+html[data-game-theme="animal"] .animal-back-mark { display:flex; flex-direction:column; align-items:center; gap:2px; color:#37744e; font-weight:800; text-shadow:0 1px 0 #fff9; }
+
+/* Hand controls and confirmation markers stay compact and in place. */
+html[data-game-theme="animal"] .hand-sort-toolbar { color:#365a43; }
+html[data-game-theme="animal"] :is(.hand-sort-toolbar select,.hand-shuffle-button,.hand-arrange-button) { color:#35583f; background:#fffdf0; border-color:#94b38a; border-radius:9px; }
+html[data-game-theme="animal"] .hand-arrange-button[aria-pressed="true"] { color:#215238; background:#d6f2c7; border-color:#5b9a69; }
+html[data-game-theme="animal"] .hand-card-detail strong { color:#285c43; }
+html[data-game-theme="animal"] :is(.passing-recipient,.exchange-receipt) { color:#355a40; background:#fffdf0; border-color:#a0be90; border-radius:16px; box-shadow:0 4px 0 #b5ce9e77,0 8px 20px #55714424; }
+html[data-game-theme="animal"] .passing-recipient strong { color:#285c43; }
+html[data-game-theme="animal"] .selected-cards-label { color:#365a43; }
+html[data-game-theme="animal"] .App .selected-card-token { border-radius:9px; font-family:var(--animal-font); }
+html[data-game-theme="animal"] .App .selected-card-token-empty { color:#779c6b; }
+html[data-game-theme="animal"] .App .game-table .played-card-label { color:#31553e; background:#fffdf3f5!important; border-color:#9db58c!important; box-shadow:0 2px 0 #c6d4b277; border-radius:999px; }
+html[data-game-theme="animal"] .App .game-table .played-card-label > span { color:#31553e!important; }
+html[data-game-theme="animal"] [data-card-drop-zone][data-drag-over="true"] { outline-color:#639c67; background-color:#d3f0c244; }
+html[data-game-theme="animal"] .lead-suit-indicator { background:#fffdf1; border-color:#9bb78b; border-left-color:var(--lead-color); border-radius:12px; box-shadow:0 2px 0 #bdcea666; }
+html[data-game-theme="animal"] .lead-suit-label { color:#556d55; }
+
+/* Rules, scores and records share the same friendly paper materials. */
+html[data-game-theme="animal"] :is(.street-dialog,.last-trick-dialog,.exchange-history-dialog,.chat-dialog) { color:#2d503b!important; background:linear-gradient(135deg,#fffdf4,#eff7e7)!important; border-color:#99b987!important; border-radius:20px!important; box-shadow:0 7px 0 #afc59c77,0 15px 50px #284c3540; }
+html[data-game-theme="animal"] :is(.last-trick-dialog,.exchange-history-dialog,.chat-dialog)::backdrop { background:#254e4666; backdrop-filter:blur(3px); }
+html[data-game-theme="animal"] [data-radix-dialog-overlay] { background:#254e4666; }
+html[data-game-theme="animal"] .fixed.inset-0[data-state][class*="bg-black/80"] { background:#254e4666; backdrop-filter:blur(3px); }
+html[data-game-theme="animal"] .street-dialog-header { border-bottom-color:#afc79d; }
+html[data-game-theme="animal"] :is(.street-dialog-title,.street-dialog-kicker,.rule-section h3,.stats-place) { color:#336545; font-family:var(--animal-font)!important; text-shadow:none; }
+html[data-game-theme="animal"] .street-dialog-description { color:#55705c!important; }
+html[data-game-theme="animal"] .rule-section { border-bottom-color:#adc898; }
+html[data-game-theme="animal"] :is(.rule-step,.rule-note,.rule-example,.stats-metric,.stats-crew,.stats-recent,.stats-empty) { color:#355640; background:#f0f8df; border-color:#adc798; border-radius:12px; box-shadow:0 2px 0 #b3cb9c33; }
+html[data-game-theme="animal"] .rule-step { color:#f5fff0; background:#4e8559; }
+html[data-game-theme="animal"] .rule-table :is(th,td) { border-color:#b8cda8; }
+html[data-game-theme="animal"] .rule-table th { color:#31553c; background:#deedca; }
+html[data-game-theme="animal"] :is(.rule-suit,.rule-special,.score-step) { border-radius:12px; box-shadow:0 2px 0 #647f4b18; }
+html[data-game-theme="animal"] :is(.score-card,.score-card:nth-child(even)) { color:#2d503b; background:#fffdf4; border-color:#a2be8f; border-radius:18px; box-shadow:0 4px 0 #bfd1ab77; }
+html[data-game-theme="animal"] :is(.score-name,.score-subtitle,.score-ledger,.stats-crew-metrics) { color:#355b42; }
+html[data-game-theme="animal"] :is(.score-total,.score-delta) { background:#fff1cf; border-color:#d3b76e; border-radius:10px; }
+html[data-game-theme="animal"] .score-ledger { border-top-color:#acc999; }
+html[data-game-theme="animal"] .score-status { border-radius:999px; }
+html[data-game-theme="animal"] .score-takeover { color:#623e21; background:#fff0c9; border-color:#d2a653; border-radius:18px; }
+html[data-game-theme="animal"] .score-takeover :is(p,div) { color:#623e21; }
+html[data-game-theme="animal"] .stats-clear { color:#9a3d4d; }
+html[data-game-theme="animal"] :is(.round-readiness,.round-readiness-player) { color:#355b42; background:#f5faec; border-color:#a9c499; border-radius:12px; }
+html[data-game-theme="animal"] .round-readiness-player[data-ready="true"] { color:#285b3a; background:#e0f2d5; border-color:#86b47c; }
+html[data-game-theme="animal"] .round-readiness-player[data-ready="false"] { color:#785327; background:#fff1d9; border-color:#cfb17c; }
+html[data-game-theme="animal"] .round-readiness-button { color:#25593d; background:#ddf1ce; border-color:#8ab779; border-radius:10px; }
+
+/* Conversation bubbles, emoji and sound chips feel like little stickers. */
+html[data-game-theme="animal"] .chat-bubble { color:#34563e; background:#fffdf0; border-color:#8eaf7d; border-radius:14px; box-shadow:0 3px 0 #b4cca077; font-family:var(--animal-font); }
+html[data-game-theme="animal"] .chat-bubble::before { background:#fffdf0; border-color:#8eaf7d; }
+html[data-game-theme="animal"] :is(.chat-heading h2,.chat-message-meta,.chat-room-code) { color:#376b48; }
+html[data-game-theme="animal"] :is(.chat-message-meta time,.chat-empty,.chat-compose-footer > span,.chat-spectator-note,.chat-retention-note,.chat-sound-note) { color:#5a705c; }
+html[data-game-theme="animal"] .chat-message { color:#31553d; background:#e7f4df; border-color:#b6d0a4; border-radius:12px; }
+html[data-game-theme="animal"] .chat-message-own { background:#e3f1fb; border-color:#a3c5d9; }
+html[data-game-theme="animal"] :is(.chat-close-button,.chat-quick-emojis button) { color:#365d42; background:#fdfbf0; border-color:#b1c79f; border-radius:10px; }
+html[data-game-theme="animal"] .chat-quick-emojis button:hover { background:#e5f4d9; border-color:#7fa56e; }
+html[data-game-theme="animal"] .chat-compose textarea { color:#31553d; background:#fffef8; border-color:#9eba8c; border-radius:12px; }
+html[data-game-theme="animal"] .chat-compose textarea:focus { border-color:#4c8d5b; }
+html[data-game-theme="animal"] .chat-compose-footer button { color:#28593b; background:#d5edc5; border-color:#8eaf7b; border-radius:10px; }
+html[data-game-theme="animal"] :is(.chat-sound-palette,.chat-sound-choices button,.chat-replay-sound) { color:#37563c; background:#fff0d6; border-color:#c7ac7a; border-radius:10px; }
+html[data-game-theme="animal"] .chat-sound-palette .chat-sound-choices button { color:#37563c; background:#fff9e9; border-color:#d6c29e; }
+html[data-game-theme="animal"] .chat-error { color:#a02d3d; }
+html[data-game-theme="animal"] ::selection { color:#21412e; background:#cdeba9; }
+html[data-game-theme="animal"] ::-webkit-scrollbar-track { background:#edf5e3; }
+html[data-game-theme="animal"] ::-webkit-scrollbar-thumb { background:#a2c18f; border-radius:8px; }
+html[data-game-theme="animal"] ::-webkit-scrollbar-thumb:hover { background:#7da76b; }
+html[data-game-theme="animal"] :is(button,input,select,textarea,summary):focus-visible { outline-color:#357d58; }
+html[data-game-theme="animal"] .street-card:focus-visible { outline-color:#367c54; }
+@media(prefers-reduced-motion:reduce) {
+  html[data-game-theme="animal"] :is(.rise-in,.pop-in,.candle-flicker,.float-slow) { animation:none!important; }
 }
-html[data-game-theme="animal"] .street-dialog-title { color:#26494a; }
-html[data-game-theme="animal"] .street-dialog-kicker { color:#72552c; }
-/* Never override turn-state colors, suit colors, hit areas or hand transforms. */
